@@ -1,0 +1,92 @@
+Pseudocode
+For all data sends and receives, retry 10 times
+For errors send a warning
+Feed watchdog at every opportunity
+
+** Factory reset
+** USB port if powered at all times
+** Review TODO Doors and Mind map for anything else
+
+===RTC alarm start/Up+dn reeds/Aux interrupt===
+RTC alarm pulls low a pin that is configured for an interrupt and is ordinarily pulled high
+Interrupt runs callback
+Watchdog starts with 10? seconds
+ESP detects how it was started
+Stop all interrupts
+Check battery level
+  (We don't want the door half closed for the night.)
+  Flash red
+  Goto :end
+Check chip temperature
+ Flash red
+  Goto :end
+Green blinks
+Start Wi-Fi (Error)
+Check network connectivity. Login, do a "ping" to the remote server, receive "ack". (Error)
+Detect attached devices
+If network:
+  Update local clock from RTC (Error)
+  Update local clock from NTP (Error)
+  Check for new scripts (Error)
+    Set a flag
+    machine.reset()
+  Send battery status (Error)
+    Server: If below 10% send alert
+  Send temperature (Error)
+    Server: If above X temp send alert. What temp do poultry die plus X degrees for running long? What about continuous running?
+  Send attached devices
+  Check for new data updates (Error)
+    Server: Send the next 7 years' worth of data
+    Server: Delete past events from schedule that have already occurred
+Check schedule
+  If no scheduled events
+    Flash red
+    Goto :end
+  If past event and less than one hour after event start time, or if future event that occurs before X number of seconds (of a cycle completion, shutdown, and startup)
+    Start it
+    Delete from local schedule
+    Notify server it's been started
+    Server notes and deletes it from schedule
+    Server sets up upcoming events
+  -Door open-
+    Motor voltage
+      One motor not responding (Error)
+      Neither motor responding (Error)
+      Obstruction switch wait one second and try again, three tries (Error)
+      Motor voltage high or low wait one second and try again, three tries (Error)
+    Stop at limit switch
+    Send update
+  Set next RTC alarm
+:end
+Start all interrupts
+Deep sleep
+
+===Reset button===
+Do items from other startup beginning at watchdog
+Check factory reset button held 5 seconds
+  We will proceed to start the AP and GUI but mark a variable to check it again after five seconds
+  Might need to do an interrupt if GUI is non-blocking
+  Delete config
+  machine.reset()
+If network:
+  Start AP and GUI non-blocking
+  Aside from what's already been added
+    Network "ping" state
+    Version
+    Serial
+    Website username/password
+  Wizard
+   Aside from what's already been added
+      Website username/password
+    At completion, timeout, drop AP, redirect to website
+  Do items from other startup
+Check schedule
+  Do items from other startup
+If no client connection within two minutes
+  Flash green faster
+If no client connection within one minute
+  Goto :end
+:end
+  Do items from other startup
+
+===Server side===
