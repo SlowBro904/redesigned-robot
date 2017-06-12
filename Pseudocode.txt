@@ -1,4 +1,3 @@
-Pseudocode
 For all data sends and receives, retry 10 times
 For errors send a warning
 Feed watchdog at every opportunity
@@ -90,3 +89,32 @@ If no client connection within one minute
   Do items from other startup
 
 ===Server side===
+
+
+
+
+
+===Objects===
+Wifi
+Rtc
+I2c
+Wdt 
+Motors
+Batt 
+System
+ Temp
+ Version (OS, scripts)
+ Serial
+ Attached devices
+LEDs 
+USB 
+Connection to cloud
+Peripherals
+NTP 
+Events
+Reeds
+Fac reset
+Obs switch 
+Solenoid 
+User account
+Web server
