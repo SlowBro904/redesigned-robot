@@ -2,8 +2,10 @@ from config import get_config
 from i2c import I2C
 from rtc import RTC
 from wdt import WDT
+from wifi import WIFI
 from battery import BATTERY
 from system import SYSTEM
+from mqtt import MQTT
 from scheduled_events import scheduled_events
 from errors import process_warnings
 from cloud_communication import ping_cloud, send, get_data_updates, update_system
@@ -11,6 +13,7 @@ from cloud_communication import ping_cloud, send, get_data_updates, update_syste
 config = CONFIG()
 i2c = I2C()
 rtc = RTC(i2c)
+wifi = WIFI()
 battery = BATTERY()
 attached_devices = SYSTEM(i2c).attached_devices
 
