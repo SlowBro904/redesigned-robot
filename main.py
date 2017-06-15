@@ -10,12 +10,12 @@ from scheduled_events import scheduled_events
 from errors import process_warnings
 from cloud_communication import ping_cloud, send, get_data_updates, update_system
 
-config = CONFIG()
+config = CONFIG('/flash/smartbird.cfg', '/flash/smartbird.default.cfg')
 i2c = I2C()
 rtc = RTC(i2c)
+system = SYSTEM(i2c)
 wifi = WIFI()
 battery = BATTERY()
-attached_devices = SYSTEM(i2c).attached_devices
 
 battery.check_charge()
 rtc.check_temp()
@@ -26,7 +26,7 @@ rtc.ntp_to_rtc()
 update_system()
 send('battery_charge', battery.charge)
 send('rtc_temp', rtc.temp)
-send('attached_devices', attached_devices())
+send('attached_devices', system.attached_devices)
 get_data_updates()
 # FIXME if not my_scheduled_events: hard_error()
 for scheduled_event in scheduled_events():

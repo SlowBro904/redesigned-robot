@@ -40,7 +40,7 @@ class MQTT(object):
         if path not in self.topics:
             self.subscribe(path)
         
-        return self.client.receive(path)
+        return self.client.receive(path)[1]
     
     def subscribe(self, path):
         try:
