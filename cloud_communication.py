@@ -30,20 +30,20 @@ def get_data_updates():
     updates = send('get_data_updates')
     
     if not updates:
-        return False
+        return True
     
     existing_data = dict()
     for update in updates:
         data_file           = update[0]
         parameter           = update[1]
-        values              = update[2:]
+        values              = update[2] # This might be a list
         
         try:
             with open('/flash/' + data_file) as json_data:
                 existing_data[data_file] = load(json_data)
             else: # FIXME Right?
                 pass
-                # Create the file here
+                # FIXME Create the file here
         except:
             warning('Failed_data_updates_cannot_open_' + data_file)
         
@@ -61,3 +61,20 @@ def get_data_updates():
 def update_system():
     if not wifi.isconnected():
         return False
+    
+    updates = send('get_system_updates')
+    
+    if not updates:
+        return True
+    
+    for update in updates:
+        script_file     = update[0]
+        script_contents = update[1]
+        
+        try:
+            # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
+            with open('/flash/' + script_file + '.new', 'w') as script_fileH:
+                for row in script_contents:
+                    script_fileH.write(row)
+        except:
+            pass # FIXME Right?
