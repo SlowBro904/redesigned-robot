@@ -40,6 +40,7 @@ class CONFIG(object):
         """ Resets the config file to defaults """
         # TODO I think I want to use 'with' here
         try:
+            # FIXME Ensure the defaults file is in json format. At the moment it's in Python.
             defaults_fileH = open(self.defaults_file)
         except:
             self.hard_error()
