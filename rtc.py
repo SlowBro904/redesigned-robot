@@ -43,6 +43,7 @@ class RTC(object):
             return False
     
     
+    # TODO I think this is redundant
     def system_to_rtc(self):
         """ Copies the system clock time to the RTC """
         if not self.rtc:
@@ -67,6 +68,12 @@ class RTC(object):
     def check_ntp(self):
         """ Returns the status of NTP synchronization """
         return self.system_clock.synced()
+    
+    
+    def set_alarm(self, datetime, alarm_num = 2):
+        """ Sets the alarm with the datetime, choosing alarm_num 2 as default. The 2nd alarm only offers hour and minute resolution while the 1st alarm offers hour/minute/second resolution. But usually we only need hour and minute resolution. """
+        # FIXME Finish
+        pass
     
     
     def check_temp(self):

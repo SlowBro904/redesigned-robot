@@ -1,13 +1,14 @@
 from main import wifi
-from main import mqtt
+from mqtt import MQTT
 from json import loads, load, dumps, dump
 from machine import reset
 import temp_file
 
-# TODO Can I do if wifi?
+mqtt = MQTT()
 
 def ping_cloud():
     """ Ping the cloud servers, ensure we have complete connectivity """
+    # TODO Can I do if wifi?
     if not wifi.isconnected():
         return False
         

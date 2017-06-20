@@ -2,25 +2,26 @@
 from config import CONFIG
 config = CONFIG('/flash/smartbird.cfg', '/flash/smartbird.defaults.cfg')
 
+import errors
 from i2c import I2C
 from rtc import RTC
 from wdt import WDT
 from wifi import WIFI
-from battery import BATTERY
 from system import SYSTEM
-from mqtt import MQTT
-from scheduled_events import run_scheduled_events
+from battery import BATTERY
+from schedule import SCHEDULE
+from machine import deep_sleep
 from cloud_communication import ping_cloud, send, get_data_updates, update_system
-import errors
 
 # Set this here in the event that other objects fire warnings upon instantiation
 errors.good_LED(True)
 
 i2c = I2C()
-rtc = RTC(i2c)
-system = SYSTEM(i2c)
 wifi = WIFI()
+rtc = RTC(i2c)
 battery = BATTERY()
+system = SYSTEM(i2c)
+schedule = SCHEDULE()
 
 battery.check_charge()
 # TODO Add later, refer to the rtc.sh from C.H.I.P.
@@ -35,6 +36,8 @@ if ping_cloud():
     send('attached_devices', system.attached_devices)
     get_data_updates()
 
-run_scheduled_events()
+schedule.run()
 errors.process_warnings()
 wdt.stop()
+rtc.set_alarm(schedule.next_event_time())
+deep_sleep()
