@@ -14,7 +14,8 @@ class BATTERY(object):
     Rounded, it equals 2234.
     """
     # TODO Calculate the value for CRITICAL_BATTERY_LEVEL here so the config file can be more natural (1.8 instead of 2234)
-    if self.charge <= self.config['CRITICAL_BATTERY_LEVEL']: self.hard_error()
+    if self.charge <= self.config['CRITICAL_BATTERY_LEVEL']:
+        self.hard_error()
   
   @property
   def charge(self):

@@ -20,14 +20,16 @@ class MQTT(object):
         if not port:
             port = config['MQTT_PORT']
         
-        if root_path:
-            self.root_path = root_path
-        else:
+        if not root_path:
+            # Use the unique ID for the root path
             self.root_path = hexlify(unique_id())
+        else:
+            self.root_path = root_path
         
         self.client = MQTTClient(username, password, server, port)
-        client.settimeout = settimeout
+        client.settimeout = settimeout # FIXME What?
         self.client.connect()
+    
     
     def publish(self, path, message):
         """ Publish a data update to an MQTT path """
@@ -37,13 +39,15 @@ class MQTT(object):
             return True
         except:
             return False
-            
+    
+    
     def get(self, path):
         """ Gets any current data in an MQTT path """
         if path not in self.topics:
             self.subscribe(path)
         
         return self.client.receive(path)[1]
+    
     
     def subscribe(self, path):
         """ Subscribes to an MQTT path """

@@ -1,7 +1,8 @@
 from main import wifi
 from main import mqtt
 from json import loads, load, dumps, dump
-import temp_file 
+from machine import reset
+import temp_file
 
 # TODO Can I do if wifi?
 
@@ -82,3 +83,5 @@ def update_system():
                     script_fileH.write(row)
         except:
             pass # FIXME Right?
+    
+    self.reset()
