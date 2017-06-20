@@ -9,21 +9,21 @@ error_LED = Pin(config['ERROR_LED_PIN'], mode = Pin.OUT)
 warnings = set()
 
 def hard_error():
-  error_LED(True)
-  sleep(1)
-  # TODO Can I combine?
-  wdt.feeder().stop()
-  wdt.stop()
-  deepsleep()
+    """ Lights up the error LED, waits one second, stops the watchdog timer, and puts the device into indefinite deep sleep. """
+    self.good_LED(False)
+    self.warning_LED(False)
+    self.error_LED(True)
+    self.sleep(1)
+    # TODO Can I combine?
+    self.wdt.feeder().stop()
+    self.wdt.stop()
+    self.deepsleep()
 
-def warning(warning)
-  warning_LED_on()
-  warnings.add(warning)
-
-def warning_LED_on():
-  if warning_LED: return True
-  good_LED(False)
-  warning_LED(True)
-  return True
+def warning(message)
+    """ Turns on the warning LED and adds the message to the warning set """
+    if not self.warning_LED:
+        self.good_LED(False)
+        self.warning_LED(True)
+    self.warnings.add(warning)
   
 good_LED(True)

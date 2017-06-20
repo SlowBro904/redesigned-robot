@@ -6,6 +6,7 @@ class MQTT(object):
     from time import sleep
     
     def __init__(self, username = None, password = None, server = None, port = None, root_path = None):
+        """ Setup our MQTT object """
         self.topics = set()
         if not username:
             username = config['MQTT_USERNAME']
@@ -29,6 +30,7 @@ class MQTT(object):
         self.client.connect()
     
     def publish(self, path, message):
+        """ Publish a data update to an MQTT path """
         try:
             self.client.publish(self.root_path + path, message)
             self.sleep(1) # TODO Is this necessary?
@@ -37,12 +39,14 @@ class MQTT(object):
             return False
             
     def get(self, path):
+        """ Gets any current data in an MQTT path """
         if path not in self.topics:
             self.subscribe(path)
         
         return self.client.receive(path)[1]
     
     def subscribe(self, path):
+        """ Subscribes to an MQTT path """
         try:
             self.client.subscribe(path)
             self.topics.add(path)

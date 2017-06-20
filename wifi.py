@@ -67,17 +67,17 @@ class WIFI(object):
     def ifconfig(self, ip = '', subnet_mask = '', gateway = '', DNS_server = ''):
         """ Sets or returns the IP configuration in a tuple. (ip, subnet_mask, gateway, DNS_server) """
         if ip and subnet_mask: # We don't always need gateway and DNS server.
-        # TODO Do we even need subnet?
-        try:
-            self.wlan.ifconfig(config=(ip, subnet_mask, gateway, DNS_server))
-        except:
-            pass
+            # TODO Do we even need subnet?
+            try:
+                self.wlan.ifconfig(config=(ip, subnet_mask, gateway, DNS_server))
+            except:
+                pass
 
         try:
             return self.wlan.ifconfig()
         except:
             return ('','','','') # TODO Is this redundant? Try the output of the command above
-
+    
     
     @property
     def ip(self):

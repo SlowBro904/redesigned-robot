@@ -6,6 +6,7 @@ def create(target, mode = 'w'):
     return open('/flash/' + target_basename + '.tmp', mode)
 
 def install(temp_file, target):
+    """ Installs the temp file into the target, backing up any existing file """
     try:
         remove(target + '.bak') # Delete any old backup file TODO Create some way of restoring from backup
     except:

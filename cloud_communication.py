@@ -6,6 +6,7 @@ import temp_file
 # TODO Can I do if wifi?
 
 def ping_cloud():
+    """ Ping the cloud servers, ensure we have complete connectivity """
     if not wifi.isconnected():
         return False
         
@@ -16,6 +17,7 @@ def ping_cloud():
 
     
 def send(action, message = None):
+    """ Send an action and message and get the reply. For example, action = 'door_status', message = 'up' """
     if not wifi.isconnected():
         return False
     
@@ -24,6 +26,7 @@ def send(action, message = None):
     
 
 def get_data_updates():
+    """ Get all recent data updates such as new door schedules from our cloud servers. """
     if not wifi.isconnected():
         return False
     
@@ -59,6 +62,7 @@ def get_data_updates():
 
 
 def update_system():
+    """ Update the scripts on our system """
     if not wifi.isconnected():
         return False
     

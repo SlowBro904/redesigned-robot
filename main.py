@@ -10,7 +10,7 @@ from scheduled_events import scheduled_events
 from errors import process_warnings
 from cloud_communication import ping_cloud, send, get_data_updates, update_system
 
-config = CONFIG('/flash/smartbird.cfg', '/flash/smartbird.default.cfg')
+config = CONFIG('/flash/smartbird.cfg', '/flash/smartbird.defaults.cfg')
 i2c = I2C()
 rtc = RTC(i2c)
 system = SYSTEM(i2c)

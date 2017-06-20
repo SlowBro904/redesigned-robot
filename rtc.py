@@ -65,7 +65,8 @@ class RTC(object):
     
     
     def check_temp(self):
-      """ Checks if the temperature as measured by the RTC is greater than CRITICAL_TEMP in the config file and if so, throws a hard error. """
+      """ Checks if the temperature in Celcius as measured by the RTC is greater than CRITICAL_TEMP in the config file and if so, throws a hard error. """
+      # FIXME See if we're regularly getting close to this value
       if self.temp >= self.config['CRITICAL_TEMP']:
         self.hard_error()
     
