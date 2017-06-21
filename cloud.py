@@ -4,7 +4,7 @@ class CLOUD(object):
     from machine import reset
     from uhashlib import MD5
     from os import remove
-    import temp_file
+    from temp_file import create as create_temp_file, install as install_temp_file
 
     def __init__(config):
         self.mqtt = self.MQTT(config)
@@ -52,9 +52,9 @@ class CLOUD(object):
         for data_file in existing_data:
             # Read the original file. If we find our parameter mark a flag True and overwrite the value in the temp file.
             # FIXME Change to 'with' and do general Pythonic cleanup
-            temp_fileH = self.temp_file.create(data_file)
+            temp_fileH = self.create_temp_file(data_file)
             self.dump(existing_data[data_file], temp_fileH)
-            temp_file.install(temp_fileH, data_file)
+            self.install_temp_file(temp_fileH, data_file)
 
 
     def get_system_updates(self):

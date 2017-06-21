@@ -3,7 +3,7 @@ class CONFIG(object):
     from re import search
     from errors import ERRORS
     from json import load, dump
-    import temp_file
+    from temp_file import create as create_temp_file, install as install_temp_file
     
     def __init__(self, config_file, defaults_file):
         """ Provides a dictionary with keys and values coming from the config file's options and values.
@@ -71,13 +71,13 @@ class CONFIG(object):
         # Update the value also in memory FIXME Test. I might have to create a config.set(). Does this update the values in an instance or only in the class? Test.
         self.config[parameter] = value
         
-        temp_config_fileH = self.temp_file.create(self.config_file)
+        temp_config_fileH = self.create_temp_file(self.config_file)
         
         # Dump our config to the temp file
         dump(self.config, temp_config_fileH)
         
         # Install the temp file
-        if not self.temp_file.install(temp_config_file, self.config_file):
+        if not self.install_temp_file(temp_config_file, self.config_file):
             warning('Cannot_update_config_file')
             
         temp_config_fileH.close()

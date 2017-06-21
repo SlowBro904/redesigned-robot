@@ -1,4 +1,3 @@
-# TODO It feels kludgy always passing config as a value. How do we put the configuration in memory so it's accessible to all modules? Ask StackExchange.
 from i2c import I2C
 from rtc import RTC
 from wdt import WDT
@@ -15,6 +14,7 @@ from machine import deep_sleep
 errors.good_LED(True)
 
 config = CONFIG('/flash/smartbird.cfg', '/flash/smartbird.defaults.cfg')
+# TODO It feels kludgy always passing config as a parameter. How do we load the configuration into memory so it's always accessible to all modules? Ask StackExchange.
 errors = ERRORS(config)
 i2c = I2C(config)
 wifi = WIFI(config)
