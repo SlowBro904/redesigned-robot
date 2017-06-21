@@ -2,31 +2,22 @@ class MQTT(object):
     from simple import MQTTClient # FIXME Add exception AdafruitIOError but under what conditions
     from machine import unique_id
     from binascii import hexlify
-    from main import config # TODO This tightly couples our modules but I can't think of a better alternative. I want to keep main.py clean.
     from time import sleep
     
-    def __init__(self, username = None, password = None, server = None, port = None, root_path = None):
+    def __init__(self, config):
         """ Setup our MQTT object """
         self.topics = set()
-        if not username:
-            username = config['MQTT_USERNAME']
+        self.config = config
         
-        if not password:
-            password = config['MQTT_PASSWORD']
+        username    = self.config['MQTT_USERNAME']
+        password    = self.config['MQTT_PASSWORD']
+        server      = self.config['MQTT_SERVER']
+        port        = self.config['MQTT_PORT']
         
-        if not server:
-            server = config['MQTT_SERVER']
+        # Use the unique ID for the root path
+        self.root_path = hexlify(unique_id())
         
-        if not port:
-            port = config['MQTT_PORT']
-        
-        if not root_path:
-            # Use the unique ID for the root path
-            self.root_path = hexlify(unique_id())
-        else:
-            self.root_path = root_path
-        
-        self.client = MQTTClient(username, password, server, port)
+        self.client = self.MQTTClient(username, password, server, port)
         client.settimeout = settimeout # FIXME What?
         self.client.connect()
     

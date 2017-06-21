@@ -1,27 +1,29 @@
 class RTC(object):
-    from machine import RTC as system_clock
-    from errors import hard_error, warning
-    from main import config
     from urtc import DS3231
+    from errors import ERRORS
+    from machine import RTC as system_clock
     
     rtc = False
     ntp_server = None
     
-    def __init__(self, i2c):
+    def __init__(self, i2c, config):
         """ A class for the RTC functionality. Can update the system clock, the RTC clock, sets up an NTP synchronization, and can even check the temperature. """
         try:
             self.rtc = self.DS3231(i2c)
         except: # TODO Get specific about exceptions all over
             # FIXME If not connected destroy this object, return False
             self.warning('RTC_connection_error')
+        
+        self.config = config
+        self.errors = self.ERRORS(self.config)
       
-          # Start an NTP sync daemon in the background
-          # FIXME Update NTP_SERVER in the config
-          # TODO If not syncing try another server
-          # TODO Check the status in main.py
-          self.ntp_server = self.config['NTP_SERVER']
-          self.system_clock.ntp_sync(self.ntp_server)
-    
+        # Start an NTP sync daemon in the background
+        # FIXME Update NTP_SERVER in the config
+        # TODO If not syncing try another server
+        # TODO Check the status in main.py
+        self.ntp_server = self.config['NTP_SERVER']
+        self.system_clock.ntp_sync(self.ntp_server)
+
     
     def rtc_to_system(self):
         """ Copies the RTC time to the system clock """
@@ -39,7 +41,7 @@ class RTC(object):
         )
       
         if not self.system_clock.init(rtc_datetime_tuple):
-            self.warning('Cannot_update_system_clock_from_RTC')
+            self.errors.warning('Cannot_update_system_clock_from_RTC')
             return False
     
     
@@ -61,7 +63,7 @@ class RTC(object):
         )
 
         if not self.rtc.datetime(system_datetime_tuple):
-            self.warning('Cannot_update_RTC_from_system_clock')
+            self.errors.warning('Cannot_update_RTC_from_system_clock')
             return False
     
     
@@ -80,7 +82,7 @@ class RTC(object):
         """ Checks if the temperature in Celcius as measured by the RTC is greater than CRITICAL_TEMP in the config file and if so, throws a hard error. """
         # TODO See if we're regularly getting close to this value
         if self.temp >= self.config['CRITICAL_TEMP']:
-            self.hard_error()
+            self.errors.hard_error()
     
     
     @property

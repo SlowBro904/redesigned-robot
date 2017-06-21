@@ -1,7 +1,7 @@
 class CONFIG(object):
     from os import remove, rename
     from re import search
-    from errors import hard_error, warning
+    from errors import ERRORS
     from json import load, dump
     import temp_file
     
@@ -12,6 +12,7 @@ class CONFIG(object):
         self.config = dict()
         self.config_file = config_file
         self.defaults_file = defaults_file
+        self.errors = self.ERRORS(self.config) # FIXME I think this will create a catch-22 where self.config is not setup before we generate errors.
         return self.config # FIXME This might not work like I want it to. Test.
     
     @property
