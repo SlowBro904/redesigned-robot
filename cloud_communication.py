@@ -2,6 +2,8 @@ from main import wifi
 from mqtt import MQTT
 from json import loads, load, dumps, dump
 from machine import reset
+from uhashlib import MD5
+from os import remove
 import temp_file
 
 mqtt = MQTT()
@@ -75,13 +77,20 @@ def update_system():
     
     for update in updates:
         script_file     = update[0]
-        script_contents = update[1]
+        expected_md5sum = update[1]
+        script_contents = update[2]
         
         try:
             # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
             with open('/flash/' + script_file + '.new', 'w') as script_fileH:
-                for row in script_contents:
-                    script_fileH.write(row)
+                script_fileH.write(row) for row in script_contents
+            
+            with open('/flash/' + script_file + '.new') as script_fileH:
+                stored_md5sum = self.MD5(script_fileH)
+            
+            if stored_md5sum != expected_md5sum:
+                self.remove('/flash/' + script_file + '.new')
+                # FIXME And try again
         except:
             pass # FIXME Right?
     
