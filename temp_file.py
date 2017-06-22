@@ -8,16 +8,16 @@ def create(target, mode = 'w'):
 def install(temp_file, target):
     """ Installs the temp file into the target, backing up any existing file """
     try:
-        self.remove(target + '.bak') # Delete any old backup file TODO Create some way of restoring from backup
+        remove(target + '.bak') # Delete any old backup file TODO Create some way of restoring from backup
     except:
         pass # Ignore errors. It might not exist.
 
     try:
-        self.rename(target, target + '.bak') # Create a backup of the current file
+        rename(target, target + '.bak') # Create a backup of the current file
     except:
         pass # Ignore errors FIXME Do I want to? Probably throw an error to the GUI.
 
     try:
-        self.rename(temp_file, target) # Install the temp as the new config file
+        rename(temp_file, target) # Install the temp as the new config file
     except:
         return False

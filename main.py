@@ -3,8 +3,8 @@ from rtc import RTC
 from wdt import WDT
 from wifi import WIFI
 from cloud import CLOUD
+from config import config
 from errors import ERRORS
-from config import CONFIG
 from system import SYSTEM
 from battery import BATTERY
 from schedule import SCHEDULE
@@ -13,17 +13,17 @@ from machine import deep_sleep
 # Set this here in the event that other objects fire warnings upon instantiation
 errors.good_LED(True)
 
-config = CONFIG('/flash/smartbird.cfg', '/flash/smartbird.defaults.cfg')
-# TODO It feels kludgy always passing config as a parameter. How do we load the configuration into memory so it's always accessible to all modules? Ask StackExchange.
-errors = ERRORS(config)
-i2c = I2C(config)
-wifi = WIFI(config)
-rtc = RTC(i2c, config)
-battery = BATTERY(config)
-system = SYSTEM(i2c, config)
-schedule = SCHEDULE(config)
-cloud = CLOUD(config)
+wdt = WDT() # FIXME I shouldn't start any object automatically
+errors = ERRORS()
+i2c = I2C()
+wifi = WIFI()
+rtc = RTC(i2c)
+battery = BATTERY()
+system = SYSTEM(i2c)
+schedule = SCHEDULE()
+cloud = CLOUD()
 
+wdt.start()
 battery.check_charge()
 # TODO Add later, refer to the rtc.sh from C.H.I.P.
 #rtc.check_temp()

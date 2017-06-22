@@ -1,8 +1,8 @@
 class SYSTEM(object):
+    from config import config
     attached_devices = set()
     
-    def __init__(self, i2c, config):
-        self.config = config
+    def __init__(self, i2c):
         self.i2c = i2c
         self.attached_devices = set()
     

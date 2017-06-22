@@ -3,11 +3,12 @@ class ERRORS(object):
     from time import sleep
     from wdt import wdt
 
-    def __init__(self, config):
+    def __init__(self):
         self.config     = config
-        self.good_LED   = self.Pin(self.config['GOOD_LED_PIN'],  mode = self.Pin.OUT)
-        self.warn_LED   = self.Pin(self.config['WARN_LED_PIN'],  mode = self.Pin.OUT)
-        self.error_LED  = self.Pin(self.config['ERROR_LED_PIN'], mode = self.Pin.OUT)
+        # These must be hard-coded to prevent a recursion issue where config_class.py cannot load the config file and throws an error.
+        self.good_LED   = self.Pin(10, mode = self.Pin.OUT)
+        self.warn_LED   = self.Pin(11, mode = self.Pin.OUT)
+        self.error_LED  = self.Pin(12, mode = self.Pin.OUT)
         self.warnings   = set()
     
     
@@ -30,3 +31,7 @@ class ERRORS(object):
             self.warn_LED(True)
         
         self.warnings.add(warning)
+    
+    
+    def process_warnings(self):
+        pass # FIXME Finish

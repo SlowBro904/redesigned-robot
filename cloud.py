@@ -4,10 +4,11 @@ class CLOUD(object):
     from machine import reset
     from uhashlib import MD5
     from os import remove
+    from config import config
     from temp_file import create as create_temp_file, install as install_temp_file
 
-    def __init__(config):
-        self.mqtt = self.MQTT(config)
+    def __init__(self):
+        self.mqtt = self.MQTT(self.config)
     
     
     def ping(self):
@@ -55,8 +56,8 @@ class CLOUD(object):
             temp_fileH = self.create_temp_file(data_file)
             self.dump(existing_data[data_file], temp_fileH)
             self.install_temp_file(temp_fileH, data_file)
-
-
+    
+    
     def get_system_updates(self):
         """ Update the scripts on our system """
         updates = self.send('get_system_updates')

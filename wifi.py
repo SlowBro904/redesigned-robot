@@ -1,14 +1,13 @@
 class WIFI(object):
     from network import WLAN
     from machine import idle
-    from main import config
+    from config import config
     
-    def __init__(self, SSID = None, password = None, security_type = None):
+    def __init__(self):
         """ Sets up a Wi-Fi connection """
-        if not SSID:
-            self.SSID = self.config['WIFI_SSID']
-            self.password = self.config['WIFI_PASSWORD']
-            self.security_type = self.config['WIFI_SECURITY_TYPE']
+        self.SSID = config['WIFI_SSID']
+        self.password = config['WIFI_PASSWORD']
+        self.security_type = config['WIFI_SECURITY_TYPE']
         
         self.wlan = self.WLAN(mode=WLAN.STA)
         self.connect()

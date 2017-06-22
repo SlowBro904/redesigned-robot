@@ -1,9 +1,10 @@
 class I2C(object):
     from machine import I2C, Pin
+    from config import config
     
-    def __init__(self, config):
+    def __init__(self):
       """ Returns an i2c object """
-      scl_pin = config['I2C_SCL_PIN']
-      sda_pin = config['I2C_SDA_PIN']
+      scl_pin = self.config['I2C_SCL_PIN']
+      sda_pin = self.config['I2C_SDA_PIN']
       self.i2c = self.I2C(scl=self.Pin(scl_pin), sda=self.Pin(sda_pin))
       return self.i2c

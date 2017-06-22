@@ -1,5 +1,6 @@
 class BATTERY(object):
     from errors import ERRORS
+    from config import config
     
     def check_charge(self, config):
         """
@@ -13,7 +14,6 @@ class BATTERY(object):
         Rounded, it equals 2234.
         """
         
-        self.config = config
         self.errors = self.ERRORS(self.config)
         
         # TODO Calculate the value for CRITICAL_BATTERY_LEVEL here so the config file can be more natural (1.8 instead of 2234)

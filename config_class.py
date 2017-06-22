@@ -5,15 +5,17 @@ class CONFIG(object):
     from json import load, dump
     from temp_file import create as create_temp_file, install as install_temp_file
     
-    def __init__(self, config_file, defaults_file):
-        """ Provides a dictionary with keys and values coming from the config file's options and values.
+    def __init__(self, config_file, defaults_file = None):
+        """
+        Provides a dictionary with keys and values coming from the config file's options and values.
         If the config file is unreadable or missing it will load values from the defaults file.
         """
+        # TODO See if I can do something like def __dict__(self):, so that config = CONFIG() then when I use the object as a dictionary it shows a dictionary.
         self.config = dict()
         self.config_file = config_file
         self.defaults_file = defaults_file
-        self.errors = self.ERRORS(self.config) # FIXME I think this will create a catch-22 where self.config is not setup before we generate errors.
-        return self.config # FIXME This might not work like I want it to. Test.
+        self.errors = self.ERRORS()
+    
     
     @property
     def config(self):
@@ -36,9 +38,13 @@ class CONFIG(object):
         except:
             config_fileH.close()
             return False
-        
+    
+    
     def reset_to_defaults(self):
         """ Resets the config file to defaults """
+        if not self.defaults_file:
+            return False
+        
         # TODO I think I want to use 'with' here
         try:
             # FIXME Ensure the defaults file is in json format. At the moment it's in Python.
@@ -62,6 +68,7 @@ class CONFIG(object):
         config_fileH.close()
         
         self.config = dict() # Empty this out so that when we fetch it next time it will fill in again. FIXME Test
+    
     
     def update(self, parameter, value):
         """ Updates the config file with new parameter and value, and also updates the value in memory """

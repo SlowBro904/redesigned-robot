@@ -2,12 +2,12 @@ class MQTT(object):
     from simple import MQTTClient # FIXME Add exception AdafruitIOError but under what conditions
     from machine import unique_id
     from binascii import hexlify
+    from config import config
     from time import sleep
     
-    def __init__(self, config):
+    def __init__(self):
         """ Setup our MQTT object """
         self.topics = set()
-        self.config = config
         
         username    = self.config['MQTT_USERNAME']
         password    = self.config['MQTT_PASSWORD']
