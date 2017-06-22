@@ -3,6 +3,10 @@ class WIFI(object):
     from machine import idle
     from config import config
     
+    
+    # FIXME Add. Test needed to avoid losing connection after a soft reboot
+    #if machine.reset_cause() != machine.SOFT_RESET:
+    
     def __init__(self):
         """ Sets up a Wi-Fi connection """
         self.SSID = config['WIFI_SSID']

@@ -74,7 +74,7 @@ class CLOUD(object):
             try:
                 # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
                 with open(new_file, 'w') as script_fileH:
-                    script_fileH.write(row) for row in script_contents
+                    map(script_fileH.write, script_contents)
                 
                 with open(new_file) as script_fileH:
                     stored_md5sum = self.MD5(script_fileH)
