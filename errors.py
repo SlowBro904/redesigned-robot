@@ -1,10 +1,9 @@
 class ERRORS(object):
     from machine import Pin, deepsleep
     from time import sleep
-    from wdt import wdt
-
+    
     def __init__(self):
-        self.config     = config
+        """ A class for dealing with different error messages """
         # These must be hard-coded to prevent a recursion issue where config_class.py cannot load the config file and throws an error.
         self.good_LED   = self.Pin(10, mode = self.Pin.OUT)
         self.warn_LED   = self.Pin(11, mode = self.Pin.OUT)
@@ -18,9 +17,8 @@ class ERRORS(object):
         self.warn_LED(False)
         self.error_LED(True)
         self.sleep(1)
-        # TODO Can I combine?
-        self.wdt.feeder().stop()
-        self.wdt.stop()
+        from wdt import wdt
+        wdt.stop()
         self.deepsleep()
     
     
@@ -34,4 +32,6 @@ class ERRORS(object):
     
     
     def process_warnings(self):
+        """ If we have anything in self.warnings process it. Show a warning LED and send an alert to the cloud. """
+        # TODO If we have a lack of ping we may want to show that in the web console
         pass # FIXME Finish

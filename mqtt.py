@@ -13,12 +13,13 @@ class MQTT(object):
         password    = self.config['MQTT_PASSWORD']
         server      = self.config['MQTT_SERVER']
         port        = self.config['MQTT_PORT']
+        timeout     = self.config['MQTT_TIMEOUT']
         
         # Use the unique ID for the root path
         self.root_path = hexlify(unique_id())
         
         self.client = self.MQTTClient(username, password, server, port)
-        client.settimeout = settimeout # FIXME What?
+        client.settimeout = timeout # FIXME What about some operations taking longer than others?
         self.client.connect()
     
     

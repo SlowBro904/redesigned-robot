@@ -5,9 +5,11 @@ class CLOUD(object):
     from uhashlib import MD5
     from os import remove
     from config import config
+    from wdt import wdt
     from temp_file import create as create_temp_file, install as install_temp_file
 
     def __init__(self):
+        """ Sets up communications with the cloud servers """
         self.mqtt = self.MQTT(self.config)
     
     
@@ -27,6 +29,8 @@ class CLOUD(object):
 
     def get_data_updates(self):
         """ Get all recent data updates such as new door schedules from our cloud servers. """
+        self.wdt.feed()
+        
         updates = self.send('get_data_updates')
         
         if not updates:
@@ -38,6 +42,7 @@ class CLOUD(object):
             parameter           = update[1]
             values              = update[2] # This might be a list
             
+            self.wdt.feed()
             try:
                 with open('/flash/' + data_file) as json_data:
                     existing_data[data_file] = self.load(json_data)
@@ -45,7 +50,7 @@ class CLOUD(object):
                     pass
                     # FIXME Create the file here
             except:
-                self.warning('Failed_data_updates_cannot_open_' + data_file)
+                self.warning('Failed data updates. Cannot open ' + data_file)
             
             if parameter in existing_data[data_file]:
                 existing_data[data_file][parameter] = values
@@ -60,29 +65,43 @@ class CLOUD(object):
     
     def get_system_updates(self):
         """ Update the scripts on our system """
+        # Create any new directories
+        new_directories = self.send('get_new_directories')
+        
+        if new_directories:
+            from os import mkdir
+            
+            for new_directory in new_directories:
+                self.wdt.feed()
+                try: # FIXME Does this work for nested subdirectories or do we need to create parents first? Like Linux mkdir -p
+                    mkdir('/flash/' + new_directory)
+                except:
+                    pass # FIXME No. But not sure yet what to do.
+        
+        # Now check for system updates
         updates = self.send('get_system_updates')
         
-        if not updates:
-            return True
-        
-        for update in updates:
-            script_file     = update[0]
-            expected_md5sum = update[1]
-            script_contents = update[2]
-            new_file        = '/flash/' + script_file + '.new'
+        if updates:
+            for update in updates:
+                script_file     = update[0]
+                expected_md5sum = update[1]
+                script_contents = update[2]
+                new_file        = '/flash/' + script_file + '.new'
+                
+                self.wdt.feed()
+                
+                try:
+                    # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
+                    with open(new_file, 'w') as script_fileH:
+                        map(script_fileH.write, script_contents)
+                    
+                    with open(new_file) as script_fileH:
+                        stored_md5sum = self.MD5(script_fileH)
+                    
+                    if stored_md5sum != expected_md5sum:
+                        self.remove(new_file)
+                        # FIXME And try again
+                except:
+                    pass # FIXME Right?
             
-            try:
-                # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
-                with open(new_file, 'w') as script_fileH:
-                    map(script_fileH.write, script_contents)
-                
-                with open(new_file) as script_fileH:
-                    stored_md5sum = self.MD5(script_fileH)
-                
-                if stored_md5sum != expected_md5sum:
-                    self.remove(new_file)
-                    # FIXME And try again
-            except:
-                pass # FIXME Right?
-        
-        self.reset()
+            self.reset()
