@@ -4,7 +4,8 @@ class DEVICE_ROUTINE(object):
         self.device = device
     
     def run(self, command):
-        """ By creating a directory structure and manipulating the sys path we can import different routines for different devices """
+        """ This runs a command for a particular device """
+        # By creating a directory structure and manipulating the sys path we can import different routines for different devices
         from sys import path
         from wdt import wdt
         

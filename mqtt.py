@@ -1,33 +1,34 @@
 class MQTT(object):
-    from simple import MQTTClient # FIXME Add exception AdafruitIOError but under what conditions
-    from machine import unique_id
-    from binascii import hexlify
-    from config import config
-    from time import sleep
-    
     def __init__(self):
         """ Setup our MQTT object """
+        from simple import MQTTClient # FIXME Add exception AdafruitIOError but under what conditions
+        from machine import unique_id
+        from binascii import hexlify
+        from config import config
+        
         self.topics = set()
         
-        username    = self.config['MQTT_USERNAME']
-        password    = self.config['MQTT_PASSWORD']
-        server      = self.config['MQTT_SERVER']
-        port        = self.config['MQTT_PORT']
-        timeout     = self.config['MQTT_TIMEOUT']
+        username    = config['MQTT_USERNAME']
+        password    = config['MQTT_PASSWORD']
+        server      = config['MQTT_SERVER']
+        port        = config['MQTT_PORT']
+        timeout     = config['MQTT_TIMEOUT']
         
         # Use the unique ID for the root path
         self.root_path = hexlify(unique_id())
         
-        self.client = self.MQTTClient(username, password, server, port)
+        self.client = MQTTClient(username, password, server, port)
         client.settimeout = timeout # FIXME What about some operations taking longer than others?
         self.client.connect()
     
     
     def publish(self, path, message):
         """ Publish a data update to an MQTT path """
+        from time import sleep
+        
         try:
             self.client.publish(self.root_path + path, message)
-            self.sleep(1) # TODO Is this necessary?
+            sleep(1) # TODO Is this necessary?
             return True
         except:
             return False

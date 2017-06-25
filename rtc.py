@@ -1,5 +1,4 @@
 class RTC(object):
-    from urtc import DS3231
     from errors import ERRORS
     from config import config
     from machine import RTC as system_clock
@@ -7,22 +6,24 @@ class RTC(object):
     rtc = False
     ntp_server = None
     
-    def __init__(self, i2c):
+    def __init__(self):
         """ A class for the RTC functionality. Can update the system clock, the RTC clock, sets up an NTP synchronization, and can even check the temperature. """
+        from i2c import i2c
+        from urtc import DS3231
+        
         try:
             self.rtc = self.DS3231(i2c)
         except: # TODO Get specific about exceptions all over
             # FIXME If not connected destroy this object, return False
             self.warning('RTC_connection_error')
         
-        self.errors = self.ERRORS(self.config)
+        self.errors = self.ERRORS()
       
         # Start an NTP sync daemon in the background
         # FIXME Update NTP_SERVER in the config
         # TODO If not syncing try another server
         # TODO Check the status in main.py
-        self.ntp_server = self.config['NTP_SERVER']
-        self.system_clock.ntp_sync(self.ntp_server)
+        self.system_clock.ntp_sync(self.config['NTP_SERVER'])
 
     
     def rtc_to_system(self):

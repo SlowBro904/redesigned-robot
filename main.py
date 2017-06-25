@@ -1,5 +1,4 @@
 from wdt import wdt
-from i2c import I2C
 from rtc import RTC
 from wifi import WIFI
 from cloud import CLOUD
@@ -14,11 +13,10 @@ from machine import deep_sleep
 errors = ERRORS()
 errors.good_LED(True)
 
-i2c = I2C()
 wifi = WIFI()
-rtc = RTC(i2c)
+rtc = RTC()
 battery = BATTERY()
-system = SYSTEM(i2c)
+system = SYSTEM()
 schedule = SCHEDULE(system.attached_devices)
 cloud = CLOUD()
 
@@ -30,7 +28,7 @@ battery.check_charge()
 rtc.rtc_to_system()
 
 # FIXME What timeout?
-if cloud.ping():
+if cloud.ping(): # TODO Do we need this? Maybe these will still work fine if ping fails. But perhaps we shouldn't try. And if that is true perhaps if cloud.ping() should be moved inside each command below. Would make this main.py very clean.
     cloud.get_system_updates()
     cloud.send('battery_charge', battery.charge)
     # TODO Add later
