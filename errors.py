@@ -5,6 +5,7 @@ class ERRORS(object):
     def __init__(self):
         """ A class for dealing with different error messages """
         # These must be hard-coded to prevent a recursion issue where config_class.py cannot load the config file and throws an error.
+        # TODO Convert this file to a class file then create another file which is just config.py with these values.
         self.good_LED   = self.Pin(10, mode = self.Pin.OUT)
         self.warn_LED   = self.Pin(11, mode = self.Pin.OUT)
         self.error_LED  = self.Pin(12, mode = self.Pin.OUT)

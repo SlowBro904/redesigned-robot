@@ -1,16 +1,16 @@
 class CLOUD(object):
-    from mqtt import MQTT
     from json import loads, load, dumps, dump
     from machine import reset
     from uhashlib import MD5
     from os import remove
-    from config import config
     from wdt import wdt
     from temp_file import create as create_temp_file, install as install_temp_file
-
+    
     def __init__(self):
         """ Sets up communications with the cloud servers """
-        self.mqtt = self.MQTT(self.config)
+        from mqtt import MQTT
+        from config import config
+        self.mqtt = MQTT(config)
     
     
     def ping(self):
@@ -19,14 +19,14 @@ class CLOUD(object):
             return False
         
         return True
-
-        
+    
+    
     def send(self, action, message = None):
         """ Send an action and message and get the reply. For example, action = 'door_status', message = 'up' """
         self.mqtt.publish(dumps(action, message))
         return self.mqtt.get(loads(action))
-        
-
+    
+    
     def get_data_updates(self):
         """ Get all recent data updates such as new door schedules from our cloud servers. """
         self.wdt.feed()

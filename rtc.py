@@ -18,20 +18,22 @@ class RTC(object):
             self.warning('RTC_connection_error')
         
         self.errors = self.ERRORS()
-      
-        # Start an NTP sync daemon in the background
+    
+    
+    def ntp_to_system(self, ntp_server = None)
+        """ Start an NTP sync daemon in the background """
         # FIXME Update NTP_SERVER in the config
         # TODO If not syncing try another server
         # TODO Check the status in main.py
-        self.system_clock.ntp_sync(self.config['NTP_SERVER'])
+        
+        if not ntp_server:
+            ntp_server = self.config['NTP_SERVER']
+        
+        self.system_clock.ntp_sync(ntp_server)
 
     
     def rtc_to_system(self):
         """ Copies the RTC time to the system clock """
-        # TODO This may not be necessary. I might be able to run self.__del__()
-        if not self.rtc:
-            return False
-      
         rtc_datetime_tuple = (
             self.rtc.datetime.year,
             self.rtc.datetime.month,

@@ -1,4 +1,4 @@
-class SYSTEM(object):
+qclass SYSTEM(object):
     def __init__(self, i2c):
         """ Configures our system object which keeps track of certain items regarding the system such as the attached devices. """
         from i2c import i2c
