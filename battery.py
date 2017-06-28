@@ -14,7 +14,7 @@ class BATTERY(object):
         Rounded, it equals 2234.
         """
         
-        self.errors = self.ERRORS(self.config)
+        self.errors = self.ERRORS()
         
         # TODO Calculate the value for CRITICAL_BATTERY_LEVEL here so the config file can be more natural (1.8 instead of 2234)
         if self.charge <= self.config['CRITICAL_BATTERY_LEVEL']:
@@ -24,8 +24,11 @@ class BATTERY(object):
     def charge(self):
         """ Sets the value of the battery charge. Note that this does not return the actual voltage. See the note in check_charge(). """
         from machine import ADC
+        from wdt import wdt
         
         battery_pin = self.config['BATTERY_VOLT_SENSE_PIN']
+        
+        wdt.feed()
         
         # Read the value of the voltage on the battery volt sense pin using ADC.ATTN_11DB which allows a range of 0-3.3V.
         self.charge = ADC().channel(pin = battery_pin, attn = ADC.ATTN_11DB)

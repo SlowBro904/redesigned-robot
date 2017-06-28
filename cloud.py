@@ -10,19 +10,20 @@ class CLOUD(object):
         """ Sets up communications with the cloud servers """
         from mqtt import MQTT
         from config import config
+        self.wdt.feed()
         self.mqtt = MQTT(config)
     
     
     def ping(self):
         """ Ping the cloud servers, ensure we have complete connectivity """
-        if not self.loads(self.send('ping')) == 'ack':
-            return False
-        
-        return True
+        self.wdt.feed()
+        return self.loads(self.send('ping')) == 'ack'
     
     
     def send(self, action, message = None):
         """ Send an action and message and get the reply. For example, action = 'door_status', message = 'up' """
+        self.wdt.feed()
+        
         self.mqtt.publish(dumps(action, message))
         return self.mqtt.get(loads(action))
     
@@ -55,6 +56,8 @@ class CLOUD(object):
             if parameter in existing_data[data_file]:
                 existing_data[data_file][parameter] = values
         
+        self.wdt.feed()
+        
         for data_file in existing_data:
             # Read the original file. If we find our parameter mark a flag True and overwrite the value in the temp file.
             # FIXME Change to 'with' and do general Pythonic cleanup
@@ -68,6 +71,8 @@ class CLOUD(object):
         # Create any new directories
         new_directories = self.send('get_new_directories')
         
+        self.wdt.feed()
+        
         if new_directories:
             from os import mkdir
             
@@ -77,6 +82,8 @@ class CLOUD(object):
                     mkdir('/flash/' + new_directory)
                 except:
                     pass # FIXME No. But not sure yet what to do.
+        
+        self.wdt.feed()
         
         # Now check for system updates
         updates = self.send('get_system_updates')
