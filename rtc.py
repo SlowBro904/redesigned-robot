@@ -8,7 +8,7 @@ class RTC(object):
         from errors import ERRORS
         self.errors = ERRORS()
         
-        # FIXME If not connected to NTP and RTC time == 1970 epoch hard error
+        # FIXME If not connected to NTP and RTC time == 1970 epoch hard error. But ensure we can bootup to web admin with the button pressed.
     
     
     def ntp_to_system(self, ntp_server = None)
@@ -24,7 +24,7 @@ class RTC(object):
         self.system_clock.ntp_sync(ntp_server)
     
     
-    def check_ntp(self):
+    def ntp_status(self):
         """ Returns the status of NTP synchronization """
         return self.system_clock.synced()
     

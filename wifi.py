@@ -58,6 +58,7 @@ class WIFI(object):
         while not self.wlan.isconnected(): # Save power while waiting
             self.wdt.feed() # FIXME Do I want to do this here, along with idle? Will that not save power?
             idle()
+            # TODO Do I need to insert a sleep here?
         
         self.wlan.init(power_save = True)
         
@@ -68,14 +69,14 @@ class WIFI(object):
         """ Disconnect from the Wi-Fi network """
         self.wdt.feed()
         return self.wlan.disconnect()
-
-
+    
+    
     def isconnected(self):
         """ See if we are connected to the Wi-Fi network """
         self.wdt.feed()
         return self.wlan.isconnected()
-
-
+    
+    
     def ifconfig(self, ip = '', subnet_mask = '', gateway = '', DNS_server = ''):
         """ Sets or returns the IP configuration in a tuple. (ip, subnet_mask, gateway, DNS_server) """
         self.wdt.feed()

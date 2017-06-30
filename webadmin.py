@@ -7,8 +7,9 @@ from urllib import unquote_plus
 from ubinascii import hexlify
 from network import WLAN
 
-# Last six digits of the unique ID. There may be more than one SmartBird in the area. I HOPE there's more than one SmartBird in the area. Grin
-AP_SSID = 'SmartBird_' + str(hexlify(unique_id())[-6:], 'utf-8')
+# Last six digits of the unique ID. There may be more than one SB in the area. I HOPE there's more than one SB in the area. Grin
+# FIXME Change to the actual name (not SB_XXXXXX)
+AP_SSID = 'SB_' + str(hexlify(unique_id())[-6:], 'utf-8')
 # FIXME Use the same as the person's service password
 AP_password = '123456abcdef'
 # FIXME Add an antenna selector
@@ -148,7 +149,7 @@ def main():
         h1      = ""
         body    = list()
         if path == "/":
-            title = "SmartBird"
+            title = "SB" # FIXME Change
             h1 = title
             if wlan.isconnected():
                 # FIXME Get connection strength
