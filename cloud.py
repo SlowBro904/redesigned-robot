@@ -1,23 +1,25 @@
 class CLOUD(object):
-    from json import loads, load, dumps, dump
-    from machine import reset
-    from uhashlib import MD5
-    from os import remove
+    import temp_file
     from wdt import wdt
-    from temp_file import create as create_temp_file, install as install_temp_file
+    from os import remove
+    from errors import ERRORS
+    from json import loads, load, dumps, dump
     
     def __init__(self):
         """ Sets up communications with the cloud servers """
         from mqtt import MQTT
         from config import config
+        
         self.wdt.feed()
         self.mqtt = MQTT(config)
+        
+        self.errors = self.ERRORS()
     
     
     def ping(self):
         """ Ping the cloud servers, ensure we have complete connectivity """
         self.wdt.feed()
-        return self.loads(self.send('ping')) == 'ack'
+        return self.send('ping') == 'ack'
     
     
     def send(self, action, message = None):
@@ -39,31 +41,29 @@ class CLOUD(object):
         
         existing_data = dict()
         for update in updates:
-            data_file           = update[0]
-            parameter           = update[1]
-            values              = update[2] # This might be a list
+            data_file = update[0]
+            parameter = update[1]
+            # This might be a list
+            values = update[2]
             
             self.wdt.feed()
             try:
-                with open('/flash/' + data_file) as json_data:
+                # Read the original file
+                with open('/flash/schedules/' + data_file + '.json') as json_data:
                     existing_data[data_file] = self.load(json_data)
-                else: # FIXME Right?
-                    pass
-                    # FIXME Create the file here
-            except:
-                self.warning('Failed data updates. Cannot open ' + data_file)
-            
-            if parameter in existing_data[data_file]:
-                existing_data[data_file][parameter] = values
+            except: # TODO Get the precise exception type
+                # File doesn't exist yet. We'll create it in memory first.
+                existing_data[data_file] = dict()
+
+            existing_data[data_file][parameter] = values
         
         self.wdt.feed()
         
         for data_file in existing_data:
-            # Read the original file. If we find our parameter mark a flag True and overwrite the value in the temp file.
-            # FIXME Change to 'with' and do general Pythonic cleanup
-            temp_fileH = self.create_temp_file(data_file)
-            self.dump(existing_data[data_file], temp_fileH)
-            self.install_temp_file(temp_fileH, data_file)
+            # TODO Change to 'with' and do general Pythonic cleanup
+            with self.temp_file.create(data_file) as temp_fileH:
+                if self.dump(existing_data[data_file], temp_fileH):
+                    self.temp_file.install(temp_fileH, data_file)
     
     
     def get_system_updates(self):
@@ -78,37 +78,49 @@ class CLOUD(object):
             
             for new_directory in new_directories:
                 self.wdt.feed()
-                try: # FIXME Does this work for nested subdirectories or do we need to create parents first? Like Linux mkdir -p
-                    mkdir('/flash/' + new_directory)
-                except:
-                    pass # FIXME No. But not sure yet what to do.
+                # exist_ok = True is a counter-intuitively-named flag. If the parent directory does not exist we will create it first.
+                mkdir('/flash/' + new_directory, exist_ok = True)
         
         self.wdt.feed()
         
         # Now check for system updates
         updates = self.send('get_system_updates')
         
-        if updates:
-            for update in updates:
-                script_file     = update[0]
-                expected_md5sum = update[1]
-                script_contents = update[2]
-                new_file        = '/flash/' + script_file + '.new'
-                
-                self.wdt.feed()
-                
-                try:
-                    # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
-                    with open(new_file, 'w') as script_fileH:
-                        map(script_fileH.write, script_contents)
-                    
-                    with open(new_file) as script_fileH:
-                        stored_md5sum = self.MD5(script_fileH)
-                    
-                    if stored_md5sum != expected_md5sum:
-                        self.remove(new_file)
-                        # FIXME And try again
-                except:
-                    pass # FIXME Right?
+        if not updates:
+            return None
+        
+        # FIXME Ensure we install /flash/version.txt
+        
+        from machine import reset
+        from uhashlib import MD5
+        
+        successfully_updated_files = list()
+        
+        for update in updates:
+            script_file = update[0]
+            expected_md5sum = update[1]
+            script_contents = update[2]
+            new_file = script_file + '.new'
             
-            self.reset()
+            self.wdt.feed()
+            
+            # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
+            with open('/flash/' + new_file, 'w') as script_fileH:
+                script_fileH.writelines(script_contents)
+            
+            with open('/flash/' + new_file) as script_fileH:
+                stored_md5sum = self.MD5(script_fileH)
+            
+            if stored_md5sum == expected_md5sum:
+                successfully_updated_files.append('/flash/' + new_file)
+            else:
+                # All or nothing.
+                self.errors.warning('Update failure. Reverting.')
+                
+                self.remove(new_file)
+                for updated_file in successfully_updated_files:
+                    self.remove(updated_file)
+
+        # Reboot and the system will install any .new files
+        # FIXME Test to ensure that boot.py is run on reset()
+        reset()

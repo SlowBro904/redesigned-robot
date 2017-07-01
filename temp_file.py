@@ -2,22 +2,35 @@ from os import remove, rename
 
 def create(target, mode = 'w'):
     """ Creates a temp file in the format of /flash/target.tmp using whatever mode you want (default of 'w') and returns a file handle """
-    target_basename = '/'.split(target)
-    return open('/flash/' + target_basename + '.tmp', mode)
-
-def install(temp_file, target):
-    """ Installs the temp file into the target, backing up any existing file """
+    target_basename = '/'.split(target)[-1]
+    temp_file_name = '/flash/tmp/' + target_basename + '.tmp'
+    
     try:
-        remove(target + '.bak') # Delete any old backup file TODO Create some way of restoring from backup
+        self.remove(temp_file_name)
     except:
-        pass # Ignore errors. It might not exist.
+        # Ignore errors if it does not exist
+        pass
+    
+    return open(temp_file_name, mode)
 
-    try:
-        rename(target, target + '.bak') # Create a backup of the current file
-    except:
-        pass # Ignore errors FIXME Do I want to? Probably throw an error to the GUI.
 
+def install(temp_fileH, target):
+    """ Takes a file handle of a temp file and installs the temp file into the target, backing up any existing file """
+    temp_fileH.seek(0)
+    
+    if not target.startswith('/'):
+        target = '/flash/' + target
+    
     try:
-        rename(temp_file, target) # Install the temp as the new config file
-    except:
-        return False
+        self.remove(target + '.bak') # Delete any old backup file TODO Create some way of restoring from backup
+    except: # TODO Add precise exception reason
+        pass # Ignore errors if it does not exist.
+
+    rename(target, target + '.bak') # Create a backup of the current file
+    
+    # Install the temp as the new file
+    with open(target, 'w') as target_data:
+        target_data.writelines(temp_fileH.readlines())
+    
+    temp_fileH.close()
+    self.remove(temp_fileH.name)

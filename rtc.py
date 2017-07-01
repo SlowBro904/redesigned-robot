@@ -1,17 +1,15 @@
 class RTC(object):
+    from wdt import wdt
     from config import config
     from machine import RTC as system_clock
-    from wdt import wdt
     
     def __init__(self):
         """ A class for the RTC functionality. Can update the system clock and sets up an NTP synchronization """
         from errors import ERRORS
         self.errors = ERRORS()
-        
-        # FIXME If not connected to NTP and RTC time == 1970 epoch hard error. But ensure we can bootup to web admin with the button pressed.
     
     
-    def ntp_to_system(self, ntp_server = None)
+    def start_ntp_daemon(self, ntp_server = None)
         """ Start an NTP sync daemon in the background """
         # TODO If not syncing try another server
         # TODO Check the status in main.py

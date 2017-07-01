@@ -1,24 +1,25 @@
 class MQTT(object):
     def __init__(self):
         """ Setup our MQTT object """
-        from simple import MQTTClient # FIXME Add exception AdafruitIOError but under what conditions
-        from machine import unique_id
-        from binascii import hexlify
         from config import config
+        from binascii import hexlify
+        # TODO Add exception AdafruitIOError but under what conditions
+        from simple import MQTTClient
+        from machine import unique_id
         
         self.topics = set()
         
-        username    = config['MQTT_USERNAME']
-        password    = config['MQTT_PASSWORD']
-        server      = config['MQTT_SERVER']
-        port        = config['MQTT_PORT']
-        timeout     = config['MQTT_TIMEOUT']
+        username = config['MQTT_USERNAME']
+        password = config['MQTT_PASSWORD']
+        server = config['MQTT_SERVER']
+        port = config['MQTT_PORT']
+        timeout = config['MQTT_TIMEOUT']
         
         # Use the unique ID for the root path
         self.root_path = hexlify(unique_id())
         
         self.client = MQTTClient(username, password, server, port)
-        client.settimeout = timeout # FIXME What about some operations taking longer than others?
+        client.settimeout = timeout
         self.client.connect()
     
     

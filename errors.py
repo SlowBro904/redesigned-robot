@@ -1,15 +1,20 @@
 class ERRORS(object):
     from machine import Pin, deepsleep
     from wdt import wdt
+    from json import dump, load
+    from os import remove
     
+    # These must be hard-coded to prevent a recursion issue where config_class.py cannot load the config file and throws an error.
+    # TODO Convert this file to a class file then create another file which is just config.py with these values.
+    good_LED = self.Pin(10, mode = self.Pin.OUT)
+    warn_LED = self.Pin(11, mode = self.Pin.OUT)
+    error_LED = self.Pin(12, mode = self.Pin.OUT)
+    warnings = set()
+    warnings_file = '/flash/warnings.json'
+
     def __init__(self):
         """ A class for dealing with different error messages """
-        # These must be hard-coded to prevent a recursion issue where config_class.py cannot load the config file and throws an error.
-        # TODO Convert this file to a class file then create another file which is just config.py with these values.
-        self.good_LED = self.Pin(10, mode = self.Pin.OUT)
-        self.warn_LED = self.Pin(11, mode = self.Pin.OUT)
-        self.error_LED = self.Pin(12, mode = self.Pin.OUT)
-        self.warnings = set()
+        warnings = self.load_saved_warnings()
     
     
     def hard_error(self):
@@ -20,11 +25,8 @@ class ERRORS(object):
         self.warn_LED(False)
         self.error_LED(True)
         
-        self.wdt.feed()
-        
-        self.sleep(1)
-        
         self.wdt.stop()
+        self.sleep(1)
         
         # Indefinite sleep
         self.deepsleep()
@@ -41,14 +43,39 @@ class ERRORS(object):
         self.warnings.add(warning)
     
     
+    def save_warnings(self):
+        """ If we cannot connect to the cloud, let's save the warnings to flash for next time we can connect. """
+        self.wdt.feed()
+        
+        with open(self.warnings_file, 'w') as json_data:
+            if not dump(self.warnings, json_data):
+                return False
+    
+    
+    def load_saved_warnings(self):
+        """ Load the warnings from flash and delete the file. """
+        self.wdt.feed()
+        
+        warnings = list()
+        
+        with open(self.warnings_file) as json_data:
+            warnings = self.load(json_data)
+        
+        # Only delete the save file if we were successful
+        if warnings:
+            self.clear_saved_warnings()
+        
+        return warnings
+    
+    
+    def clear_saved_warnings(self):
+        """ Delete the saved warnings file """
+        self.wdt.feed()
+        return self.remove(self.warnings_file)
+    
+    
     def clear_warnings(self):
-        """ Clear our warnings """
+        """ Remove all warnings """
         self.wdt.feed()
         self.warnings = set()
-    
-    
-    def process_warnings(self):
-        """ If we have anything in self.warnings process it. Show a warning LED and send an alert to the cloud. """
-        # TODO If we have a lack of ping we may want to show that in the web console
-        self.wdt.feed()
-        pass # FIXME Finish
+        self.clear_saved_warnings()

@@ -1,6 +1,6 @@
-from config import config
-from machine import Pin
 from sys import path
+from machine import Pin
+from config import config
 
 path.append('/flash/device_routines/door_reed_switches/status/')
 

@@ -3,7 +3,8 @@ class WIFI(object):
     from wdt import wdt
     
     
-    # FIXME Add. Test needed to avoid losing connection after a soft reboot
+    # FIXME Add this
+    # Test needed to avoid losing connection after a soft reboot
     #if machine.reset_cause() != machine.SOFT_RESET:
     
     def __init__(self):
