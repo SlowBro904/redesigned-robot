@@ -1,8 +1,10 @@
 """Subset of the urllib I found here. Cut it down to save memory and to fix a stack overflow. Only the unquote module. https://github.com/lucien2k/wipy-urllib/blob/master/urllib.py"""
 
+# FIXME I don't think I need this anymore.
+
 def unquote(s):
-    """Kindly rewritten by Damien from Micropython"""
-    """No longer uses caching because of memory limitations"""
+    """ Kindly rewritten by Damien from Micropython
+    No longer uses caching because of memory limitations """
     res = s.split('%')
     for i in range(1, len(res)):
         item = res[i]
@@ -13,6 +15,6 @@ def unquote(s):
     return "".join(res)
 
 def unquote_plus(s):
-    """unquote('%7e/abc+def') -> '~/abc def'"""
+    """ Example: unquote('%7e/abc+def') -> '~/abc def' """
     s = s.replace('+', ' ')
     return unquote(s)

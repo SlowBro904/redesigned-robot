@@ -1,7 +1,7 @@
 from wdt import wdt
 from rtc import RTC
 import factory_reset
-from wifi import WIFI
+from wifi import wifi
 from cloud import CLOUD
 from config import config
 from errors import ERRORS
@@ -9,14 +9,26 @@ from system import SYSTEM
 from battery import BATTERY
 from machine import deepsleep
 from schedule import SCHEDULE
-from wake_cause import wake_cause
+from boot_cause import boot_cause
 
 # FIXME Timezone
 
 # Set this here in the event that other objects fire warnings upon instantiation
 errors = ERRORS()
 errors.good_LED(True)
-wifi = WIFI()
+
+if boot_cause == 'PwrBtn':
+    wifi.wifi = sta_ap()
+    
+    # Copy the module variable/object into a local variable/object
+    wifi = wifi.wifi
+    
+    # Start our web admin interface
+    import webadmin
+else:
+    wifi.wifi = sta()
+    wifi = wifi.wifi
+
 rtc = RTC()
 battery = BATTERY()
 system = SYSTEM()
@@ -42,7 +54,8 @@ if wifi.isconnected() and cloud.ping():
 else:
     # FIXME Finish and test this
     # If not connected to NTP and RTC time is not set, throw a hard error.
-    # But ensure we can bootup to web admin with the button pressed.
+    # FIXME But ensure we can bootup to web admin with the button pressed.
+    # FIXME The hour/minute/second will surely not match. Need to just look at year and day.
     if rtc.now() == (1970, 1, 1, 0, 0, 0):
         errors.hard_error()
 

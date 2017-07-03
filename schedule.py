@@ -89,7 +89,7 @@ class SCHEDULE(object):
     
     
     def run(self):
-        """ Run any events that are due now """
+        """ Run any events that are due now. Keeps running until all schedules have been executed. """
         # FIXME If we have a close and open event that we missed only do the latest one. Maybe only do the latest of anything that's overdue.
         from rtc import RTC
         from utime import mktime
@@ -97,23 +97,40 @@ class SCHEDULE(object):
         from device_routines import DEVICE_ROUTINE
         
         rtc = RTC()
-        now = rtc.now()
         
         self.wdt.feed()
         
-        for device in self.schedules:
-            # Pop off the next schedule and shorten the list FIXME No, don't pop it off. It might not be time yet.
-            next_schedule = self.schedules[device].pop(0)
-            
-            # Write our modified schedule to disk
-            self.save_schedule(device)
-            
-            next_schedule_time = mktime(next_schedule['time'])
-            command = next_schedule['command']
-            device_routine = DEVICE_ROUTINE(device)
-            
-            self.wdt.feed()
-            
-            # FIXME This will cause a race condition if there is an event that occurs between now and when the system goes to sleep. Insert a buffer. Check once more before going to sleep, because some events might take a long time.
-            if next_schedule_time <= now:
-                self.status[device] = device_routine.run(command)
+        item_scheduled = True
+        # Keep re-checking the schedule until we're all clear. What might happen is we finish an event and the schedule starts for the next event. We want to keep checking until there are no more items scheduled.
+        # FIXME Add some kind of expected time buffer on the server so we're not continuously running events and killing our battery. Want a long buffer between events, maybe 10 minutes.
+        while item_scheduled:
+            for device in self.schedules:
+                # Add a buffer to avoid a race condition if there is an event that occurs between now and when the system goes to sleep
+                stop_time = rtc.now() + config['SCHEDULE_BUFFER']
+                
+                # Get all items scheduled
+                all_scheduled_times = self.schedules[device].keys()
+                currently_scheduled_times = filter(lambda x: x <= stop_time, all_scheduled_times)
+                
+                # Logic to know when to stop executing the outer while loop
+                if currently_scheduled_times:
+                    item_scheduled = True
+                else:
+                    item_scheduled = False
+                
+                # FIXME On the server, never schedule an event for a device at the same time or this could fail
+                for scheduled_time in currently_scheduled_times:
+                    
+                    # Get our command
+                    command = self.schedules[device][scheduled_time]['command']
+                    device_routine = DEVICE_ROUTINE(device)
+                
+                    self.wdt.feed()
+                    
+                    # FIXME Am I re-running it if it fails?
+                    # FIXME In cloud.py or mqtt.py ensure I retry communications X number of times. For intermittent network connections.
+                    self.status[device] = device_routine.run(command)
+                    
+                    # Remove the event just executed and write our modified schedule to disk
+                    self.schedules[device].pop(0)
+                    self.save_schedule(device)

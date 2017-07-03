@@ -5,17 +5,24 @@ class DEVICE_ROUTINE(object):
     
     def run(self, command):
         """ This runs a command for a particular device """
+        # Commented out for now, going to try subpackage instead
         # By creating a directory structure and manipulating the sys path we can import different routines for different devices
-        from sys import path
+        #from sys import path
+
         from wdt import wdt
         
-        root_path = '/flash/device_routines/'
+        # Commented out for now, going to try subpackage instead
+        #root_path = '/flash/device_routines/'
         
+        # Commented out for now, going to try subpackage instead
+        # FIXME Use importlib or something like that instead https://docs.python.org/3/reference/import.html
         # Example directory name: /flash/device_routines/door/open
         # And inside that directory is routine.py
-        path.append('/'.join([root_path, self.device, command]))
+        #path.append('/'.join([root_path, self.device, command]))
         
-        from routine import routine
+        #from routine import routine
+        
+        routine = __import__(command)
         
         wdt.feed()
         

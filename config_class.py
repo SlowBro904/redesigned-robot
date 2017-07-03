@@ -10,6 +10,7 @@ class CONFIG(object):
         Provides a dictionary with keys and values coming from the config file's options and values.
         If the config file is unreadable or missing it will load values from the defaults file.
         """
+        # FIXME Convert the default config file from Python dictionary to JSON
         # TODO See if I can do something like def __dict__(self):, so that config = CONFIG() then when I use the object as a dictionary it shows a dictionary.
         self.config = dict()
         self.config_file = config_file
