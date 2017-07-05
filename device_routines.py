@@ -16,13 +16,14 @@ class DEVICE_ROUTINE(object):
         
         # Commented out for now, going to try subpackage instead
         # FIXME Use importlib or something like that instead https://docs.python.org/3/reference/import.html
+        # FIXME Try the __import__() below, it may work just fine.
         # Example directory name: /flash/device_routines/door/open
         # And inside that directory is routine.py
         #path.append('/'.join([root_path, self.device, command]))
         
         #from routine import routine
         
-        routine = __import__(command)
+        routine = __import__('.'.join['device_routines', self.device, command])
         
         wdt.feed()
         

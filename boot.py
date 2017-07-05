@@ -12,7 +12,10 @@ for file in listdir('/flash/'):
         rename('/flash/' + file + '.new', '/flash/' + file)
 
 if reboot:
-    from machine import reset
-    reset()
+    from reboot import reboot
+    # Immediate reboot
+    delay = 0
+    reboot(delay)
 
-# TODO Do we need the garbage collector?
+import gc
+gc.enable()

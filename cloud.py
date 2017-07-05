@@ -8,15 +8,18 @@ class CLOUD(object):
     def __init__(self):
         """ Sets up communications with the cloud servers """
         from mqtt import MQTT
-        from config import config
         
         self.wdt.feed()
-        self.mqtt = MQTT(config)
+        self.mqtt = MQTT()
         
         self.errors = self.ERRORS()
     
     
-    def ping(self):
+    def connect(self):
+        self.mqtt.connect()
+    
+    
+    def isconnected(self):
         """ Ping the cloud servers, ensure we have complete connectivity """
         self.wdt.feed()
         return self.send('ping') == 'ack'
