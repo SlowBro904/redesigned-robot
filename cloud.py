@@ -92,9 +92,15 @@ class CLOUD(object):
         if not updates:
             return None
         
-        # FIXME Ensure we install /flash/version.txt
+        # Signal that we are doing stuff
+        self.errors.flash_yellow_red_start()
         
-        from machine import reset
+        # FIXME Ensure we install /flash/version.txt via the server
+        
+        # Stop the web admin daemon
+        import web_admin
+        web_admin.stop()
+
         from uhashlib import MD5
         
         successfully_updated_files = list()
@@ -115,15 +121,32 @@ class CLOUD(object):
                 stored_md5sum = self.MD5(script_fileH)
             
             if stored_md5sum == expected_md5sum:
-                successfully_updated_files.append('/flash/' + new_file)
+                successfully_updated_files.append('/flash/' + script_file)
             else:
                 # All or nothing.
                 self.errors.warning('Update failure. Reverting.')
                 
                 self.remove(new_file)
-                for updated_file in successfully_updated_files:
-                    self.remove(updated_file)
+                for new_file in successfully_updated_files:
+                    self.remove(new_file)
 
-        # Reboot and the system will install any .new files
-        # FIXME Test to ensure that boot.py is run on reset()
-        reset()
+                # Empty the list
+                successfully_updated_files = list()
+
+                web_admin.start()
+                
+                # Stop looping on updates
+                break
+
+        self.errors.flash_yellow_red_stop()
+        
+        if successfully_updated_files:
+            with open('/flash/updated_files.txt') as updated_filesH:
+                successfully_updated_files.writelines()
+            
+            # Reboot and the system will install any .new files
+            # FIXME Test to ensure that boot.py is run on reset()
+            from reboot import reboot
+            # Immediate reboot
+            delay = 0
+            reboot(delay)

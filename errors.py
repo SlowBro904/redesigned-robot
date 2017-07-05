@@ -79,3 +79,34 @@ class ERRORS(object):
         self.wdt.feed()
         self.warnings = set()
         self.clear_saved_warnings()
+    
+    
+    def flash_yellow_red_start(self):
+        """ Flash the yellow and red LEDs alternately to signal important activity """
+        # Multithreading so we can get back to the next step in our process
+        from _thread import start_new_thread
+        start_new_thread(_daemon, ())
+    
+    
+    def flash_yellow_red_stop(self):
+        """ Stop flashing the yellow and red LEDs alternately """
+        # TODO A kludge until Pycom fixes _thread.exit() from outside the thread
+        global run_yellow_red_flash
+        run_yellow_red_flash = False
+    
+    
+    def _flash_yellow_red(self):
+        """ The actual flashing process. Don't run this directly; use flash_yellow_red_start() instead. """
+        from time import sleep
+        
+        # Start state
+        self.good_LED(False)
+        self.warn_LED(True)
+        self.error_LED(True)
+        
+        global run_yellow_red_flash
+        run_yellow_red_flash = True
+        while run_yellow_red_flash:
+            sleep(1)
+            self.warn_LED.toggle()
+            self.error_LED.toggle()

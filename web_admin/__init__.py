@@ -1,25 +1,48 @@
-""" A web admin interface """
-from config import config
-from urllib import unquote_plus
-from re import search as re_search
-from _thread import start_new_thread
-from socket import getaddrinfo, socket
-from webadmin.urls import get_web_page_content
-# FIXME Re-add the thread but how do I deal with getting updates in the middle of viewing the web interface? Use locking or a global variable maybe. Maybe I don't get updates while booting from the power button. No, I should; how else are they going to get updates with customer support?
+def start():
+    """ Start the web admin interface """
+    # Multithreading so we can get back to the next step in our process
+    from _thread import start_new_thread
+    start_new_thread(_daemon, ())
 
-with open(config['WEB_ADMIN_TEMPLATE_FILE']) as templateH:
-    template = templateH.readlines()
 
-# Start our web server
-addr = getaddrinfo(config['WEB_ADMIN_IP'], config['WEB_ADMIN_PORT'])[0][-1]
-s = socket()
-s.bind(addr)
-s.listen(1)
+def stop():
+    """ Stop the web admin interface """
+    # TODO A kludge until Pycom fixes _thread.exit() from outside the thread
+    global run_daemon
+    run_daemon = False
 
-def main():
-    while True:
+
+def _daemon():
+    """ The actual web server process. Don't run this directly; use start() instead. """
+    from config import config
+    from machine import Timer
+    from urllib import unquote_plus
+    from re import search as re_search
+    from socket import getaddrinfo, socket
+    from web_admin.urls import get_web_page_content
+    # FIXME Re-add the thread but how do I deal with getting updates in the middle of viewing the web interface? Use locking or a global variable maybe. Maybe I don't get updates while booting from the power button. No, I should; how else are they going to get updates with customer support?
+    
+    timeout = config['WEB_ADMIN_DAEMON_TIMEOUT']
+    timer = Timer.Chrono()
+    timer.start()
+    
+    with open(config['WEB_ADMIN_TEMPLATE_FILE']) as templateH:
+        template = templateH.readlines()
+
+    # Start our web server
+    addr = getaddrinfo(config['WEB_ADMIN_IP'], config['WEB_ADMIN_PORT'])[0][-1]
+    s = socket()
+    s.bind(addr)
+    s.listen(1)
+    
+    global run_daemon
+    run_daemon = True
+    while run_daemon:
         # Listen on our socket for incoming requests
         cl, addr = s.accept()
+        
+        # We just got a request. Reset our timer.
+        timer.reset()
         
         # Create a file handle on our incoming request
         cl_file = cl.makefile('wb')
@@ -82,7 +105,6 @@ def main():
         # Close up our requests
         cl_file.close()
         cl.close()
-
-# Multithreading so we can get back to the next step in our process
-# FIXME Be sure we time out and deep sleep after some time
-start_new_thread(main, ())
+        
+        if timer.read() >= timeout:
+            run_daemon = False

@@ -1,12 +1,11 @@
 class RTC(object):
     from wdt import wdt
     from config import config
-    from machine import RTC as system_clock
+    from machine import RTC
     
     def __init__(self):
-        """ A class for the RTC functionality. Can update the system clock and sets up an NTP synchronization """
-        from errors import ERRORS
-        self.errors = ERRORS()
+        """ A class for the RTC functionality. Can update the system clock and sets up an NTP synchronization. """
+        self.system_clock = RTC()
     
     
     def start_ntp_daemon(self, ntp_server = None)
@@ -29,5 +28,5 @@ class RTC(object):
     
     def now(self):
         """ Returns the current time in seconds since epoch """
-        from utime import mktime
+        from time import mktime
         return mktime(self.system_clock.now())

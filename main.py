@@ -1,3 +1,4 @@
+import web_admin
 from wdt import wdt
 from rtc import RTC
 import factory_reset
@@ -11,17 +12,13 @@ from schedule import SCHEDULE
 from boot_cause import boot_cause
 from wifi import wifi, sta, sta_ap
 
-# FIXME Timezone
-
 # Set this here in the event that other objects fire warnings upon instantiation
 errors = ERRORS()
 errors.good_LED(True)
 
 if boot_cause == 'PwrBtn':
     wifi = sta_ap()
-    
-    # Start our web admin interface
-    import webadmin
+    web_admin.start()
 else:
     wifi = sta()
 
@@ -65,11 +62,12 @@ if wifi.isconnected() and cloud.isconnected():
         errors.clear_warnings()
 else:
     # FIXME Remove most try/except, wait to see if we get any errors. Then for production disable the serial port.
+    # FIXME Maybe not. Because if we get any exceptions the flow of logic will stop. Let's instead throw all errors into a log.
     # Save our current status for next time we can connect
     schedule.save_status()
     errors.save_warnings()
 
-# FIXME Finish web admin. Show warnings/errors, 
+# FIXME Finish web admin. Show warnings/errors, what else?
 # FIXME Shut down the web admin daemon when updating. Don't want browser commands doing stuff. Show a yellow/red alternating flashing light.
 # TODO Inside webadmin, a read-only serial console. Or log the console and upload it.
 
