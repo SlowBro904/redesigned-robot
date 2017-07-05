@@ -46,10 +46,11 @@ if wifi.isconnected() and cloud.isconnected():
     cloud.send('ntp_status', rtc.ntp_status)
     cloud.get_data_updates()
 else:
-    # If not connected to NTP and RTC time is not set, throw a hard error.
-    # FIXME But ensure we can bootup to web admin with the button pressed.
-    # FIXME The hour/minute/second will surely not match. Need to just look at year and day.
-    if rtc.now() == (1970, 1, 1, 0, 0, 0):
+    this_year = rtc.now()[0]
+    
+    # If not connected to NTP and RTC time is not set the RTC year will be 1970. This is bad news, because we don't know how to execute our schedule. Throw a hard error.
+    # FIXME Ensure NTP has sufficient time to update.
+    if this_year == 1970:
         errors.hard_error()
 
 schedule.run()
@@ -61,14 +62,11 @@ if wifi.isconnected() and cloud.isconnected():
     if cloud.send('warnings', errors.warnings):
         errors.clear_warnings()
 else:
-    # FIXME Remove most try/except, wait to see if we get any errors. Then for production disable the serial port.
-    # FIXME Maybe not. Because if we get any exceptions the flow of logic will stop. Let's instead throw all errors into a log.
+    # FIXME Re-add try/except at the end of the module chain so maybe here. Throw all errors into a log. For production disable the serial port.
     # Save our current status for next time we can connect
     schedule.save_status()
     errors.save_warnings()
 
-# FIXME Finish web admin. Show warnings/errors, what else?
-# FIXME Shut down the web admin daemon when updating. Don't want browser commands doing stuff. Show a yellow/red alternating flashing light.
 # TODO Inside webadmin, a read-only serial console. Or log the console and upload it.
 
 wdt.stop()

@@ -12,7 +12,7 @@ def show(parameters):
     
     if not wifi.ssid:
         body = """Let's get started!<br />
-        <script>window.location.href = '/wifi';</script>"""
+        <script>window.location.href = '/wifi/config';</script>"""
     else:
         body = "Connnected to " + wifi.ssid + "<br />"
         
@@ -24,9 +24,11 @@ def show(parameters):
                 body += "IP address: " + wifi.ip + "<br />"
         
         body += """<br />
-        <a href='/wifi_config'>Connect to another network</a><br />
+        <a href='/wifi/config'>Connect to another network</a><br />
         <br />
-        <a href='/service_account'>Update your """ + device_name + """ service username or password</a><br />
+        <a href='/service_account/setup'>Update your """ + device_name + """ service username or password</a><br />
+        <br />
+        <a href='/error_log'>Error log</a><br />
         <br />
         Version """ + version + """ | Serial number """ + serial + """<br />"""
     

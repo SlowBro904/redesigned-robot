@@ -26,9 +26,7 @@ if reboot:
         pass
     
     from reboot import reboot
-    # Immediate reboot
-    delay = 0
-    reboot(delay)
+    reboot(delay = 0)
 
 # Automatic garbage collector
 # FIXME Run periodically as well. Maybe do a regular gc.mem_free and if below a certain amount automatically run. This may already do that.

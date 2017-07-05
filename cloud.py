@@ -145,8 +145,6 @@ class CLOUD(object):
                 successfully_updated_files.writelines()
             
             # Reboot and the system will install any .new files
-            # FIXME Test to ensure that boot.py is run on reset()
+            # FIXME Test to ensure that boot.py is run on reboot()
             from reboot import reboot
-            # Immediate reboot
-            delay = 0
-            reboot(delay)
+            reboot(delay = 0)

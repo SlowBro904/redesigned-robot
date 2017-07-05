@@ -21,6 +21,7 @@ class CONFIG(object):
     @property
     def config(self):
         """ Fills in the values for the config dict() """
+        # FIXME https://www.programiz.com/python-programming/property
         # FIXME Any other @properties where the value may already be set? Do this there as well.
         # FIXME Test that this works as expected. Don't want to bog down the system fetching from the config file over and over if it's in memory.
         if len(self.config) > 0:
@@ -41,6 +42,7 @@ class CONFIG(object):
     
     def reset_to_defaults(self):
         """ Resets the config file to defaults """
+        # FIXME After clearing out the local get the latest data updates from the server
         with open(self.defaults_file) as defaults_fileH:
             defaults = self.load(defaults_fileH)
         

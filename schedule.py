@@ -1,3 +1,4 @@
+# FIXME Every class ensure I actually use class and not def
 class SCHEDULE(object):
     from wdt import wdt
     from json import dump, load
@@ -102,7 +103,7 @@ class SCHEDULE(object):
         
         item_scheduled = True
         # Keep re-checking the schedule until we're all clear. What might happen is we finish an event and the schedule starts for the next event. We want to keep checking until there are no more items scheduled.
-        # FIXME Add some kind of expected time buffer on the server so we're not continuously running events and killing our battery. Want a long buffer between events, maybe 10 minutes.
+        # FIXME Add some kind of expected time buffer on the server so we're not continuously running events and killing our battery. Want a long buffer between events, how about SCHEDULE_BUFFER x 5?
         while item_scheduled:
             for device in self.schedules:
                 # Add a buffer to avoid a race condition if there is an event that occurs between now and when the system goes to sleep
