@@ -1,4 +1,3 @@
-# FIXME Every class ensure I actually use class and not def
 class SCHEDULE(object):
     from wdt import wdt
     from json import dump, load
@@ -9,7 +8,7 @@ class SCHEDULE(object):
     status_file = '/flash/schedules/status.json'
     
     def __init__(self, devices):
-        """ Sets up scheduled events for our devices """        
+        """Sets up scheduled events for our devices"""        
         for device in devices:
             self.wdt.feed()
             
@@ -19,8 +18,11 @@ class SCHEDULE(object):
         status = self.load_saved_status()
     
     
-    def next_event(self):
-        """ Look across all schedules for all devices and return the time for the next scheduled event """
+    @property
+    def next_event_time(self):
+        """Look across all schedules for all devices and return the time for
+        the next scheduled event
+        """
         from utime import mktime
         
         self.wdt.feed()
@@ -45,7 +47,9 @@ class SCHEDULE(object):
     
     
     def save_schedule(self, device):
-        """ Takes the current schedule in self.schedules[device] and writes it back to disk """
+        """Takes the current schedule in self.schedules[device] and writes it 
+        back to disk
+        """
         device_file = '/flash/schedules/' + device + '.json'
         
         self.wdt.feed()
@@ -55,7 +59,9 @@ class SCHEDULE(object):
     
     
     def save_status(self):
-        """ If we cannot connect to the cloud, let's save the status to flash for next time we can connect. """
+        """If we cannot connect to the cloud, let's save the status to flash for
+        next time we can connect
+        """
         self.wdt.feed()
         
         with open(self.status_file, 'w') as json_data:
@@ -64,7 +70,7 @@ class SCHEDULE(object):
     
     
     def load_saved_status(self):
-        """ Load the status from flash and delete the file. """
+        """Load the status from flash and delete the file"""
         self.wdt.feed()
         
         with open(self.status_file) as status_fileH:
@@ -77,21 +83,22 @@ class SCHEDULE(object):
     
     
     def clear_saved_status(self):
-        """ Delete the saved status file. """
+        """Delete the saved status file"""
         self.wdt.feed()
         return self.remove(self.status_file)
     
     
     def clear_status(self):
-        """ Remove all current status """
+        """Remove all current status"""
         self.wdt.feed()
         self.status = dict()
         self.clear_saved_status()
     
     
     def run(self):
-        """ Run any events that are due now. Keeps running until all schedules have been executed. """
-        # FIXME If we have a close and open event that we missed only do the latest one. Maybe only do the latest of anything that's overdue.
+        """Run any events that are due now"""
+        # FIXME If we have a close and open event that we missed only do the
+        # latest one. Maybe only do the latest of anything that's overdue.
         from rtc import RTC
         from utime import mktime
         from config import config
@@ -102,16 +109,23 @@ class SCHEDULE(object):
         self.wdt.feed()
         
         item_scheduled = True
-        # Keep re-checking the schedule until we're all clear. What might happen is we finish an event and the schedule starts for the next event. We want to keep checking until there are no more items scheduled.
-        # FIXME Add some kind of expected time buffer on the server so we're not continuously running events and killing our battery. Want a long buffer between events, how about SCHEDULE_BUFFER x 5?
+        # Keep re-checking the schedule until we're all clear. What might happen
+        # is we finish an event and the schedule starts for the next event. We
+        # want to keep checking until there are no more items scheduled.
+        
+        # FIXME Add some kind of expected time buffer on the server so we're not
+        # continuously running events and killing our battery. Want a long
+        # buffer between events, how about SCHEDULE_BUFFER x 5?
         while item_scheduled:
             for device in self.schedules:
-                # Add a buffer to avoid a race condition if there is an event that occurs between now and when the system goes to sleep
+                # Add a buffer to avoid a race condition if there is an event
+                # that occurs between now and when the system goes to sleep
                 stop_time = rtc.now() + config['SCHEDULE_BUFFER']
                 
                 # Get all items scheduled
                 all_scheduled_times = self.schedules[device].keys()
-                currently_scheduled_times = filter(lambda x: x <= stop_time, all_scheduled_times)
+                currently_scheduled_times = filter(lambda x: x <= stop_time,
+                                                    all_scheduled_times)
                 
                 # Logic to know when to stop executing the outer while loop
                 if currently_scheduled_times:
@@ -119,7 +133,8 @@ class SCHEDULE(object):
                 else:
                     item_scheduled = False
                 
-                # FIXME On the server, never schedule an event for a device at the same time or this could fail
+                # FIXME On the server, never schedule an event for a device at
+                # the same time or this could fail
                 for scheduled_time in currently_scheduled_times:
                     
                     # Get our command
@@ -129,9 +144,11 @@ class SCHEDULE(object):
                     self.wdt.feed()
                     
                     # FIXME Am I re-running it if it fails?
-                    # FIXME In cloud.py or mqtt.py ensure I retry communications X number of times. For intermittent network connections.
+                    # FIXME In cloud.py or mqtt.py ensure I retry communications
+                    # X number of times. For intermittent network connections.
                     self.status[device] = device_routine.run(command)
                     
-                    # Remove the event just executed and write our modified schedule to disk
+                    # Remove the event just executed and write our modified
+                    # schedule to disk
                     self.schedules[device].pop(0)
                     self.save_schedule(device)
