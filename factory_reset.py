@@ -7,15 +7,20 @@ from machine import Pin
 from reboot import reboot
 from config import config
 from errors import ERRORS
+from maintenance import maintenance
 
 def fac_rst_handler():
     """ Triggered when the reset button is pressed """
     errors = ERRORS()
     
+    maintenance()
+    
     # Blink our yellow/red LEDs to let the user know the button is held
     errors.flash_yellow_red('start')
     sleep(5)
     errors.flash_yellow_red('stop')
+    
+    maintenance()
     
     # If we're still holding it after 5 seconds
     if fac_rst_pin:
@@ -23,7 +28,9 @@ def fac_rst_handler():
         errors.good_LED(False)
         errors.warn_LED(False)
         errors.error_LED(True)
-
+        
+        maintenance()
+        
         if config.reset_to_defaults():
             # FIXME What if it fails?
             # FIXME Also need to delete local data files
@@ -32,6 +39,8 @@ def fac_rst_handler():
             # isn't this what the default config is for? We can always update
             # that.)            
             reboot(delay = 0, boot_cause = 'PwrBtn')
+
+maintenance()
 
 # Setup our listener
 fac_rst_pin = 'P' + config['FACTORY_RESET_PIN']

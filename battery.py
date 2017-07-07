@@ -1,8 +1,8 @@
 class BATTERY(object):
-    from wdt import wdt
     from machine import ADC
     from errors import ERRORS
     from config import config
+    from maintenance import maintenance
         
     def check_charge(self):
         """Checks if the battery charge is less than CRITICAL_BATTERY_LEVEL in
@@ -35,7 +35,7 @@ class BATTERY(object):
         Note that this does not return the actual voltage. See the note in
         check_charge().
         """
-        self.wdt.feed()
+        self.maintenance()
         
         battery_pin = self.config['BATTERY_VOLT_SENSE_PIN']
         

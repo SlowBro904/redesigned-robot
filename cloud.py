@@ -1,6 +1,6 @@
 class CLOUD(object):
     import temp_file
-    from wdt import wdt
+    from maintenance import maintenance
     from os import remove
     from errors import ERRORS
     from json import loads, load, dumps, dump
@@ -9,7 +9,7 @@ class CLOUD(object):
         """ Sets up communications with the cloud servers """
         from mqtt import MQTT
         
-        self.wdt.feed()
+        self.maintenance()
         self.mqtt = MQTT()
         
         self.errors = self.ERRORS()
@@ -21,13 +21,13 @@ class CLOUD(object):
     
     def isconnected(self):
         """ Ping the cloud servers, ensure we have complete connectivity """
-        self.wdt.feed()
+        self.maintenance()
         return self.send('ping') == 'ack'
     
     
     def send(self, action, message = None):
         """ Send an action and message and get the reply. For example, action = 'door_status', message = 'up' """
-        self.wdt.feed()
+        self.maintenance()
         
         self.mqtt.publish(dumps(action, message))
         return self.mqtt.get(loads(action))
@@ -35,7 +35,7 @@ class CLOUD(object):
     
     def get_data_updates(self):
         """ Get all recent data updates such as new door schedules from our cloud servers. """
-        self.wdt.feed()
+        self.maintenance()
         
         updates = self.send('get_data_updates')
         
@@ -49,7 +49,7 @@ class CLOUD(object):
             # This might be a list
             values = update[2]
             
-            self.wdt.feed()
+            self.maintenance()
             try:
                 # Read the original file
                 with open('/flash/schedules/' + data_file + '.json') as json_data:
@@ -60,7 +60,7 @@ class CLOUD(object):
 
             existing_data[data_file][parameter] = values
         
-        self.wdt.feed()
+        self.maintenance()
         
         for data_file in existing_data:
             # TODO Change to 'with' and do general Pythonic cleanup
@@ -74,17 +74,17 @@ class CLOUD(object):
         # Create any new directories
         new_directories = self.send('get_new_directories')
         
-        self.wdt.feed()
+        self.maintenance()
         
         if new_directories:
             from os import mkdir
             
             for new_directory in new_directories:
-                self.wdt.feed()
+                self.maintenance()
                 # exist_ok = True is a counter-intuitively-named flag. If the parent directory does not exist we will create it first.
                 mkdir('/flash/' + new_directory, exist_ok = True)
         
-        self.wdt.feed()
+        self.maintenance()
         
         # Now check for system updates
         updates = self.send('get_system_updates')
@@ -111,7 +111,7 @@ class CLOUD(object):
             script_contents = update[2]
             new_file = script_file + '.new'
             
-            self.wdt.feed()
+            self.maintenance()
             
             # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
             with open('/flash/' + new_file, 'w') as script_fileH:

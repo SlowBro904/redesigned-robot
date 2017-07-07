@@ -2,6 +2,9 @@ def show(parameters):
     """ Saving the Wi-Fi password and configuration """
     from config import config
     from reboot import reboot
+    from maintenance import maintenance
+    
+    maintenance()
     
     ssid = None
     if 'ssid' in parameters and parameters['ssid']:
@@ -43,7 +46,8 @@ def show(parameters):
         
         return (title, header, h1, body)
 
-    # The password might be empty so don't check that it was passed, only that it matches
+    # The password might be empty so don't check that it was passed, only that
+    # it matches
     if password1 != password2:
         body += """Passwords don't match<br />
         <button onclick='window.history.back();'>Go back</button>"""
@@ -51,9 +55,11 @@ def show(parameters):
         return (title, header, h1, body)
 
     try:
-        config.update(('WIFI_SSID', ssid), ('WIFI_PASSWORD', password1), ('WIFI_SECURITY_TYPE', security_type))
+        config.update(('WIFI_SSID', ssid), ('WIFI_PASSWORD', password1),
+                        ('WIFI_SECURITY_TYPE', security_type))
     except:
-        body += """There was some problem writing the config file. Try again or contact technical support.<br />
+        body += """There was some problem writing the config file. Try again or 
+        contact technical support.<br />
         <button onclick='window.history.back();'>Go back</button>"""
         
         return (title, header, h1, body)
@@ -66,6 +72,7 @@ def show(parameters):
         reboot(delay = 5)
     else:
         # Service account not setup yet
-        body += "<meta http-equiv='refresh' content='0;url=/service_account_setup' />"
+        body += "<meta http-equiv='refresh' "
+        body += "content='0;url=/service_account_setup' />"
     
     return (title, header, h1, body)

@@ -1,5 +1,12 @@
 def get_web_page_content(path, parameters)
-    """ Gets our web page data. Configure this module for your URLs. """
+    """Gets our web page data.
+    
+    Configure this module for your URLs.
+    """
+    from maintenance import maintenance
+    
+    maintenance()
+
     if path == '/':
         from webadmin.home import show
     

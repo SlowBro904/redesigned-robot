@@ -1,11 +1,15 @@
 class MQTT(object):
+    from maintenance import maintenance
+    
     def __init__(self):
-        """ Setup our MQTT object """
+        """Setup our MQTT object"""
         from config import config
         from serial import serial
         from version import version
         # TODO Add exception AdafruitIOError but under what conditions
         from simple import MQTTClient
+        
+        self.maintenance()
         
         self.topics = set()
         
@@ -16,21 +20,26 @@ class MQTT(object):
         password = config['MQTT_PASSWORD']
         device_name = config['DEVICE_NAME']
         
-        # Use the device name, the version, and the serial number for the root path
-        # I'm including the device name and version so that we can have multiple devices and a newer version does not break the interface for clients not upgraded yet
-        self.root_path = device_name + '/' + version + '/' + serial
+        # Use the device name, the version, and the serial number for the root 
+        # path. I'm including the device name and version so that we can have 
+        # multiple devices and a newer version does not break the interface for 
+        # clients not upgraded yet
+        self.root_path = '/'.join([device_name, version, serial])
         
         self.client = MQTTClient(username, password, server, port)
         client.settimeout = timeout
     
     
     def connect(self):
+        """Connect to the MQTT broker"""
+        self.maintenance()
         self.client.connect()
     
     
     def publish(self, path, message):
-        """ Publish a data update to an MQTT path """
+        """Publish a data update to an MQTT path"""
         from time import sleep
+        self.maintenance()
         
         try:
             self.client.publish(self.root_path + '/' + path, message)
@@ -41,7 +50,8 @@ class MQTT(object):
     
     
     def get(self, path):
-        """ Gets any current data in an MQTT path """
+        """Gets any current data in an MQTT path"""
+        self.maintenance()
         if path not in self.topics:
             self.subscribe(path)
         
@@ -49,6 +59,7 @@ class MQTT(object):
     
     
     def subscribe(self, path):
-        """ Subscribes to an MQTT path """
+        """Subscribes to an MQTT path"""
+        self.maintenance()
         self.client.subscribe(path)
         self.topics.add(path)

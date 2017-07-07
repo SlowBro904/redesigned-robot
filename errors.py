@@ -1,6 +1,6 @@
 class ERRORS(object):
     from machine import Pin, deepsleep
-    from wdt import wdt
+    from maintenance import maintenance
     from json import dump, load
     from os import remove
     
@@ -41,7 +41,7 @@ class ERRORS(object):
             self.good_LED(False)
             self.warn_LED(True)
         
-        self.wdt.feed()
+        self.maintenance()
         
         self.warnings.add(warning)
     
@@ -50,7 +50,7 @@ class ERRORS(object):
         """If we cannot connect to the cloud, let's save the warnings to flash
         for next time we can connect.
         """
-        self.wdt.feed()
+        self.maintenance()
         
         with open(self.warnings_file, 'w') as json_data:
             if not dump(self.warnings, json_data):
@@ -59,7 +59,7 @@ class ERRORS(object):
     
     def load_saved_warnings(self):
         """ Load the warnings from flash and delete the file. """
-        self.wdt.feed()
+        self.maintenance()
         
         warnings = list()
         
@@ -75,13 +75,13 @@ class ERRORS(object):
     
     def clear_saved_warnings(self):
         """ Delete the saved warnings file """
-        self.wdt.feed()
+        self.maintenance()
         return self.remove(self.warnings_file)
     
     
     def clear_warnings(self):
         """ Remove all warnings """
-        self.wdt.feed()
+        self.maintenance()
         self.warnings = set()
         self.clear_saved_warnings()
     

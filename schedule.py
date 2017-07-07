@@ -1,5 +1,5 @@
 class SCHEDULE(object):
-    from wdt import wdt
+    from maintenance import maintenance
     from json import dump, load
     from os import remove
     
@@ -10,7 +10,7 @@ class SCHEDULE(object):
     def __init__(self, devices):
         """Sets up scheduled events for our devices"""        
         for device in devices:
-            self.wdt.feed()
+            self.maintenance()
             
             with open('/flash/schedules/' + device + '.json') as device_fileH:
                     self.schedules[device] = self.load(device_fileH)
@@ -25,7 +25,7 @@ class SCHEDULE(object):
         """
         from utime import mktime
         
-        self.wdt.feed()
+        self.maintenance()
         
         next_event = None
         
@@ -52,7 +52,7 @@ class SCHEDULE(object):
         """
         device_file = '/flash/schedules/' + device + '.json'
         
-        self.wdt.feed()
+        self.maintenance()
         
         with open(device_file, 'w') as device_fileH:
             return self.dump(self.schedule[device], device_fileH)
@@ -62,7 +62,7 @@ class SCHEDULE(object):
         """If we cannot connect to the cloud, let's save the status to flash for
         next time we can connect
         """
-        self.wdt.feed()
+        self.maintenance()
         
         with open(self.status_file, 'w') as json_data:
             if not self.dump(self.status(), json_data):
@@ -71,7 +71,7 @@ class SCHEDULE(object):
     
     def load_saved_status(self):
         """Load the status from flash and delete the file"""
-        self.wdt.feed()
+        self.maintenance()
         
         with open(self.status_file) as status_fileH:
             status = self.load(status_fileH)
@@ -84,13 +84,13 @@ class SCHEDULE(object):
     
     def clear_saved_status(self):
         """Delete the saved status file"""
-        self.wdt.feed()
+        self.maintenance()
         return self.remove(self.status_file)
     
     
     def clear_status(self):
         """Remove all current status"""
-        self.wdt.feed()
+        self.maintenance()
         self.status = dict()
         self.clear_saved_status()
     
@@ -106,7 +106,7 @@ class SCHEDULE(object):
         
         rtc = RTC()
         
-        self.wdt.feed()
+        self.maintenance()
         
         item_scheduled = True
         # Keep re-checking the schedule until we're all clear. What might happen
@@ -141,7 +141,7 @@ class SCHEDULE(object):
                     command = self.schedules[device][scheduled_time]['command']
                     device_routine = DEVICE_ROUTINE(device)
                 
-                    self.wdt.feed()
+                    self.maintenance()
                     
                     # FIXME Am I re-running it if it fails?
                     # FIXME In cloud.py or mqtt.py ensure I retry communications

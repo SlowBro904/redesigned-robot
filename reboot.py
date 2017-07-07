@@ -1,5 +1,5 @@
 def reboot(delay = 0, boot_cause = None):
-    """Reboots te device.
+    """Reboots the device.
     
     Takes an optional delay value in seconds and an optional boot cause (the
     values in boot_cause.py) that can override the normal boot cause detection. 
@@ -11,8 +11,11 @@ def reboot(delay = 0, boot_cause = None):
     to load the web admin so we want to always act as though the button was
     pressed.
     """
+    from maintenance import maintenance
     from _thread import start_new_thread
-
+    
+    maintenance()
+    
     # Override boot cause detection using this text file
     if boot_cause:
         with open('/flash/boot_cause.txt', 'w') as boot_causeH:
@@ -27,6 +30,8 @@ def _reboot(delay, id):
     """
     from time import sleep
     from machine import reset
+    from maintenance import maintenance
     
+    maintenance()
     sleep(delay)
     reset()

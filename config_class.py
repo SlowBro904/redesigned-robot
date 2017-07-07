@@ -2,6 +2,7 @@ class CONFIG(object):
     import temp_file
     from os import remove
     from json import load, dump
+    from maintenance import maintenance
     
     def __init__(self, config_file, defaults_file):
         """Provides a dictionary with keys and values coming from the config
@@ -10,6 +11,7 @@ class CONFIG(object):
         If the config file is unreadable or missing it will load values from the
         defaults file.
         """
+        self.maintenance()
         self.config = load_config()
         self.config_file = config_file
         self.defaults_file = defaults_file
@@ -21,6 +23,8 @@ class CONFIG(object):
         If it doesn't exist it will copy the defaults file into place as the new
         config file and load from that.
         """
+        self.maintenance()
+        
         try:
             config_fileH = open(self.config_file)
         except: # Missing or unreadable
@@ -31,6 +35,7 @@ class CONFIG(object):
             # Retry
             config_fileH = open(self.config_file)
         
+        self.maintenance()
         config = self.load(config_fileH)
         config_fileH.close()
         return config
@@ -40,15 +45,18 @@ class CONFIG(object):
         """Resets the config file to defaults"""
         # FIXME After clearing out the local get the latest data updates from
         # the server
+        self.maintenance()
         with open(self.defaults_file) as defaults_fileH:
             defaults = self.load(defaults_fileH)
         
+        self.maintenance()
         try:
             self.remove(self.config_file)
         except: # TODO Get the precise exception
             # Ignore if it does not exist
             pass
         
+        self.maintenance()
         with open(self.config_file, 'w') as config_fileH:
             # Write the new config file from the defaults
             self.dump(defaults, config_fileH)
@@ -62,6 +70,7 @@ class CONFIG(object):
         and updates the config file with new parameters and values, and also
         updates the values in memory
         """
+        self.maintenance()
         for parameter, value in updates:
             if parameter not in self.config:
                 return False
@@ -69,9 +78,11 @@ class CONFIG(object):
             # Update the value also in memory
             self.config[parameter] = value
         
+        self.maintenance()
         temp_config_fileH = self.temp_file.create(self.config_file)
         
         # Dump our config to the temp file
+        self.maintenance()
         self.dump(self.config, temp_config_fileH)
         temp_config_fileH.close()
         

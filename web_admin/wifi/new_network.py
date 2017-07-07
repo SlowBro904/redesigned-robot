@@ -2,6 +2,9 @@ def show(parameters):
     title = "Connect to a new Wi-Fi network"
     
     from config import config
+    from maintenance import maintenance
+    
+    maintenance()
     
     ssid = None
     if 'ssid' in parameters and parameters['ssid']:
@@ -32,30 +35,41 @@ def show(parameters):
     if ssid:
         security_type = wifi.get_access_point_security_type(ssid)
         
-        body += """<tr><td>Network name (ssid): </td><td><div align='right'>""" + ssid + """</div></td></tr>
+        body += """<tr><td>Network name (ssid): </td><td><div align='right'>"""
+        body += ssid + """</div></td></tr>
         <input type='hidden' name='ssid' value='""" + ssid + """' />
-        <input type='hidden' name='security_type' value='""" + security_type + "' />"
+        <input type='hidden' name='security_type' value='""" + security_type 
+        body += "' />"
     else:
-        body += """<tr><td>Network name (ssid):</td><td><div align='right'><input type='text' name='ssid' /></div></td></tr>"""
+        body += """<tr><td>Network name (ssid):</td><td><div align='right'>
+        <input type='text' name='ssid' /></div></td></tr>"""
 
         if hidden:
             body += """<input type='hidden' name='hidden' value='True' />"""
         else:
             body += """<tr><td>&nbsp;</td>
-            <td><label><input type='checkbox' name='hidden' value='True'>Hidden</label>
+            <td><label><input type='checkbox' name='hidden' value='True'>Hidden
+            </label>
             </td></tr>"""
         
         body += """<tr><td>Security type: </td><td>
-        <input type='radio' name='security_type' value='None' onclick='hide_passwords();'>None</input>
-        <input type='radio' name='security_type' value='WEP'  onclick='show_passwords();'>WEP</input>
-        <input type='radio' name='security_type' value='WPA'  onclick='show_passwords();'>WPA</input>
-        <input type='radio' name='security_type' value='WPA2' onclick='show_passwords();'>WPA2</input>
+        <input type='radio' name='security_type' value='None' 
+            onclick='hide_passwords();'>None</input>
+        <input type='radio' name='security_type' value='WEP'  
+            onclick='show_passwords();'>WEP</input>
+        <input type='radio' name='security_type' value='WPA'  
+            onclick='show_passwords();'>WPA</input>
+        <input type='radio' name='security_type' value='WPA2' 
+            onclick='show_passwords();'>WPA2</input>
         </td></tr>"""
 
-    body += """<tr id='password1' style='display:none'><td>Password: </td><td><div align='right'><input type='password' name='password1'></div></td></tr>
-    <tr id='password2' style='display:none'><td>Repeat password: </td><td><div align='right'><input type='password' name='password2'></div></td></tr>
+    body += """<tr id='password1' style='display:none'><td>Password: </td><td>
+    <div align='right'><input type='password' name='password1'></div></td></tr>
+    <tr id='password2' style='display:none'><td>Repeat password: </td><td>
+    <div align='right'><input type='password' name='password2'></div></td></tr>
     <tr><td></td><td></td></tr>
-    <tr><td></td><td><div align='right'><input type='submit' value='Next'></div></td></tr>
+    <tr><td></td><td><div align='right'><input type='submit' value='Next'></div>
+    </td></tr>
     </form>
     </table>"""
 

@@ -30,5 +30,7 @@ if reboot:
 
 # Automatic garbage collector
 # FIXME Run periodically as well. Maybe do a regular gc.mem_free and if below a certain amount automatically run. This may already do that.
+# TODO Combine with wdt for a maintenance() function or something like that.
+# FIXME Did I not use wdt anywhere?
 import gc
 gc.enable()

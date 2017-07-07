@@ -2,6 +2,9 @@ def show(parameters):
     """ Save the service account username and password """
     from config import config
     from reboot import reboot
+    from maintenance import maintenance
+    
+    maintenance()
     
     email = None
     if 'email' in parameters and parameters['email']:
@@ -34,9 +37,11 @@ def show(parameters):
         return (title, header, h1, body)
     
     try:
-        config.update(('SERVICE_ACCOUNT_EMAIL', email), ('SERVICE_ACCOUNT_PASSWORD', password1))
+        config.update(('SERVICE_ACCOUNT_EMAIL', email),
+                        ('SERVICE_ACCOUNT_PASSWORD', password1))
     except:
-        body += """There was some problem writing the config file. Try again or contact technical support.<br />
+        body += """There was some problem writing the config file. Try again or
+        contact technical support.<br />
         <button onclick='window.history.back();'>Go back</button>"""
     
     body += """Please wait...<br />

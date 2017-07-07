@@ -1,5 +1,5 @@
 class RTC(object):
-    from wdt import wdt
+    from maintenance import maintenance
     from config import config
     from machine import RTC
     
@@ -16,7 +16,7 @@ class RTC(object):
         if not ntp_server:
             ntp_server = self.config['NTP_SERVER']
         
-        self.wdt.feed()
+        self.maintenance()
         
         self.system_clock.ntp_sync(ntp_server)
     

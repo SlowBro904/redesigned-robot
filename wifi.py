@@ -1,5 +1,5 @@
 class WIFI(object):
-    from wdt import wdt
+    from maintenance import maintenance
     from network import WLAN
     from config import config
     
@@ -129,7 +129,7 @@ class WIFI(object):
         
         from machine import idle
         
-        self.wdt.feed()       
+        self.maintenance()       
         
         password = self.config['WIFI_PASSWORD']
         timeout = self.config['WIFI_TIMEOUT']
@@ -140,7 +140,7 @@ class WIFI(object):
         while not self.wlan.isconnected(): # Save power while waiting
             # FIXME Do I want to do this here, along with idle? Will that not
             # save power?
-            self.wdt.feed()
+            self.maintenance()
             idle()
             # TODO Do I need to insert a sleep here?
         
@@ -149,13 +149,13 @@ class WIFI(object):
     
     def disconnect(self):
         """Disconnect from the Wi-Fi network"""
-        self.wdt.feed()
+        self.maintenance()
         return self.wlan.disconnect()
     
     
     def isconnected(self):
         """See if we are connected to the Wi-Fi network"""
-        self.wdt.feed()
+        self.maintenance()
         return self.wlan.isconnected()
     
     
@@ -165,7 +165,7 @@ class WIFI(object):
         
         (ip, subnet_mask, gateway, DNS_server)
         """
-        self.wdt.feed()
+        self.maintenance()
         
         if ip and subnet_mask: # We don't always need gateway and DNS server.
             # TODO Do we even need subnet?

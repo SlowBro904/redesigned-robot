@@ -9,7 +9,7 @@ class DEVICE_ROUTINE(object):
         # By creating a directory structure and manipulating the sys path we can import different routines for different devices
         #from sys import path
 
-        from wdt import wdt
+        from maintenance import maintenance
         
         # Commented out for now, going to try subpackage instead
         #root_path = '/flash/device_routines/'
@@ -25,7 +25,7 @@ class DEVICE_ROUTINE(object):
         
         routine = __import__('.'.join['device_routines', self.device, command])
         
-        wdt.feed()
+        maintenance()
         
         # FIXME We might need to create a separate feeder thread here, to prevent long-running routines such as motor control from tripping the wdt.
         return routine()

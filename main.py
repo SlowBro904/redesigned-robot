@@ -1,5 +1,5 @@
 import web_admin
-from wdt import wdt
+from maintenance import maintenance
 from rtc import RTC
 import factory_reset
 from cloud import CLOUD

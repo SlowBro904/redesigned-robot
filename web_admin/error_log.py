@@ -1,6 +1,9 @@
 def show(parameters):
-    """ Error log """
+    """Error log"""
     from errors import ERRORS
+    from maintenance import maintenance
+    
+    maintenance()
     
     errors = ERRORS()
     
