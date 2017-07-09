@@ -47,6 +47,6 @@ def show(parameters):
     body += """Please wait...<br />
     <meta http-equiv='refresh' content='30;url=/' />"""
     
-    reboot(delay = 0)
+    reboot(delay = 5, boot_cause = 'PwrBtn')
 
     return (title, header, h1, body)

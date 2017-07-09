@@ -27,7 +27,7 @@ maintenance()
 try:
     boot_cause_file = '/flash/boot_cause.txt'
     with open(boot_cause_file) as boot_causeH:
-        boot_cause = boot_causeH.readlines()
+        boot_cause = boot_causeH.read().strip()
     
     remove(boot_cause_file)
 except:

@@ -16,9 +16,9 @@ def fac_rst_handler():
     maintenance()
     
     # Blink our yellow/red LEDs to let the user know the button is held
-    errors.flash_yellow_red('start')
+    errors.flash_LEDs(['warn', 'error'], 'start')
     sleep(5)
-    errors.flash_yellow_red('stop')
+    errors.flash_LEDs(['warn', 'error'], 'stop')
     
     maintenance()
     
@@ -31,14 +31,25 @@ def fac_rst_handler():
         
         maintenance()
         
-        if config.reset_to_defaults():
-            # FIXME What if it fails?
-            # FIXME Also need to delete local data files
-            # FIXME Create a mechanism to synchronize data files
-            # TODO Create unmutable config options that survive a reset (Wait,
-            # isn't this what the default config is for? We can always update
-            # that.)            
-            reboot(delay = 0, boot_cause = 'PwrBtn')
+        # FIXME What if it fails?
+        config.reset_to_defaults()
+        
+        # Also delete local data files
+        from os import listdir, remove
+        data_path = '/flash/data/'
+        for file in listdir(data_path):
+            try:
+                remove(data_path + file)
+            except:
+                # Ignore errors
+                pass
+        
+        # Create a flag file to notify cloud.get_data_updates to fetch all data
+        # files
+        with open('/flash/get_all_data_files.txt', 'w') as get_all_data_filesH:
+            get_all_data_filesH.write('True')
+        
+        reboot(delay = 3, boot_cause = 'PwrBtn')
 
 maintenance()
 

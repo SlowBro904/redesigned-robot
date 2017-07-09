@@ -17,6 +17,8 @@ def show(parameters):
     for warning in errors.warnings:
         body += "<tr><td>" + warning + "</td></tr>"
     
-    body += "</table>"
+    body += """</table><br />
+    <br />
+    <a href='/'>Home</a>"""
     
     return (title, header, h1, body)

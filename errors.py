@@ -86,44 +86,53 @@ class ERRORS(object):
         self.clear_saved_warnings()
     
     
-    def flash_yellow_red(self, command):
-        """Flash the yellow and red LEDs alternately to signal important
-        activity.
+    def flash_LEDs(self, LEDs, command = 'stop', delay = 1):
+        """Flash the requested LEDs alternately to signal important activity.
         
-        Send a 'start' or 'stop' command to control the process. Defaults to
-        stop.
+        Send a list of LEDs ('good', 'warn'. 'error') and it will flash them in
+        the order given. Send the 'start' or 'stop' command to control the 
+        process. Defaults to stop. Use a delay to give some delay between 
+        flashes, defaults to 1 second.
         """
-        # Record the current state of our good_LED and then turn it off
-        self.good_LED_state = self.good_LED.value()
-        self.good_LED(False)
-        
+        self.maintenance()
         if command == 'start':
             # Multithreading so we can get back to the next step in our process
             from _thread import start_new_thread
-            start_new_thread(_flash_yellow_red, ())
+            start_new_thread(_flash_LEDs, (LEDs, delay))
         else:
             # TODO A kludge until Pycom fixes _thread.exit() from outside the
             # thread
-            global run_yellow_red_flash
-            run_yellow_red_flash = False
-            self.good_LED(self.good_LED_state)
+            global run_flash
+            run_flash = False
     
     
-    def _flash_yellow_red(self):
+    def _flash_LEDs(self, LEDs, delay):
         """The actual flashing process.
-
-        Don't run this directly; use flash_yellow_red_start() instead.
+        
+        Don't run this directly, use flash_LEDs() instead.
         """
         from time import sleep
         
-        # Start state
-        self.good_LED(False)
-        self.warn_LED(True)
-        self.error_LED(True)
+        all_LEDs = [self.good_LED, self.good_LED, self.good_LED]
         
-        global run_yellow_red_flash
-        run_yellow_red_flash = True
-        while run_yellow_red_flash:
-            sleep(1)
-            self.warn_LED.toggle()
-            self.error_LED.toggle()
+        # Record the current state of all of our LEDs then turn them all off
+        current_LED_states = dict()
+        for LED in all_LEDs:
+            self.maintenance()
+            current_LED_states[LED] = LED.value()
+            LED(False)
+        
+        global run_flash
+        run_flash = True
+        while run_flash:
+            for LED in LEDs:
+                LED(True)
+                self.maintenance()
+                sleep(delay)
+                LED(False)
+        
+        self.maintenance()
+
+        # Restore our state
+        for LED in all_LEDs:
+            LED = current_LED_states[LED]

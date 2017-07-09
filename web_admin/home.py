@@ -27,7 +27,7 @@ def show(parameters):
                 body += "IP address: " + wifi.ip + "<br />"
         
         body += """<br />
-        <a href='/wifi/config'>Connect to another network</a><br />
+        <a href='/wifi/choose_network'>Connect to another network</a><br />
         <br />
         <a href='/service_account/setup'>Update your """ + device_name 
         body += """ service username or password</a><br />

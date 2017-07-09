@@ -1,18 +1,18 @@
 class SCHEDULE(object):
-    from maintenance import maintenance
-    from json import dump, load
     from os import remove
+    from json import dump, load
+    from maintenance import maintenance
     
     schedules = dict()
     status = dict()
-    status_file = '/flash/schedules/status.json'
+    status_file = '/flash/data/status.json'
     
     def __init__(self, devices):
         """Sets up scheduled events for our devices"""        
         for device in devices:
             self.maintenance()
             
-            with open('/flash/schedules/' + device + '.json') as device_fileH:
+            with open('/flash/data/' + device + '.json') as device_fileH:
                     self.schedules[device] = self.load(device_fileH)
         
         status = self.load_saved_status()
@@ -23,7 +23,7 @@ class SCHEDULE(object):
         """Look across all schedules for all devices and return the time for
         the next scheduled event
         """
-        from utime import mktime
+        from time import mktime
         
         self.maintenance()
         
@@ -50,7 +50,7 @@ class SCHEDULE(object):
         """Takes the current schedule in self.schedules[device] and writes it 
         back to disk
         """
-        device_file = '/flash/schedules/' + device + '.json'
+        device_file = '/flash/data/' + device + '.json'
         
         self.maintenance()
         
@@ -59,8 +59,8 @@ class SCHEDULE(object):
     
     
     def save_status(self):
-        """If we cannot connect to the cloud, let's save the status to flash for
-        next time we can connect
+        """If we cannot connect to the cloud, let's save the status to flash
+        for next time we can connect
         """
         self.maintenance()
         
@@ -100,7 +100,6 @@ class SCHEDULE(object):
         # FIXME If we have a close and open event that we missed only do the
         # latest one. Maybe only do the latest of anything that's overdue.
         from rtc import RTC
-        from utime import mktime
         from config import config
         from device_routines import DEVICE_ROUTINE
         
@@ -108,18 +107,21 @@ class SCHEDULE(object):
         
         self.maintenance()
         
-        item_scheduled = True
-        # Keep re-checking the schedule until we're all clear. What might happen
-        # is we finish an event and the schedule starts for the next event. We
-        # want to keep checking until there are no more items scheduled.
+        # Keep re-checking the schedule until we're all clear. What might 
+        # happen is we finish an event and the schedule starts for the next 
+        # event. We want to keep checking until there are no more items
+        # scheduled.
         
-        # FIXME Add some kind of expected time buffer on the server so we're not
-        # continuously running events and killing our battery. Want a long
+        # FIXME Add some kind of expected time buffer on the server so we're
+        # not continuously running events and killing our battery. Want a long
         # buffer between events, how about SCHEDULE_BUFFER x 5?
-        while item_scheduled:
+        while True:
+            item_scheduled = False
             for device in self.schedules:
                 # Add a buffer to avoid a race condition if there is an event
-                # that occurs between now and when the system goes to sleep
+                # that occurs between now and when the system goes to sleep.
+                # This addresses a different situation than the while True
+                # above.
                 stop_time = rtc.now() + config['SCHEDULE_BUFFER']
                 
                 # Get all items scheduled
@@ -127,16 +129,16 @@ class SCHEDULE(object):
                 currently_scheduled_times = filter(lambda x: x <= stop_time,
                                                     all_scheduled_times)
                 
-                # Logic to know when to stop executing the outer while loop
+                # Logic to know when to stop executing the outer while loop. If
+                # this never gets set in this for loop we know we have no items
+                # scheduled under any device, and so we can exit the while loop
+                # as well.
                 if currently_scheduled_times:
                     item_scheduled = True
-                else:
-                    item_scheduled = False
                 
                 # FIXME On the server, never schedule an event for a device at
                 # the same time or this could fail
                 for scheduled_time in currently_scheduled_times:
-                    
                     # Get our command
                     command = self.schedules[device][scheduled_time]['command']
                     device_routine = DEVICE_ROUTINE(device)
@@ -144,11 +146,13 @@ class SCHEDULE(object):
                     self.maintenance()
                     
                     # FIXME Am I re-running it if it fails?
-                    # FIXME In cloud.py or mqtt.py ensure I retry communications
-                    # X number of times. For intermittent network connections.
                     self.status[device] = device_routine.run(command)
                     
                     # Remove the event just executed and write our modified
                     # schedule to disk
                     self.schedules[device].pop(0)
                     self.save_schedule(device)
+            
+            # We never encountered any items scheduled in the for loop above
+            if not items_scheduled:
+                break

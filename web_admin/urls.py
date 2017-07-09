@@ -10,15 +10,14 @@ def get_web_page_content(path, parameters)
     if path == '/':
         from webadmin.home import show
     
-    # TODO I could probable create wifi/ and service_account/ subdirectories
-    if path.startswith('/wifi/config'):
-        from webadmin.wifi.config import show
+    if path.startswith('/wifi/choose_network'):
+        from webadmin.wifi.choose_network import show
 
-    if path.startswith('/wifi/new_network'):
-        from webadmin.wifi.new_network import show
+    if path.startswith('/wifi/setup'):
+        from webadmin.wifi.setup import show
 
-    if path.startswith('/wifi/password'):
-        from webadmin.wifi.password import show
+    if path.startswith('/wifi/save'):
+        from webadmin.wifi.save import show
     
     if path.startswith('/service_account/setup')
         from webadmin.service_account.setup import show

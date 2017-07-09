@@ -1,12 +1,12 @@
 class CLOUD(object):
     import temp_file
-    from maintenance import maintenance
     from os import remove
     from errors import ERRORS
+    from maintenance import maintenance
     from json import loads, load, dumps, dump
     
     def __init__(self):
-        """ Sets up communications with the cloud servers """
+        """Sets up communications with the cloud servers"""
         from mqtt import MQTT
         
         self.maintenance()
@@ -20,24 +20,49 @@ class CLOUD(object):
     
     
     def isconnected(self):
-        """ Ping the cloud servers, ensure we have complete connectivity """
+        """Ping the cloud servers, ensure we have complete connectivity"""
         self.maintenance()
         return self.send('ping') == 'ack'
     
     
     def send(self, action, message = None):
-        """ Send an action and message and get the reply. For example, action = 'door_status', message = 'up' """
+        """Send an action and message and get the reply.
+        
+        For example, action = 'door_status', message = 'up'
+        """
         self.maintenance()
         
         self.mqtt.publish(dumps(action, message))
         return self.mqtt.get(loads(action))
     
     
-    def get_data_updates(self):
-        """ Get all recent data updates such as new door schedules from our cloud servers. """
+    def get_data_updates(self, get_all_data_files = False):
+        """Get all recent data updates such as new door schedules from our 
+        cloud servers.
+        
+        We can optionally specify which updates to get, whether only the latest
+        or all data files if for example we just did a factory reset.
+        
+        This can also be specified by writing True into
+        /flash/get_all_data_files.txt which will get deleted once read.
+        """
         self.maintenance()
         
-        updates = self.send('get_data_updates')
+        get_all_data_files_flag = '/flash/get_all_data_files.txt'
+        with open(get_all_data_files_flag) as get_all_data_filesH:
+            if get_all_data_files.read().strip() == 'True':
+                get_all_data_files = True
+        
+        try:
+            remove(get_all_data_files_flag)
+        except:
+            # Does not exist, ignore
+            pass
+
+        if get_all_data_files:
+            updates = self.send('get_all_data_files')
+        else:
+            updates = self.send('get_latest_data_updates')
         
         if not updates:
             return True
@@ -52,8 +77,9 @@ class CLOUD(object):
             self.maintenance()
             try:
                 # Read the original file
-                with open('/flash/schedules/' + data_file + '.json') as json_data:
-                    existing_data[data_file] = self.load(json_data)
+                data_file_full_path = '/flash/data/' + data_file
+                with open(data_file_full_path) as data_fileH:
+                    existing_data[data_file] = self.load(data_fileH)
             except: # TODO Get the precise exception type
                 # File doesn't exist yet. We'll create it in memory first.
                 existing_data[data_file] = dict()
@@ -63,14 +89,14 @@ class CLOUD(object):
         self.maintenance()
         
         for data_file in existing_data:
-            # TODO Change to 'with' and do general Pythonic cleanup
+            # TODO Change to 'with' and do general Pythonic cleanup everywhere
             with self.temp_file.create(data_file) as temp_fileH:
                 if self.dump(existing_data[data_file], temp_fileH):
                     self.temp_file.install(temp_fileH, data_file)
     
     
     def get_system_updates(self):
-        """ Update the scripts on our system """
+        """Update the scripts on our system"""
         # Create any new directories
         new_directories = self.send('get_new_directories')
         
@@ -81,7 +107,8 @@ class CLOUD(object):
             
             for new_directory in new_directories:
                 self.maintenance()
-                # exist_ok = True is a counter-intuitively-named flag. If the parent directory does not exist we will create it first.
+                # exist_ok = True is a counter-intuitively-named flag. If the 
+                # parent directory does not exist we will create it first.
                 mkdir('/flash/' + new_directory, exist_ok = True)
         
         self.maintenance()
@@ -93,7 +120,7 @@ class CLOUD(object):
             return None
         
         # Signal that we are doing stuff
-        self.errors.flash_yellow_red_start()
+        errors.flash_LEDs(['warn', 'error'], 'start')
         
         # FIXME Ensure we install /flash/version.txt via the server
         
@@ -101,7 +128,7 @@ class CLOUD(object):
         import web_admin
         web_admin.stop()
 
-        from uhashlib import MD5
+        from hashlib import MD5
         
         successfully_updated_files = list()
         
@@ -113,7 +140,8 @@ class CLOUD(object):
             
             self.maintenance()
             
-            # Create the file as .new and upon reboot our system will see the .new file and delete the existing version, install the new.
+            # Create the file as .new and upon reboot our system will see the
+            # .new file and delete the existing version, install the new.
             with open('/flash/' + new_file, 'w') as script_fileH:
                 script_fileH.writelines(script_contents)
             
@@ -138,7 +166,7 @@ class CLOUD(object):
                 # Stop looping on updates
                 break
 
-        self.errors.flash_yellow_red_stop()
+        errors.flash_LEDs(['warn', 'error'], 'stop')
         
         if successfully_updated_files:
             with open('/flash/updated_files.txt') as updated_filesH:
@@ -147,4 +175,4 @@ class CLOUD(object):
             # Reboot and the system will install any .new files
             # FIXME Test to ensure that boot.py is run on reboot()
             from reboot import reboot
-            reboot(delay = 0)
+            reboot()
