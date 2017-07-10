@@ -77,6 +77,7 @@ else:
 
 wdt.stop()
 
-# FIXME Here, and everywhere deepsleep is used: machine.pin_deepsleep_wakeup(...
+# FIXME Here, and everywhere deepsleep is used: machine.pin_deepsleep_wakeup(..
+# In other words setup our interrupts and wakeup reasons
 sleep_microseconds = (schedule.next_event_time - rtc.now())*1000
 deepsleep(sleep_microseconds)

@@ -1,5 +1,6 @@
 class SYSTEM(object):
     from maintenance import maintenance
+    from config import config
     
     def __init__(self):
         """Configures our system object which keeps track of certain items
@@ -12,9 +13,36 @@ class SYSTEM(object):
         self.i2c = i2c
         self.attached_devices = set()
         
-        # We always have at least one door opener, which does not use I2C (just
-        # GPIO) so add it here
+        # We always have at least one door opener and reed switches, which do
+        # not use I2C (just GPIO) so add them here
         self.attached_devices.add('door')
+        self.attached_devices.add('door_reed_switches')
+    
+    
+    @property
+    def version(self):
+        """Sets the version number variable based on the version number file"""
+        # TODO Also get the sys.* version numbers
+        # https://docs.pycom.io/pycom_esp32/library/sys.html
+        from json import load
+
+        self.maintenance()
+        
+        # FIXME Change the version number file to JSON format, it's currently
+        # plain text
+        with open(self.config['VERSION_NUMBER_FILE']) as versionH:
+            return load(versionH)
+    
+    
+    @property
+    def serial(self):
+        """ Sets our serial number variable based on the system's unique ID """
+        from binascii import hexlify
+        from machine import unique_id
+
+        self.maintenance()
+        return str(hexlify(unique_id()), 'utf-8')
+    
     
     @property
     def attached_devices(self):
@@ -23,8 +51,6 @@ class SYSTEM(object):
         
         Ignores any non-certified hardware.
         """
-        from config import config
-        
         self.maintenance()
         
         # TODO Does this work?

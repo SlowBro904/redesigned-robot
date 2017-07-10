@@ -1,16 +1,17 @@
 class ERRORS(object):
+    from os import remove
+    from json import dump, load
     from machine import Pin, deepsleep
     from maintenance import maintenance
-    from json import dump, load
-    from os import remove
     
     # These must be hard-coded to prevent a recursion issue where
     # config_class.py cannot load the config file and throws an error.
     # TODO Do I need this now? I don't think I'm running any errors in 
     # config_class.py. But I am pretty sure I will be soon.
-    good_LED = self.Pin(10, mode = self.Pin.OUT)
-    warn_LED = self.Pin(11, mode = self.Pin.OUT)
-    error_LED = self.Pin(12, mode = self.Pin.OUT)
+    good_LED = Pin(10, mode = self.Pin.OUT)
+    warn_LED = Pin(11, mode = self.Pin.OUT)
+    error_LED = Pin(12, mode = self.Pin.OUT)
+    
     warnings = set()
     warnings_file = '/flash/warnings.json'
 

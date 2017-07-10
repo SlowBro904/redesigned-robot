@@ -46,8 +46,9 @@ def fac_rst_handler():
         
         # Create a flag file to notify cloud.get_data_updates to fetch all data
         # files
+        from json import dump
         with open('/flash/get_all_data_files.txt', 'w') as get_all_data_filesH:
-            get_all_data_filesH.write('True')
+            dump(True, get_all_data_filesH)
         
         reboot(delay = 3, boot_cause = 'PwrBtn')
 

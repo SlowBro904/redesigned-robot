@@ -140,6 +140,7 @@ def _daemon():
         conn.close()
         
         if timer.read() >= timeout:
+            timer.stop()
             run_daemon = False
     
     maintenance()

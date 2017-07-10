@@ -65,7 +65,7 @@ class SCHEDULE(object):
         self.maintenance()
         
         with open(self.status_file, 'w') as json_data:
-            if not self.dump(self.status(), json_data):
+            if not self.dump(self.status, json_data):
                 return False
     
     
@@ -75,7 +75,7 @@ class SCHEDULE(object):
         
         with open(self.status_file) as status_fileH:
             status = self.load(status_fileH)
-    
+        
         if status:
             self.clear_saved_status()
         
@@ -97,8 +97,6 @@ class SCHEDULE(object):
     
     def run(self):
         """Run any events that are due now"""
-        # FIXME If we have a close and open event that we missed only do the
-        # latest one. Maybe only do the latest of anything that's overdue.
         from rtc import RTC
         from config import config
         from device_routines import DEVICE_ROUTINE
@@ -106,6 +104,10 @@ class SCHEDULE(object):
         rtc = RTC()
         
         self.maintenance()
+        
+        # TODO I might want a per-device retry but quite difficult to implement
+        # so let's wait 'til we need it
+        device_retries = config['DEVICE_RETRIES']
         
         # Keep re-checking the schedule until we're all clear. What might 
         # happen is we finish an event and the schedule starts for the next 
@@ -115,8 +117,8 @@ class SCHEDULE(object):
         # FIXME Add some kind of expected time buffer on the server so we're
         # not continuously running events and killing our battery. Want a long
         # buffer between events, how about SCHEDULE_BUFFER x 5?
+        items_scheduled = False
         while True:
-            item_scheduled = False
             for device in self.schedules:
                 # Add a buffer to avoid a race condition if there is an event
                 # that occurs between now and when the system goes to sleep.
@@ -126,33 +128,51 @@ class SCHEDULE(object):
                 
                 # Get all items scheduled
                 all_scheduled_times = self.schedules[device].keys()
-                currently_scheduled_times = filter(lambda x: x <= stop_time,
-                                                    all_scheduled_times)
                 
-                # Logic to know when to stop executing the outer while loop. If
-                # this never gets set in this for loop we know we have no items
-                # scheduled under any device, and so we can exit the while loop
-                # as well.
-                if currently_scheduled_times:
-                    item_scheduled = True
+                # Get only the most recently scheduled item for this device
+                due = filter(lambda x: x <= stop_time, all_scheduled_times)[-1]
+                item_scheduled = None
+                if due:
+                    item_scheduled = due[-1]
                 
-                # FIXME On the server, never schedule an event for a device at
-                # the same time or this could fail
-                for scheduled_time in currently_scheduled_times:
-                    # Get our command
-                    command = self.schedules[device][scheduled_time]['command']
-                    device_routine = DEVICE_ROUTINE(device)
+                if item_scheduled:
+                    # No schedules, move on to the next device
+                    continue
                 
-                    self.maintenance()
+                # At least one item was scheduled
+                items_scheduled = True
+                
+                # Get our command and arguments
+                this_event = self.schedules[device][item_scheduled]
+                command = this_event['command']
+                arguments = this_event['arguments']
+                
+                device_routine = DEVICE_ROUTINE(device)
+                
+                self.maintenance()
+                
+                status = None
+                
+                for i in range(device_retries):
+                    status = device_routine.run(command, arguments)
                     
-                    # FIXME Am I re-running it if it fails?
-                    self.status[device] = device_routine.run(command)
-                    
-                    # Remove the event just executed and write our modified
-                    # schedule to disk
-                    self.schedules[device].pop(0)
-                    self.save_schedule(device)
+                    if status is not None:
+                        break
+                
+                self.status[device] += status
+                
+                # Remove everything due (including but not limited to the one
+                # we just executed) and write our modified schedule to disk
+                for this_event in due:
+                    this_event_index = self.schedules[device].index(this_event)
+                    self.schedules[device].pop(this_event_index)
+                
+                self.save_schedule(device)
             
-            # We never encountered any items scheduled in the for loop above
+            
+            # Logic to know when to stop executing the outer while loop. If
+            # this never gets set in this for loop we know we have no items
+            # scheduled under any device, and so we can exit the while loop
+            # as well.
             if not items_scheduled:
                 break

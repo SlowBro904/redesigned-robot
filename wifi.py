@@ -1,7 +1,7 @@
 class WIFI(object):
-    from maintenance import maintenance
     from network import WLAN
     from config import config
+    from maintenance import maintenance
     
     # FIXME Add this. Hmm, I forget what we're supposed to do next. Google the
     # phrases below since that should find them again.
@@ -19,19 +19,21 @@ class WIFI(object):
         Accepts a value for STA power save; Either 'True' or 'False'. Only
         applicable in STA mode.
         """
-        self._all_access_points = list()
         self._all_ssids = set()
         self.mode = mode2int(mode)
+        self._all_access_points = list()
         self.antenna = self.antenna2int(antenna)
         
         if self.mode is not self.WLAN.STA:
-            from serial import serial
+            from system import SYSTEM
+            
+            serial = SYSTEM().serial
 
             device_name = self.config['DEVICE_NAME']
 
             # Access point SSID is the device name plus the last six digits of
-            # the serial number. There may be more than one of my devices in the
-            # area.
+            # the serial number. There may be more than one of my devices in
+            # the area.
             # (I HOPE there's more than one of my devices in the area. Grin)
             ssid = device_name + '_' + serial[-6:]
 
@@ -182,7 +184,6 @@ class WIFI(object):
     @property
     def ip(self):
         """The IP address"""
-        # FIXME Integrate into webadmin.py
         return self.ifconfig()[0]
     
     
@@ -193,15 +194,13 @@ class WIFI(object):
         It's sorted by signal strength with the strongest access points
         appearing first. Includes all values. (ssid, bssid, sec, channel, rssi)
         """
-        if self._all_access_points:
-            return self._all_access_points
-        
-        # Sort on the RSSI (signal strength) which is in position [4] in the
-        # results from self.wlan.scan(), reversed so the largest strength comes
-        # first, since that's the strongest
-        self._all_access_points = sorted(self.wlan.scan(),
-                                            key = lambda AP: AP[4],
-                                            reverse=True)
+        if not self._all_access_points:
+            # Sort on the RSSI (signal strength) which is in position [4] in 
+            # the results from self.wlan.scan(), reversed so the largest 
+            # strength comes first, since that's the strongest
+            self._all_access_points = sorted(self.wlan.scan(),
+                                                key = lambda AP: AP[4],
+                                                reverse=True)
         
         return self._all_access_points
     
@@ -224,8 +223,8 @@ class WIFI(object):
         """A set of all visible SSIDs.
 
         It is derived from the set of access points. Whereas the set of APs
-        gives all parameters such as the strength and BSSID, this gives only the
-        SSIDs.
+        gives all parameters such as the strength and BSSID, this gives only
+        the SSIDs.
         
         As with the access points it is sorted by signal strength.
         """

@@ -43,17 +43,17 @@ class CLOUD(object):
         We can optionally specify which updates to get, whether only the latest
         or all data files if for example we just did a factory reset.
         
-        This can also be specified by writing True into
-        /flash/get_all_data_files.txt which will get deleted once read.
+        This can also be specified by writing True in JSON format into
+        /flash/get_all_data_files.json which will get deleted once read.
         """
         self.maintenance()
         
-        get_all_data_files_flag = '/flash/get_all_data_files.txt'
-        with open(get_all_data_files_flag) as get_all_data_filesH:
-            if get_all_data_files.read().strip() == 'True':
-                get_all_data_files = True
+        get_all_data_files_flag = '/flash/get_all_data_files.json'
         
         try:
+            with open(get_all_data_files_flag) as get_all_data_filesH:
+                get_all_data_files = load(get_all_data_filesH)
+            
             remove(get_all_data_files_flag)
         except:
             # Does not exist, ignore
@@ -122,7 +122,7 @@ class CLOUD(object):
         # Signal that we are doing stuff
         errors.flash_LEDs(['warn', 'error'], 'start')
         
-        # FIXME Ensure we install /flash/version.txt via the server
+        # FIXME Ensure we install /flash/version.json via the server
         
         # Stop the web admin daemon
         import web_admin

@@ -3,36 +3,29 @@ For errors send a warning
 Feed watchdog at every opportunity
 
 ** Factory reset
-** USB port if powered at all times
+** If the USB port is powered don't go into deep sleep
 ** Review TODO Doors and Mind map for anything else
 
 ===RTC alarm start/Up+dn reeds/Aux interrupt===
 RTC alarm pulls low a pin that is configured for an interrupt and is ordinarily pulled high
 Interrupt runs callback
-Watchdog starts with 10? seconds
+Watchdog starts with X seconds
 ESP detects how it was started
 Stop all interrupts
-Check battery level
-  (We don't want the door half closed for the night.)
+Check battery level (We don't want the door half closed for the night.)
   Flash red
-  Goto :end
-Check chip temperature
- Flash red
   Goto :end
 Green blinks
 Start Wi-Fi (Error)
 Check network connectivity. Login, do a "ping" to the remote server, receive "ack". (Error)
 Detect attached devices
 If network:
-  Update local clock from RTC (Error)
   Update local clock from NTP (Error)
   Check for new scripts (Error)
     Set a flag
     machine.reset()
   Send battery status (Error)
     Server: If below 10% send alert
-  Send temperature (Error)
-    Server: If above X temp send alert. What temp do poultry die plus X degrees for running long? What about continuous running?
   Send attached devices
   Check for new data updates (Error)
     Server: Send the next 7 years' worth of data
@@ -41,7 +34,7 @@ Check schedule
   If no scheduled events
     Flash red
     Goto :end
-  If past event and less than one hour after event start time, or if future event that occurs before X number of seconds (of a cycle completion, shutdown, and startup)
+  If past event, or if future event that occurs before X number of seconds (of a cycle completion, shutdown, and startup)
     Start it
     Delete from local schedule
     Notify server it's been started
@@ -55,7 +48,7 @@ Check schedule
       Motor voltage high or low wait one second and try again, three tries (Error)
     Stop at limit switch
     Send update
-  Set next RTC alarm
+  Set next wake time
 :end
 Start all interrupts
 Deep sleep
@@ -89,32 +82,3 @@ If no client connection within one minute
   Do items from other startup
 
 ===Server side===
-
-
-
-
-
-===Objects===
-Wifi
-Rtc
-I2c
-Wdt 
-Motors
-Batt 
-System
- Temp
- Version (OS, scripts)
- Serial
- Attached devices
-LEDs 
-USB 
-Connection to cloud
-Peripherals
-NTP 
-Events
-Reeds
-Fac reset
-Obs switch 
-Solenoid 
-User account
-Web server

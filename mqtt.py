@@ -4,14 +4,16 @@ class MQTT(object):
     def __init__(self):
         """Setup our MQTT object"""
         from config import config
-        from serial import serial
-        from version import version
+        from system import SYSTEM
         # TODO Add exception AdafruitIOError but under what conditions
         from simple import MQTTClient
         
         self.maintenance()
         
         self.topics = set()
+        
+        serial = SYSTEM().serial
+        version = SYSTEM().version
         
         port = config['MQTT_PORT']
         server = config['MQTT_SERVER']

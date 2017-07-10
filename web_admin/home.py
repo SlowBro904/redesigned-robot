@@ -2,14 +2,16 @@ def show(parameters):
     """The home page"""
     from wifi import wifi
     from config import config
-    from serial import serial
-    from version import version
+    from system import SYSTEM
     from maintenance import maintenance
     
     device_name = config['DEVICE_NAME']
     title = device_name
     header = ""
     h1 = title
+    
+    serial = SYSTEM().serial
+    version = SYSTEM().version
     
     maintenance()
     
