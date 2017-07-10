@@ -27,6 +27,12 @@ def get_web_page_content(path, parameters)
     
     if path.startswith('/error_log')
         from webadmin.error_log import show
+    
+    if path.startswith('/advanced/setup')
+        from webadmin.advanced.setup import show
+    
+    if path.startswith('/advanced/save')
+        from webadmin.advanced.save import show
    
     # Ignore anything else
     

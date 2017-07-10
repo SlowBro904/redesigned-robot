@@ -1,5 +1,5 @@
 def show(parameters):
-    """ Saving the Wi-Fi password and configuration """
+    """Save the Wi-Fi password and configuration"""
     from config import config
     from reboot import reboot
     from maintenance import maintenance
@@ -26,12 +26,9 @@ def show(parameters):
     if 'security_type' in parameters and parameters['security_type']:
         security_type = parameters['security_type']
     
-    title = "Saving network configuration"
-
+    title = "Please wait..."
     header = ""
-
-    h1 = title
-    
+    h1 = title    
     body = ""
 
     if not ssid:
@@ -64,15 +61,13 @@ def show(parameters):
         
         return (title, header, h1, body)
     
-    body += "Please wait...<br />"
-    
     if config['SERVICE_ACCOUNT_EMAIL']:
         body += "<meta http-equiv='refresh' content='30;url=/' />"
     
-        reboot(delay = 5)
+        reboot(delay = 5, boot_cause = 'PwrBtn')
     else:
         # Service account not setup yet
-        body += "<meta http-equiv='refresh' "
-        body += "content='0;url=/service_account/setup' />"
+        body += """<meta http-equiv='refresh' 
+        content='0;url=/service_account/setup' />"""
     
     return (title, header, h1, body)

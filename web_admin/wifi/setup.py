@@ -68,10 +68,10 @@ def show(parameters):
     <tr id='password2' style='display:none'><td>Repeat password: </td><td>
     <div align='right'><input type='password' name='password2'></div></td></tr>
     <tr><td></td><td></td></tr>
-    <tr><td></td><td><div align='right'><input type='submit' value='Next'></div>
-    </td></tr>
-    </form>
-    </table>"""
+    <tr><td></td><td><div align='right'><input type='submit' value='Next'>
+    </div></td></tr>
+    </table>
+    </form>"""
 
     if security_type != 'None':
         body += """<script>show_passwords();</script>"""

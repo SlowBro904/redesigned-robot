@@ -3,11 +3,6 @@ class WIFI(object):
     from config import config
     from maintenance import maintenance
     
-    # FIXME Add this. Hmm, I forget what we're supposed to do next. Google the
-    # phrases below since that should find them again.
-    # Test needed to avoid losing connection after a soft reboot
-    #if machine.reset_cause() != machine.SOFT_RESET:
-    
     def __init__(self, mode = 'STA', antenna = self.config['WIFI_ANTENNA'],
                     power_save = self.config['WIFI_POWER_SAVE']):
         """Sets up a Wi-Fi connection based on the mode.
@@ -126,8 +121,8 @@ class WIFI(object):
     
     def connect(self):
         """Connect to the Wi-Fi network"""
-        if not self.ssid:
-            return False
+        if self.wlan.isconnected():
+            return self.wlan.isconnected()
         
         from machine import idle
         

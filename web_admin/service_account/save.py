@@ -1,5 +1,6 @@
+# FIXME Only show this if we have connectivity and test the login
 def show(parameters):
-    """ Save the service account username and password """
+    """Save the service account username and password"""
     from config import config
     from reboot import reboot
     from maintenance import maintenance
@@ -19,7 +20,7 @@ def show(parameters):
         password2 = parameters['password2']
     
     
-    title = "Saving service account"
+    title = "Please wait..."
     header = ""
     h1 = title
     body = ""
@@ -44,8 +45,7 @@ def show(parameters):
         contact technical support.<br />
         <button onclick='window.history.back();'>Go back</button>"""
     
-    body += """Please wait...<br />
-    <meta http-equiv='refresh' content='30;url=/' />"""
+    body += "<meta http-equiv='refresh' content='30;url=/' />"
     
     reboot(delay = 5, boot_cause = 'PwrBtn')
 

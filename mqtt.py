@@ -1,9 +1,10 @@
 class MQTT(object):
+    from config import config
+    from crypto import AES, getrandbits
     from maintenance import maintenance
     
     def __init__(self):
         """Setup our MQTT object"""
-        from config import config
         from system import SYSTEM
         # TODO Add exception AdafruitIOError but under what conditions
         from simple import MQTTClient
@@ -15,13 +16,15 @@ class MQTT(object):
         serial = SYSTEM().serial
         version = SYSTEM().version
         
-        port = config['MQTT_PORT']
-        server = config['MQTT_SERVER']
-        retries = config['MQTT_RETRIES']
-        timeout = config['MQTT_TIMEOUT']
-        username = config['MQTT_USERNAME']
-        password = config['MQTT_PASSWORD']
-        device_name = config['DEVICE_NAME']
+        self.key = b(self.config['ENCRYPTION_KEY'])
+        
+        port = self.config['MQTT_PORT']
+        server = self.config['MQTT_SERVER']
+        retries = self.config['MQTT_RETRIES']
+        timeout = self.config['MQTT_TIMEOUT']
+        device_name = self.config['DEVICE_NAME']
+        username = self.config['SERVICE_ACCOUNT_EMAIL']
+        password = self.config['SERVICE_ACCOUNT_PASSWORD']
         
         # Use the device name, the version, and the serial number for the root 
         # path. I'm including the device name and version so that we can have 
@@ -44,7 +47,13 @@ class MQTT(object):
         # FIXME This demands that every MQTT topic have a value, which I think
         # they always will at least have the most recently published value
         from time import sleep
+
         self.maintenance()
+        
+        # Encrypt the data
+        iv = getrandbits(128)
+        cipher = self.AES(self.key, self.AES.MODE_CFB, iv)
+        message = iv + cipher.encrypt(b(message))
         
         result = None
         
@@ -58,21 +67,23 @@ class MQTT(object):
         
         return result
     
+    
     def get(self, path, retries = self.retries):
         """Gets any current data in an MQTT path"""
         self.maintenance()
         
-        result = None
+        message = None
         
         if path not in self.topics:
             self.subscribe(path)
             
         for i in range(retries):        
-            result = self.client.receive(path)[1]
-            if result:
+            message = self.client.receive(path)[1]
+            if message:
                 break
         
-        return result
+        cipher = self.AES(self.key, self.AES.MODE_CFB, message[:16])
+        return cipher.decrypt(message[16:])
     
     
     def subscribe(self, path, retries = self.retries):

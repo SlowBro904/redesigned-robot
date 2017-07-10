@@ -36,6 +36,8 @@ def show(parameters):
         <br />
         <a href='/error_log'>Error log</a><br />
         <br />
+        <a href='/advanced/setup'>Advanced</a><br />
+        <br />
         Version """ + version + """ | Serial number """ + serial + """<br />"""
     
     return (title, header, h1, body)
