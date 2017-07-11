@@ -11,6 +11,7 @@ def reboot(delay = 0, boot_cause = None):
     to load the web admin so we want to always act as though the button was
     pressed.
     """
+    from json import dump
     from maintenance import maintenance
     from _thread import start_new_thread
     
@@ -18,8 +19,8 @@ def reboot(delay = 0, boot_cause = None):
     
     # Override boot cause detection using this text file
     if boot_cause:
-        with open('/flash/boot_cause.txt', 'w') as boot_causeH:
-            boot_causeH.write(boot_cause)
+        with open('/flash/boot_cause.json', 'w') as boot_causeH:
+            dump(boot_cause, boot_causeH)
     
     start_new_thread(_reboot, (delay, id = 0))
 

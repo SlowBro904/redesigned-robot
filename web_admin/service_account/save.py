@@ -1,4 +1,6 @@
 # FIXME Only show this if we have connectivity and test the login
+# FIXME Display something on the home screen saying now all is good after
+# testing login ability
 def show(parameters):
     """Save the service account username and password"""
     from config import config
@@ -47,6 +49,7 @@ def show(parameters):
     
     body += "<meta http-equiv='refresh' content='30;url=/' />"
     
+    # FIXME Do I really need to reboot?
     reboot(delay = 5, boot_cause = 'PwrBtn')
 
     return (title, header, h1, body)

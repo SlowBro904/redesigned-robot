@@ -8,14 +8,29 @@ def show(parameters):
     errors = ERRORS()
     
     title = "Error log"
-    header = ""
+    
+    # Zebra striped table
+    header = """<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 8px;
+    }
+
+    tr:nth-child(even){background-color: #f2f2f2}
+    </style>"""
+    
     h1 = title
     
     body = "<table>"
     
-    # FIXME Also capture hard errors
-    for warning in errors.warnings:
-        body += "<tr><td>" + warning + "</td></tr>"
+    # TODO Paginate
+    for log in errors.log:
+        body += "<tr><td>" + log + "</td></tr>"
     
     body += """</table><br />
     <br />

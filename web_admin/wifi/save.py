@@ -64,6 +64,7 @@ def show(parameters):
     if config['SERVICE_ACCOUNT_EMAIL']:
         body += "<meta http-equiv='refresh' content='30;url=/' />"
     
+        # FIXME Do I really need to reboot?
         reboot(delay = 5, boot_cause = 'PwrBtn')
     else:
         # Service account not setup yet

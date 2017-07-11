@@ -16,18 +16,16 @@ def fac_rst_handler():
     maintenance()
     
     # Blink our yellow/red LEDs to let the user know the button is held
-    errors.flash_LEDs(['warn', 'error'], 'start')
+    errors.blink_LEDs('start', ['warn', 'error'])
     sleep(5)
-    errors.flash_LEDs(['warn', 'error'], 'stop')
+    errors.blink_LEDs('stop')
     
     maintenance()
     
     # If we're still holding it after 5 seconds
     if fac_rst_pin:
-        # Now red continuously until rebooted
-        errors.good_LED(False)
-        errors.warn_LED(False)
-        errors.error_LED(True)
+        # Now flash red until rebooted
+        errors.blink_LEDs('start', ['error'], 300)
         
         maintenance()
         
@@ -47,7 +45,8 @@ def fac_rst_handler():
         # Create a flag file to notify cloud.get_data_updates to fetch all data
         # files
         from json import dump
-        with open('/flash/get_all_data_files.txt', 'w') as get_all_data_filesH:
+        get_all_data_files_flag = '/flash/get_all_data_files.json'
+        with open(get_all_data_files_flag, 'w') as get_all_data_filesH:
             dump(True, get_all_data_filesH)
         
         reboot(delay = 3, boot_cause = 'PwrBtn')
@@ -55,6 +54,6 @@ def fac_rst_handler():
 maintenance()
 
 # Setup our listener
-fac_rst_pin = 'P' + config['FACTORY_RESET_PIN']
+fac_rst_pin = config['FACTORY_RESET_PIN']
 fac_rst_pin_lsnr = Pin(fac_rst_pin, mode = Pin.IN, pull = Pin.PULL_UP)
 fac_rst_pin_lsnr.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, fac_rst_handler)

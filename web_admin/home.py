@@ -17,7 +17,7 @@ def show(parameters):
     
     if not wifi.ssid:
         body = """Let's get started!<br />
-        <script>window.location.href = '/wifi/config';</script>"""
+        <script>window.location.href = '/wifi/choose_network';</script>"""
     else:
         body = "Connnected to " + wifi.ssid + "<br />"
         

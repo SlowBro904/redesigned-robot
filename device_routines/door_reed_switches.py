@@ -3,8 +3,9 @@ def status():
     from machine import Pin
     from config import config
     
-    up_pin_cfg = 'P' + config['DOOR_REED_UP_PIN']
-    dn_pin_cfg = 'P' + config['DOOR_REED_DN_PIN']
+    # FIXME In the config file use 'PXX' for the pin
+    up_pin_cfg = config['DOOR_REED_UP_PIN']
+    dn_pin_cfg = config['DOOR_REED_DN_PIN']
     
     up_pin = Pin(up_pin_cfg, mode = Pin.IN, pull = Pin.PULL_UP)
     dn_pin = Pin(dn_pin_cfg, mode = Pin.IN, pull = Pin.PULL_UP)

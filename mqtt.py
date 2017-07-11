@@ -16,7 +16,7 @@ class MQTT(object):
         serial = SYSTEM().serial
         version = SYSTEM().version
         
-        self.key = b(self.config['ENCRYPTION_KEY'])
+        self.key = bytes(self.config['ENCRYPTION_KEY'])
         
         port = self.config['MQTT_PORT']
         server = self.config['MQTT_SERVER']
@@ -51,9 +51,9 @@ class MQTT(object):
         self.maintenance()
         
         # Encrypt the data
-        iv = getrandbits(128)
+        iv = self.getrandbits(128)
         cipher = self.AES(self.key, self.AES.MODE_CFB, iv)
-        message = iv + cipher.encrypt(b(message))
+        message = iv + cipher.encrypt(bytes(message))
         
         result = None
         

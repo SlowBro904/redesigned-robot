@@ -1,4 +1,5 @@
 class CONFIG(object):
+    import errors
     import temp_file
     from os import remove
     from json import load, dump
@@ -43,8 +44,6 @@ class CONFIG(object):
     
     def reset_to_defaults(self):
         """Resets the config file to defaults"""
-        # FIXME After clearing out the local get the latest data updates from
-        # the server
         self.maintenance()
         with open(self.defaults_file) as defaults_fileH:
             defaults = self.load(defaults_fileH)
@@ -88,4 +87,5 @@ class CONFIG(object):
         
         # Install the temp file
         if not self.temp_file.install(temp_config_fileH, self.config_file):
-            warning('Cannot_update_config_file')
+            # FIXME Add warnings everywhere
+            self.errors.warning('Cannot_update_config_file')

@@ -5,9 +5,9 @@ class MOTOR(object):
     from machine import Pin, Timer, ADC
     from maintenance import maintenance
     
-    up = Pin('P' + config['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
-    dn = Pin('P' + config['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
-    volt_pin = Pin('P' + config['MOTOR_VOLT_PIN'], mode = Pin.IN,
+    up = Pin(config['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
+    dn = Pin(config['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
+    volt_pin = Pin(config['MOTOR_VOLT_PIN'], mode = Pin.IN,
                     pull = PULL_DOWN)
     low_voltage = config['MOTOR_LOW_VOLTAGE']
     high_voltage = config['MOTOR_HIGH_VOLTAGE']

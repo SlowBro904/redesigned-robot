@@ -36,6 +36,8 @@ class CLOUD(object):
         return self.mqtt.get(loads(action))
     
     
+    # TODO I think these next two need their own file, like updates.py. They
+    # seem out of place here.
     def get_data_updates(self, get_all_data_files = False):
         """Get all recent data updates such as new door schedules from our 
         cloud servers.
@@ -120,9 +122,9 @@ class CLOUD(object):
             return None
         
         # Signal that we are doing stuff
-        errors.flash_LEDs(['warn', 'error'], 'start')
+        errors.blink_LEDs('start', ['warn', 'error'])
         
-        # FIXME Ensure we install /flash/version.json via the server
+        # FIXME Ensure we always update /flash/version.json via the server
         
         # Stop the web admin daemon
         import web_admin
@@ -166,7 +168,7 @@ class CLOUD(object):
                 # Stop looping on updates
                 break
 
-        errors.flash_LEDs(['warn', 'error'], 'stop')
+        errors.blink_LEDs('stop')
         
         if successfully_updated_files:
             with open('/flash/updated_files.txt') as updated_filesH:
