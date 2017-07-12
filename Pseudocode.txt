@@ -82,3 +82,30 @@ If no client connection within one minute
   Do items from other startup
 
 ===Server side===
+
+
+
+
+===Objects===
+Wi-Fi
+RTC
+I2C
+WDT
+Motor
+Batt
+System
+ Temp
+ Version (OS, scripts)
+ Serial
+ Attached devices
+LEDs
+USB
+Connection to cloud
+NTP
+Schedule
+Reeds
+Fac reset
+Obs switch
+Solenoid
+User account
+Web server

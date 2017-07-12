@@ -1,5 +1,6 @@
 def show(parameters):
     """Save the Wi-Fi password and configuration"""
+    from wifi import wifi
     from config import config
     from reboot import reboot
     from maintenance import maintenance
@@ -28,7 +29,7 @@ def show(parameters):
     
     title = "Please wait..."
     header = ""
-    h1 = title    
+    h1 = title
     body = ""
 
     if not ssid:
@@ -61,11 +62,10 @@ def show(parameters):
         
         return (title, header, h1, body)
     
-    if config['SERVICE_ACCOUNT_EMAIL']:
-        body += "<meta http-equiv='refresh' content='30;url=/' />"
+    wifi.connect()
     
-        # FIXME Do I really need to reboot?
-        reboot(delay = 5, boot_cause = 'PwrBtn')
+    if config['SERVICE_ACCOUNT_EMAIL']:
+        body += "<meta http-equiv='refresh' content='10;url=/' />"
     else:
         # Service account not setup yet
         body += """<meta http-equiv='refresh' 

@@ -2,6 +2,7 @@
 
 If it's held down more than five seconds do a reset back to factory settings.
 """
+from leds import leds
 from time import sleep
 from machine import Pin
 from reboot import reboot
@@ -16,16 +17,20 @@ def fac_rst_handler():
     maintenance()
     
     # Blink our yellow/red LEDs to let the user know the button is held
-    errors.blink_LEDs('start', ['warn', 'error'])
+    leds.blink('start', pattern = ((leds.warn, True, 500),
+                                    (leds.warn, False, 0), 
+                                    (leds.err, True, 500),
+                                    (leds.err, False, 0)))
     sleep(5)
-    errors.blink_LEDs('stop')
+    leds.blink('stop')
     
     maintenance()
     
     # If we're still holding it after 5 seconds
     if fac_rst_pin:
-        # Now flash red until rebooted
-        errors.blink_LEDs('start', ['error'], 300)
+        # Now blink red until rebooted
+        leds.blink('start', pattern = (('good', True, 300), 
+                                        ('good', False, 1700)))
         
         maintenance()
         

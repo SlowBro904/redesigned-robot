@@ -1,6 +1,7 @@
 import web_admin
 from rtc import RTC
 import factory_reset
+from leds import leds
 from cloud import CLOUD
 from config import config
 from errors import ERRORS
@@ -13,9 +14,12 @@ from maintenance import maintenance
 from machine import sleep, deepsleep
 
 errors = ERRORS()
-# Set this here in the event that other objects fire warnings upon
-# instantiation
-errors.blink_LEDs(command = 'start', LEDs = ['good'], delay = 1000)
+
+# Every two seconds, a green blink. Set this as the default.
+leds.blink('start', pattern = (
+            (leds.good, True, 300), 
+            (leds.good, False, 1700)
+            ), default = True)
 
 if boot_cause == 'PwrBtn':
     wifi = sta_ap()

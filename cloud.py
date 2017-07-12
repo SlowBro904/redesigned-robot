@@ -1,6 +1,7 @@
 class CLOUD(object):
     import temp_file
     from os import remove
+    from leds import leds
     from errors import ERRORS
     from maintenance import maintenance
     from json import loads, load, dumps, dump
@@ -121,8 +122,10 @@ class CLOUD(object):
         if not updates:
             return None
         
-        # Signal that we are doing stuff
-        errors.blink_LEDs('start', ['warn', 'error'])
+        # Signal that we are doing stuff. Warn/err every 500 ms.
+        self.leds.blink('start', ((self.leds.warn, True, 500),
+                        (self.leds.warn, False, 0), (self.leds.err, True, 500),
+                        (self.leds.err, False, 0)))
         
         # FIXME Ensure we always update /flash/version.json via the server
         
@@ -168,7 +171,7 @@ class CLOUD(object):
                 # Stop looping on updates
                 break
 
-        errors.blink_LEDs('stop')
+        self.leds.blink('stop')
         
         if successfully_updated_files:
             with open('/flash/updated_files.txt') as updated_filesH:

@@ -1,16 +1,9 @@
 class ERRORS(object):
     from os import remove
+    from leds import leds
     from json import dump, load
-    from machine import Pin, deepsleep
+    from machine import deepsleep
     from maintenance import maintenance
-    
-    # These must be hard-coded to prevent a recursion issue where
-    # config_class.py cannot load the config file and throws an error.
-    # TODO Do I need this now? I don't think I'm running any errors in 
-    # config_class.py. But I am pretty sure I will be soon.
-    good_LED = Pin('P10', mode = self.Pin.OUT)
-    warn_LED = Pin('P11', mode = self.Pin.OUT)
-    error_LED = Pin('P12', mode = self.Pin.OUT)
     
     log = set()
     log_file = '/flash/log.json'
@@ -18,9 +11,6 @@ class ERRORS(object):
     def __init__(self):
         """A class for dealing with different error messages"""
         log = self.load_saved_log()
-        global _run_blink
-        _run_blink = False
-        self._warn_LED_on = False
     
     
     def hard_error(self, message):
@@ -28,7 +18,7 @@ class ERRORS(object):
         
         Adds the message to the log, saves the log, saves the schedule
         status, stops any LEDs that may be blinking, turns on the error LED,
-        stops the watchdog timer, waits one second, and puts the device into
+        stops the watchdog timer, waits three seconds, and puts the device into
         indefinite deep sleep."""
         from time import sleep
         from main import schedule
@@ -38,15 +28,12 @@ class ERRORS(object):
         self.save_log()
         schedule.save_status()
         
-        self.blink_LEDs('stop')
-        
-        self.good_LED(False)
-        self.warn_LED(False)
-        self.error_LED(True)
+        # Steady red LED
+        self.leds.blink('start', pattern = ((self.leds.err, True, None)))
         
         self.wdt.stop()
         
-        self.sleep(1)
+        self.sleep(3)
         
         self.deepsleep()
     
@@ -57,13 +44,11 @@ class ERRORS(object):
         
         self.log.add(message)
         
-        global _run_blink
-        if not _run_blink:
-            self.good_LED(False)
-            self.warn_LED(True)
-            self.error_LED(False)
-        else:
-            self._warn_LED_on = True
+        # Blink for 500 ms, off for 1500 ms, and set this as the default
+        self.leds.blink(command = 'start', pattern = (
+                        (self.leds.warn, True, 500),
+                        (self.leds.warn, False, 1500)
+                        ), default = True)
     
     
     def save_log(self):
@@ -107,68 +92,3 @@ class ERRORS(object):
         self.maintenance()
         self.log = set()
         self.clear_saved_log()
-    
-    
-    def blink_LEDs(self, command = 'start', LEDs = None, delay = 500):
-        """Blink the requested LEDs alternately.
-
-        Usually used to signal important activity.
-        
-        Send the 'start' or 'stop' command to control the process. Send a list 
-        of LEDs ('good', 'warn'. 'error') and it will blink them in the order 
-        given. Use a delay in milliseconds to give some delay between blinks, 
-        defaults to 500 ms.
-        """
-        self.maintenance()
-        if command == 'start':
-            # Multithreading so we can get back to the next step in our process
-            from _thread import start_new_thread
-            start_new_thread(_blink_LEDs, (LEDs, delay))
-        else:
-            # TODO A kludge until Pycom fixes _thread.exit() from outside the
-            # thread
-            global _run_blink
-            _run_blink = False
-    
-    
-    def _blink_LEDs(self, LEDs, delay):
-        """The actual blink process.
-        
-        Don't run this directly, use blink_LEDs() instead.
-        """
-        from time import sleep_ms
-        
-        all_LEDs = [self.good_LED, self.good_LED, self.good_LED]
-        
-        # Record the current state of all of our LEDs then turn them all off
-        current_LED_states = dict()
-        for LED in all_LEDs:
-            self.maintenance()
-            current_LED_states[LED] = LED.value()
-            LED(False)
-        
-        # TODO What other internal variables do we use elsewhere that are not
-        # prepended with underscore?
-        global _run_blink
-        _run_blink = True
-        while _run_blink:
-            for LED in LEDs:
-                LED(True)
-                self.maintenance()
-                sleep_ms(delay)
-                LED(False)
-                self.maintenance()
-                sleep_ms(delay)
-        
-        self.maintenance()
-
-        # Restore our state
-        for LED in all_LEDs:
-            LED = current_LED_states[LED]
-        
-        if self._warn_LED_on:
-            # We had turned on a warning after blinking began but before it
-            # completed, so turn it back on
-            self.good_LED(False)
-            self.warn_LED(True)
-            self.error_LED(False)

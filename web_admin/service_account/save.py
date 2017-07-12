@@ -47,9 +47,6 @@ def show(parameters):
         contact technical support.<br />
         <button onclick='window.history.back();'>Go back</button>"""
     
-    body += "<meta http-equiv='refresh' content='30;url=/' />"
-    
-    # FIXME Do I really need to reboot?
-    reboot(delay = 5, boot_cause = 'PwrBtn')
+    body += "<meta http-equiv='refresh' content='0;url=/' />"
 
     return (title, header, h1, body)

@@ -253,7 +253,7 @@ class WIFI(object):
                 self.connection_strength = AP[4]
                 break
 
-# End of class WIFI(object):
+# End of class WIFI(object)
 
 
 from config import config
@@ -276,6 +276,7 @@ def sta_ap():
     """Sets up a connection that is both station and access point"""
     from config import config
     
+    # FIXME Set it to 1.1.1.1
     ip = config['WEB_ADMIN_IP']
     subnet_mask = config['WEB_ADMIN_SUBNET_MASK']
     gateway = config['WEB_ADMIN_NETWORK_GATEWAY']
