@@ -12,7 +12,11 @@ def show(parameters):
     if wifi.ssid:
         body += "Current Wi-Fi network: " + wifi.ssid + "<br /><br />"
     
-    body += """<form action='/wifi/setup' method='get'>
+    if wifi.ip:
+        body += "IP address: " + wifi.ip + "<br /><br />"
+    
+    body += """<br />
+    <form action='/wifi/setup' method='get'>
     Connect to a new Wi-Fi network: <select name='ssid'>"""
     
     for this_ssid in wifi.all_ssids:

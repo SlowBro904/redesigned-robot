@@ -134,12 +134,10 @@ class WIFI(object):
         self.wlan.connect(self.ssid, auth=(self.security_type, password),
                             timeout = timeout)
         
-        while not self.wlan.isconnected(): # Save power while waiting
-            # FIXME Do I want to do this here, along with idle? Will that not
-            # save power?
+        # Save power while waiting
+        while not self.wlan.isconnected():
             self.maintenance()
             idle()
-            # TODO Do I need to insert a sleep here?
         
         return self.wlan.isconnected()
     
@@ -164,7 +162,8 @@ class WIFI(object):
         """
         self.maintenance()
         
-        if ip and subnet_mask: # We don't always need gateway and DNS server.
+        # We don't always need gateway and DNS server
+        if ip and subnet_mask:
             # TODO Do we even need subnet?
             self.wlan.ifconfig(id = id, config = (ip, subnet_mask, gateway,
                                 DNS_server))
@@ -204,13 +203,12 @@ class WIFI(object):
         """Takes an access point SSID, returns the security type in string
         form
         """
-        # FIXME May need to run security_type2str()
         for access_point in self.access_points:
             this_ssid = access_point[0]
             security_type = access_point[2]
             
             if this_ssid == requested_ssid:
-                return security_type
+                return security_type2str(security_type)
     
     
     @property
@@ -225,9 +223,6 @@ class WIFI(object):
         """
         if self._all_ssids:
             return self._all_ssids
-        
-        # FIXME Does this run every time it is requested? Test. Want it to stay
-        # in memory and not go through fetching every time.
         
         for AP in self.all_access_points:
             if not AP[0]:

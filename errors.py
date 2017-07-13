@@ -16,24 +16,38 @@ class ERRORS(object):
     def hard_error(self, message):
         """Called when things get real bad. Stop everything.
         
-        Adds the message to the log, saves the log, saves the schedule
-        status, stops any LEDs that may be blinking, turns on the error LED,
-        stops the watchdog timer, waits three seconds, and puts the device into
-        indefinite deep sleep."""
+        Adds the message to the log, if possible to upload the log and schedule
+        status it does, if not it saves the log and schedule status, stops any 
+        LEDs that may be blinking, turns on the error LED, stops the watchdog 
+        timer, waits three seconds, and puts the device into indefinite deep
+        sleep."""
         from time import sleep
-        from main import schedule
+        from cloud import cloud
+        # TODO Should I move these object instantiations into another file? To
+        # decouple from main.py.
+        from main import schedule, pin_deepsleep_wakeup, wake_pins,
+            WAKEUP_ANY_HIGH
         
         self.log.add(message)
         
-        self.save_log()
-        schedule.save_status()
+        if cloud.send('log', self.log):
+            self.clear_log()
+        else:
+            self.save_log()
+        
+        if cloud.send('schedule_status', schedule.status):
+            schedule.clear_status()
+        else:
+            schedule.save_status()
         
         # Steady red LED
-        self.leds.blink('start', pattern = ((self.leds.err, True, None)))
+        self.leds.blink(run = True, pattern = ((self.leds.err, True, None)))
         
         self.wdt.stop()
         
         self.sleep(3)
+        
+        pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
         
         self.deepsleep()
     
@@ -45,7 +59,7 @@ class ERRORS(object):
         self.log.add(message)
         
         # Blink for 500 ms, off for 1500 ms, and set this as the default
-        self.leds.blink(command = 'start', pattern = (
+        self.leds.blink(run = True, pattern = (
                         (self.leds.warn, True, 500),
                         (self.leds.warn, False, 1500)
                         ), default = True)

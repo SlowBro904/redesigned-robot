@@ -1,3 +1,4 @@
+import updates
 import web_admin
 from rtc import RTC
 import factory_reset
@@ -11,12 +12,12 @@ from schedule import SCHEDULE
 from boot_cause import boot_cause
 from wifi import wifi, sta, sta_ap
 from maintenance import maintenance
-from machine import sleep, deepsleep
+from machine import sleep, deepsleep, WAKEUP_ANY_HIGH, pin_deepsleep_wakeup
 
 errors = ERRORS()
 
 # Every two seconds, a green blink. Set this as the default.
-leds.blink('start', pattern = (
+leds.blink(run = True, pattern = (
             (leds.good, True, 300), 
             (leds.good, False, 1700)
             ), default = True)
@@ -51,29 +52,21 @@ cloud.connect()
 
 # Checking to see if we are first connected reduces running time while we wait
 # for connections to time out
-if wifi.isconnected() and cloud.isconnected():
-    cloud.get_system_updates()
+# FIXME Do I need to go through each point like in web_admin/__init__.py? Or do
+# I need to test wifi.isconnected() only as before? Or is this sufficient?
+if cloud.isconnected():
+    updates.get_system_updates()
     cloud.send('battery_charge', battery.charge)
     cloud.send('attached_devices', system.attached_devices)
     cloud.send('ntp_status', rtc.ntp_status)
-    cloud.get_data_updates()
+    updates.get_data_updates()
 else:
-    # FIXME Will this trigger a WDT? May need to create a mysleep() function
-    # that feeds our watchdog.
-    sleep(10)
-    this_year = rtc.now()[0]
-    
-    # If not connected to get NTP sync and RTC time has not yet been set the 
-    # RTC year will be 1970. This is bad news, because our schedule won't run. 
-    # Throw a hard error.
-    # TODO Move this into the RTC class? As a check and leave implementation in
-    # there.
-    if this_year == 1970:
-        errors.hard_error('Cannot setup clock so I cannot run the schedule')
+    rtc.check_system_clock()
 
+# TODO Should this be schedule.status = schedule.run() ?
 schedule.run()
 
-if wifi.isconnected() and cloud.isconnected():
+if cloud.isconnected():
     if cloud.send('schedule_status', schedule.status):
         schedule.clear_status()
     
@@ -92,7 +85,14 @@ else:
 
 wdt.stop()
 
-# FIXME Here, and everywhere deepsleep is used: machine.pin_deepsleep_wakeup(..
+# Ensure these are on P2, P3, P4, P6, P8 to P10 or P13 to P23 per the
+# documentation.
+wake_pins = [config['DOOR_REED_UP_PIN'],
+                config['DOOR_REED_DN_PIN'],
+                config['AUX_WAKE_PIN']]
+
+pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
+
 # In other words setup our interrupts and wakeup reasons
 sleep_microseconds = (schedule.next_event_time - rtc.now())*1000
 deepsleep(sleep_microseconds)

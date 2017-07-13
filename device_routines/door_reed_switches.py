@@ -1,9 +1,11 @@
 def status():
     """Tells whether the door is in the up or down position"""
     from machine import Pin
+    from errors import ERRORS
     from config import config
     
-    # FIXME In the config file use 'PXX' for the pin
+    errors = ERRORS()
+    
     up_pin_cfg = config['DOOR_REED_UP_PIN']
     dn_pin_cfg = config['DOOR_REED_DN_PIN']
     
@@ -12,10 +14,11 @@ def status():
     
     status = 'unknown'
     # While in between both extremes both of these will be False
-    # TODO What would we do if both are True?
     if up_pin and not dn_pin:
         status = 'up'
     elif dn_pin and not up_pin:
         status = 'dn'
+    elif up_pin and dn_pin:
+        errors.hard_error('Door reed switch malfunction.')
     
     return status

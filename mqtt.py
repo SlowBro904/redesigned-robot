@@ -32,6 +32,13 @@ class MQTT(object):
         # clients not upgraded yet
         self.root_path = '/'.join([device_name, version, serial])
         
+        # A no-username/pass for pings
+        # FIXME Look out for security implications especially a DoS. I think we
+        # can limit the rate of the client's connections. Best to use an MQTT
+        # service.
+        self.client_no_login = MQTTClient(server, port)
+        
+        # A normal client
         self.client = MQTTClient(username, password, server, port)
         client.settimeout = timeout
     
@@ -40,27 +47,37 @@ class MQTT(object):
         """Connect to the MQTT broker"""
         self.maintenance()
         self.client.connect()
+        self.client_no_login.connect()
     
     
-    def publish(self, path, message, retries = self.retries):
-        """Publish a data update to an MQTT path"""
+    def publish(self, path, message, retries = self.retries, login = True, 
+                encrypt = True):
+        """Publish a data update to an MQTT path.
+        
+        Optionally don't require a login to the MQTT server or encryption.
+        These are ideal for things such as ping.
+        """
         # FIXME This demands that every MQTT topic have a value, which I think
         # they always will at least have the most recently published value
         from time import sleep
 
         self.maintenance()
         
-        # Encrypt the data
-        iv = self.getrandbits(128)
-        cipher = self.AES(self.key, self.AES.MODE_CFB, iv)
-        message = iv + cipher.encrypt(bytes(message))
+        if self.login:
+            myclient = self.client
+        else:
+            myclient = self.client_no_login
+        
+        if encrypt:
+            iv = self.getrandbits(128)
+            cipher = self.AES(self.key, self.AES.MODE_CFB, iv)
+            message = iv + cipher.encrypt(bytes(message))
         
         result = None
         
-        # TODO Can I copy this for i in range to a function then pass in the
-        # exact function I want to repeat?
         for i in range(retries):
-            result = self.client.publish(self.root_path + '/' + path, message)
+            result = myclient.publish(self.root_path + '/' + path, message)
+            
             sleep(1) # TODO Is this necessary?
             if result:
                 break

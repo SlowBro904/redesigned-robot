@@ -1,24 +1,23 @@
 def start():
     """Start the web admin interface"""
-    # Fork a new thread so we can get back to the next step in our process
-    from _thread import start_new_thread
     from maintenance import maintenance
+    from _thread import start_new_thread
     
     maintenance()
-    start_new_thread(_daemon, ())
+    
+    # Fork a new thread so we can get back to the next step in our process
+    start_new_thread(_daemon, (run = True))
 
 
 def stop():
     """Stop the web admin interface"""
-    # TODO A kludge until Pycom fixes _thread.exit() from outside the thread
     from maintenance import maintenance
     
     maintenance()
-    global run_daemon
-    run_daemon = False
+    self._daemon(run = False)
 
 
-def _daemon():
+def _daemon(run = True):
     """The actual web server process.
     
     Don't run this directly; use start() instead.
@@ -45,32 +44,37 @@ def _daemon():
     
     # TODO Is getaddrinfo() really needed? Bind() just needs the ip and port.
     mysocket = socket().bind(getaddrinfo(ip, port)[0][-1]).listen(1)
+    mysocket.settimeout(timeout)
     
-    global run_daemon
-    run_daemon = True
     timer.start()
-    while run_daemon:
+    
+    # TODO A kludge until Pycom fixes _thread.exit() from outside the thread
+    global _run
+    _run = run
+    while _run:
         maintenance()
         
         # Listen on our socket for incoming requests
         # FIXME Will this trigger a wdt? Should we setblocking(False)? Test it.
+        # Try a very long timeout with a very short wdt.
         # https://www.scottklement.com/rpg/socktut/nonblocking.html
-        # Probably need to settimeout()
-        # https://docs.pycom.io/pycom_esp32/library/usocket.html
-        conn = mysocket.accept()[0]
+        try:
+            conn = mysocket.accept()[0]
+        except mysocket.timeout:
+            break
         
         # We just got a request. Reset our timer.
         timer.reset()
         maintenance()
         
         # Create a file handle on our incoming request
-        conn_file = conn.makefile('wb')
+        connH = conn.makefile('wb')
         
         # We have an incoming browser request, pull out just the relevant info 
         # from the GET line
         request = ""
         while True:
-            line = str(conn_file.readline())
+            line = str(connH.readline())
             match = re_search('GET (.*?) HTTP\/1\.1', line)    
             if match:
                 request = match.group(1)
@@ -136,12 +140,12 @@ def _daemon():
         maintenance()
         
         # Close up our requests
-        conn_file.close()
+        connH.close()
         conn.close()
         
         if timer.read() >= timeout:
-            timer.stop()
-            run_daemon = False
+            break
     
+    timer.stop()
     maintenance()
     mysocket.close()
