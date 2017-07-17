@@ -1,4 +1,4 @@
-""" Sets up the i2c object for importing into other modules """
+"""Sets up the i2c object for importing into other modules"""
 from config import config
 from machine import I2C, Pin
 from maintenance import maintenance

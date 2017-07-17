@@ -1,6 +1,9 @@
 class CLOUD(object):
+    from errors import ERRORS
     from json import loads, dumps
     from maintenance import maintenance
+    
+    errors = ERRORS()
     
     def __init__(self):
         """Sets up communications with the cloud servers"""
@@ -11,6 +14,7 @@ class CLOUD(object):
     
     
     def connect(self):
+        """Connect to our MQTT broker"""
         self.mqtt.connect()
     
     
@@ -38,12 +42,21 @@ class CLOUD(object):
         return self.ping() and self.can_login() and self.encryption_working()
     
     
-    def send(self, action, message = None, encrypt = True):
-        """Send an action and message and get the reply.
+    def send(self, topic, message = None, encrypt = True):
+        """Send a message to a topic and gets the reply.
         
-        For example, action = 'door_status', message = 'up'
+        For example, topic = 'door_status', message = 'up'
         """
         self.maintenance()
         
-        self.mqtt.publish(dumps(action, message, encrypt))
-        return self.mqtt.get(loads(action))
+        # FIXME Do I need the try/except? If so do I need it elsewhere in this
+        # module?
+        try:
+            self.mqtt.publish(dumps(topic, message, encrypt))
+        except:
+            # TODO If we get multiple send warnings only record one
+            warning = ("Unable to send to the cloud. Topic: '",
+                        str(topic) + "', message: '" + str(message) + "'")
+            raise RuntimeError(warning)
+        
+        return self.mqtt.get(loads(topic))

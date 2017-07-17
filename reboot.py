@@ -10,6 +10,9 @@ def reboot(delay = 0, boot_cause = None):
     A good usage of the boot cause would be for after a factory reset, we want
     to load the web admin so we want to always act as though the button was
     pressed.
+    
+    The boot cause can be overridden by placing the value in JSON format in
+    /flash/boot_cause.json.
     """
     from json import dump
     from maintenance import maintenance
@@ -19,9 +22,14 @@ def reboot(delay = 0, boot_cause = None):
     
     # Override boot cause detection using this text file
     if boot_cause:
-        with open('/flash/boot_cause.json', 'w') as boot_causeH:
-            dump(boot_cause, boot_causeH)
+        try:
+            with open('/flash/boot_cause.json', 'w') as boot_causeH:
+                dump(boot_cause, boot_causeH)
+        except OSError:
+            # Ignore if it does not exist
+            pass
     
+    # TODO Do I need the id variable?
     start_new_thread(_reboot, (delay, id = 0))
 
 def _reboot(delay, id):

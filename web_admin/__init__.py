@@ -1,3 +1,9 @@
+def status():
+    """Returns True if running"""
+    global _run
+    return _run
+
+
 def start():
     """Start the web admin interface"""
     from maintenance import maintenance

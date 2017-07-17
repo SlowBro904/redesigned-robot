@@ -50,9 +50,9 @@ class MQTT(object):
         self.client_no_login.connect()
     
     
-    def publish(self, path, message, retries = self.retries, login = True, 
+    def publish(self, topic, message, retries = self.retries, login = True, 
                 encrypt = True):
-        """Publish a data update to an MQTT path.
+        """Publish a data update to an MQTT topic.
         
         Optionally don't require a login to the MQTT server or encryption.
         These are ideal for things such as ping.
@@ -60,7 +60,7 @@ class MQTT(object):
         # FIXME This demands that every MQTT topic have a value, which I think
         # they always will at least have the most recently published value
         from time import sleep
-
+        
         self.maintenance()
         
         if self.login:
@@ -76,7 +76,7 @@ class MQTT(object):
         result = None
         
         for i in range(retries):
-            result = myclient.publish(self.root_path + '/' + path, message)
+            result = myclient.publish(self.root_path + '/' + topic, message)
             
             sleep(1) # TODO Is this necessary?
             if result:
@@ -85,17 +85,17 @@ class MQTT(object):
         return result
     
     
-    def get(self, path, retries = self.retries):
-        """Gets any current data in an MQTT path"""
+    def get(self, topic, retries = self.retries):
+        """Gets any current data in an MQTT topic"""
         self.maintenance()
         
         message = None
         
-        if path not in self.topics:
-            self.subscribe(path)
+        if topic not in self.topics:
+            self.subscribe(topic)
             
         for i in range(retries):        
-            message = self.client.receive(path)[1]
+            message = self.client.receive(topic)[1]
             if message:
                 break
         
@@ -103,16 +103,16 @@ class MQTT(object):
         return cipher.decrypt(message[16:])
     
     
-    def subscribe(self, path, retries = self.retries):
-        """Subscribes to an MQTT path"""
+    def subscribe(self, topic, retries = self.retries):
+        """Subscribes to an MQTT topic"""
         self.maintenance()
         
         result = None
         
         for i in range(retries):
-            result = self.client.subscribe(path)
+            result = self.client.subscribe(topic)
             if result:
                 break
         
-        self.topics.add(path)
+        self.topics.add(topic)
         return result

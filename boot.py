@@ -4,9 +4,9 @@ from os import remove, rename
 reboot = False
 
 # Install any new versions of scripts
-updated_files_listing = '/flash/updated_files.txt'
+updated_files_listing = '/flash/updated_files.json'
 with open(updated_files_listing) as updated_filesH:
-    for file in updated_filesH:
+    for file in load(updated_filesH):
         # Set the flag to reboot after installing new files
         reboot = True
         

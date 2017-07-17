@@ -1,11 +1,13 @@
 import temp_file
 from os import remove
 from leds import leds
+from cloud import CLOUD
 from errors import ERRORS
 from json import load, dump
 from maintenance import maintenance
 
 errors = ERRORS()
+cloud = CLOUD()
 
 def get_data_updates(get_all_data_files = False):
     """Get all recent data updates such as new door schedules from our 
@@ -26,14 +28,19 @@ def get_data_updates(get_all_data_files = False):
             get_all_data_files = load(get_all_data_filesH)
         
         remove(get_all_data_files_flag)
-    except:
+    except OSError:
         # Does not exist, ignore
         pass
 
-    if get_all_data_files:
-        updates = send('get_all_data_files')
-    else:
-        updates = send('get_latest_data_updates')
+    try:
+        if get_all_data_files:
+            updates = cloud.send('get_all_data_files')
+        else:
+            updates = cloud.send('get_latest_data_updates')
+    except RuntimeError as warning:
+        # FIXME All warnings list ('file.py', 'module')
+        errors.warning(warning + " ('updates.py', 'get_data_updates')")
+        return False
     
     if not updates:
         return True
@@ -46,30 +53,76 @@ def get_data_updates(get_all_data_files = False):
         values = update[2]
         
         maintenance()
+        
+        data_file_full_path = '/flash/data/' + data_file
         try:
             # Read the original file
-            data_file_full_path = '/flash/data/' + data_file
             with open(data_file_full_path) as data_fileH:
                 existing_data[data_file] = load(data_fileH)
-        except: # TODO Get the precise exception type
+        except OSError:
             # File doesn't exist yet. We'll create it in memory first.
             existing_data[data_file] = dict()
-
+        
         existing_data[data_file][parameter] = values
     
     maintenance()
     
     for data_file in existing_data:
-        # TODO Change to 'with' and do general Pythonic cleanup everywhere
-        with temp_file.create(data_file) as temp_fileH:
-            if dump(existing_data[data_file], temp_fileH):
-                temp_file.install(temp_fileH, data_file)
+        # TODO Do general Pythonic cleanup everywhere
+        try:
+            with temp_file.create(data_file) as temp_fileH:
+                if dump(existing_data[data_file], temp_fileH):
+                    temp_file.install(temp_fileH, data_file)
+        except OSError:
+            warning = ("Failed to get data updates.",
+                        " ('updates.py', 'get_data_updates')")
+            errors.warning(warning)
 
 
-def get_system_updates(self):
+def clean_failed_system_update(updates, successfully_updated_files, 
+                                web_admin_started, new_file = None):
+    """Cleans up failed system updates. All or nothing."""
+    # TODO This feels kludgy and tightly coupled.
+    import web_admin
+    
+    # Even though we are in the clean_failed_system_update() function, this
+    # would only be called from the get_system_updates() function.
+    warning = ("Update failure. Reverting.",
+                "('updates.py', 'get_system_updates'")
+    errors.warning(warning)
+    
+    for update in updates:
+        try:
+            if new_file:
+                remove(new_file)
+        except OSError:
+            # Ignore if not able to
+            pass
+        
+        for new_file in successfully_updated_files:
+            try:
+                remove(new_file)
+            except OSError:
+                # Ignore if not able to
+                pass
+        
+        if web_admin_started:
+            try:
+                web_admin.start()
+            except:
+                # Ignore errors
+                pass
+        
+        leds.blink(run = False)
+
+
+def get_system_updates():
     """Update the scripts on our system"""
-    # Create any new directories
-    new_directories = send('get_new_directories')
+    try:
+        # Create any new directories
+        new_directories = send('get_new_directories')
+    except RuntimeError as warning:
+        errors.warning(warning + " ('updates.py', 'get_system_updates')")
     
     maintenance()
     
@@ -78,14 +131,24 @@ def get_system_updates(self):
         
         for new_directory in new_directories:
             maintenance()
-            # exist_ok = True is a counter-intuitively-named flag. If the 
-            # parent directory does not exist we will create it first.
-            mkdir('/flash/' + new_directory, exist_ok = True)
+            try:
+                # exist_ok = True is a counter-intuitively-named flag. If the 
+                # parent directory does not exist we will create it first.
+                mkdir('/flash/' + new_directory, exist_ok = True)
+            except:
+                warning = ("Unable to create new directory ",
+                            new_directory,
+                            " ('updates.py', 'get_system_updates')")
+                errors.warning(warning)
     
     maintenance()
     
     # Now check for system updates
-    updates = send('get_system_updates')
+    try:
+        updates = send('get_system_updates')
+    except RuntimeError as warning:
+        errors.warning(warning + " ('updates.py', 'get_system_updates')")
+        return False
     
     if not updates:
         return None
@@ -101,8 +164,12 @@ def get_system_updates(self):
     
     # Stop the web admin daemon
     import web_admin
-    web_admin.stop()
-
+    try:
+        web_admin_started = web_admin.status() 
+        web_admin.stop()
+    except:
+        pass
+    
     from hashlib import MD5
     
     successfully_updated_files = list()
@@ -115,10 +182,18 @@ def get_system_updates(self):
         
         maintenance()
         
-        # Create the file as .new and upon reboot our system will see the
-        # .new file and delete the existing version, install the new.
-        with open('/flash/' + new_file, 'w') as script_fileH:
-            script_fileH.writelines(script_contents)
+        try:
+            # Create the file as .new and upon reboot our system will see the
+            # .new file and delete the existing version, install the new.
+            with open('/flash/' + new_file, 'w') as script_fileH:
+                script_fileH.writelines(script_contents)
+        except:
+            clean_failed_system_update(updates, successfully_updated_files,
+                                        web_admin_started)
+            
+            # Empty the list
+            successfully_updated_files = list()
+            return False
         
         with open('/flash/' + new_file) as script_fileH:
             stored_md5sum = MD5(script_fileH)
@@ -126,26 +201,22 @@ def get_system_updates(self):
         if stored_md5sum == expected_md5sum:
             successfully_updated_files.append('/flash/' + script_file)
         else:
-            # All or nothing.
-            errors.warning('Update failure. Reverting.')
+            clean_failed_system_update(updates, successfully_updated_files,
+                                        web_admin_started, new_file)
             
-            remove(new_file)
-            for new_file in successfully_updated_files:
-                remove(new_file)
-
             # Empty the list
             successfully_updated_files = list()
-
-            web_admin.start()
-            
-            # Stop looping on updates
-            break
-
+            return False
+    
     leds.blink(run = False)
     
     if successfully_updated_files:
-        with open('/flash/updated_files.txt') as updated_filesH:
-            successfully_updated_files.writelines()
+        try:
+            with open('/flash/updated_files.json') as updated_filesH:
+                dump(successfully_updated_files, updated_filesH)
+        except:
+            clean_failed_system_update(updates, successfully_updated_files,
+                                        web_admin_started)
         
         # Reboot and the system will install any .new files
         # FIXME Test to ensure that boot.py is run on reboot()
