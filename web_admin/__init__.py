@@ -1,3 +1,7 @@
+from errors import ERRORS
+
+errors = ERRORS()
+
 def status():
     """Returns True if running"""
     global _run
@@ -11,8 +15,14 @@ def start():
     
     maintenance()
     
-    # Fork a new thread so we can get back to the next step in our process
-    start_new_thread(_daemon, (run = True))
+    try:
+        # Fork a new thread so we can get back to the next step in our process
+        return start_new_thread(_daemon, (run = True))
+    except:
+        warning = ("Could not start the web admin.",
+                    " ('web_admin/__init__.py', 'start')")
+        errors.warning(warning)
+        return False
 
 
 def stop():
@@ -20,7 +30,7 @@ def stop():
     from maintenance import maintenance
     
     maintenance()
-    self._daemon(run = False)
+    return self._daemon(run = False)
 
 
 def _daemon(run = True):
@@ -41,17 +51,30 @@ def _daemon(run = True):
     timeout = config['WEB_ADMIN_DAEMON_TIMEOUT']
     timer = Timer.Chrono()
     
-    with open(config['WEB_ADMIN_TEMPLATE_FILE']) as templateH:
-        template = templateH.readlines()
+    try:
+        with open(config['WEB_ADMIN_TEMPLATE_FILE']) as templateH:
+            template = templateH.readlines()
+    except OSError:
+        warning = ("Could not load the web admin template.",
+                    " ('web_admin/__init__.py', '_daemon')")
+        errors.warning(warning)
+        return False
 
     # Start our web server
     ip = config['WEB_ADMIN_IP']
     port = config['WEB_ADMIN_PORT']
     
-    # TODO Is getaddrinfo() really needed? Bind() just needs the ip and port.
-    mysocket = socket().bind(getaddrinfo(ip, port)[0][-1]).listen(1)
-    mysocket.settimeout(timeout)
+    try:
+        # TODO Is getaddrinfo() really needed? Bind() just needs the ip & port.
+        mysocket = socket().bind(getaddrinfo(ip, port)[0][-1]).listen(1)
+    except:
+        warning = ("Could not load the web admin template.",
+                    " ('web_admin/__init__.py', '_daemon')")
+        errors.warning(warning)
+        return False
     
+    mysocket.settimeout(timeout)
+        
     timer.start()
     
     # TODO A kludge until Pycom fixes _thread.exit() from outside the thread
@@ -74,7 +97,14 @@ def _daemon(run = True):
         maintenance()
         
         # Create a file handle on our incoming request
-        connH = conn.makefile('wb')
+        try:
+            connH = conn.makefile('wb')
+        except:
+            # TODO Also a 500 error or equivalent. Also add 40* and 50* errors.
+            warning = ("Web admin socket failure.",
+                        " ('web_admin/__init__.py', '_daemon')")
+            errors.warning(warning)
+            break
         
         # We have an incoming browser request, pull out just the relevant info 
         # from the GET line
