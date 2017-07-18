@@ -56,6 +56,7 @@ cloud.connect()
 # I need to test wifi.isconnected() only as before? Or is this sufficient?
 if cloud.isconnected():
     updates.get_system_updates()
+    cloud.send('version', system.version)
     cloud.send('battery_charge', battery.charge)
     cloud.send('attached_devices', system.attached_devices)
     cloud.send('ntp_status', rtc.ntp_status)
