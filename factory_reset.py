@@ -7,13 +7,13 @@ from time import sleep
 from machine import Pin
 from reboot import reboot
 from config import config
-from errors import ERRORS
+from errors import Errors
 from maintenance import maintenance
+
+errors = Errors()
 
 def fac_rst_handler():
     """ Triggered when the reset button is pressed """
-    errors = ERRORS()
-    
     maintenance()
     
     # Blink our yellow/red LEDs to let the user know the button is held
@@ -36,8 +36,12 @@ def fac_rst_handler():
         
         maintenance()
         
-        # FIXME What if it fails?
-        config.reset_to_defaults()
+        try:
+            config.reset_to_defaults()
+        except:
+            error = ("Could not reset to factory defaults.",
+                        "('factory_reset.py', 'fac_rst_handler')"
+            errors.hard_error(error)
         
         # Also delete local data files
         from os import listdir, remove
@@ -53,8 +57,13 @@ def fac_rst_handler():
         # files
         from json import dump
         get_all_data_files_flag = '/flash/get_all_data_files.json'
-        with open(get_all_data_files_flag, 'w') as get_all_data_filesH:
-            dump(True, get_all_data_filesH)
+        try:
+            with open(get_all_data_files_flag, 'w') as get_all_data_filesH:
+                dump(True, get_all_data_filesH)
+        except:
+            # Ignore errors
+            # FIXME If our schedule is incomplete for some reason error/warn
+            pass
         
         reboot(delay = 3, boot_cause = 'PwrBtn')
 
@@ -62,5 +71,11 @@ maintenance()
 
 # Setup our listener
 fac_rst_pin = config['FACTORY_RESET_PIN']
-fac_rst_pin_lsnr = Pin(fac_rst_pin, mode = Pin.IN, pull = Pin.PULL_UP)
-fac_rst_pin_lsnr.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING, fac_rst_handler)
+
+try:
+    fac_rst_pin_lsnr = Pin(fac_rst_pin, mode = Pin.IN, pull = Pin.PULL_UP)
+    fac_rst_pin_lsnr.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING,
+                                fac_rst_handler)
+except:
+    errors.hard_error("Cannot listen for factory reset button presses.",
+                        "('factory_reset.py', 'main')")

@@ -1,5 +1,6 @@
-class LEDS(object):
+class LEDs(object):
     from machine import Pin
+    from errors import Errors
     from maintenance import maintenance
     
     # These must be hard-coded to prevent a recursion issue where
@@ -112,6 +113,6 @@ class LEDS(object):
         
         self.maintenance()
 
-# End of class LEDS(object)
+# End of class LEDs(object)
 
-leds = LEDS()
+leds = LEDs()

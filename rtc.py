@@ -1,6 +1,6 @@
 class RTC(object):
     from machine import RTC
-    from errors import ERRORS
+    from errors import Errors
     from config import config
     from maintenance import maintenance
     
@@ -9,7 +9,7 @@ class RTC(object):
         
         Can update the system clock and sets up an NTP synchronization.
         """
-        self.errors = ERRORS()
+        self.errors = Errors()
         self.system_clock = RTC()
     
     
@@ -20,7 +20,14 @@ class RTC(object):
         
         self.maintenance()
         
-        return self.system_clock.ntp_sync(ntp_server)
+        try:
+            return self.system_clock.ntp_sync(ntp_server)
+        except:
+            warning = ("Cannot sync NTP. Server: ",
+                        ntp_server,
+                        "('rtc.py', 'start_ntp_daemon')")
+            self.errors.warning(warning)
+            return False
     
     
     def ntp_status(self):
@@ -49,7 +56,7 @@ class RTC(object):
             if not self.ntp_status():
                 # Wait 10 seconds
                 sleep(10)
-       
+            
             # Try again. If NTP is running we're good.
             if self.ntp_status():
                 return True
@@ -57,5 +64,6 @@ class RTC(object):
         this_year = self.rtc.now()[0]
         
         if this_year == 1970:
-            self.errors.hard_error(
-                'Cannot setup clock so I cannot run the schedule')
+            error = ("Cannot setup clock so I cannot run the schedule",
+                        "('rtc.py', 'check_system_clock')")
+            self.errors.hard_error(error)

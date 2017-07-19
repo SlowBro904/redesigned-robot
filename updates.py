@@ -1,13 +1,13 @@
 import temp_file
 from os import remove
 from leds import leds
-from cloud import CLOUD
-from errors import ERRORS
+from cloud import Cloud
+from errors import Errors
 from json import load, dump
 from maintenance import maintenance
 
-errors = ERRORS()
-cloud = CLOUD()
+errors = Errors()
+cloud = Cloud()
 
 def get_data_updates(get_all_data_files = False):
     """Get all recent data updates such as new door schedules from our 

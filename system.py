@@ -1,12 +1,15 @@
-class SYSTEM(object):
-    from maintenance import maintenance
+class System(object):
+    from errors import Errors
     from config import config
+    from maintenance import maintenance
     
     def __init__(self):
         """Configures our system object which keeps track of certain items
         regarding the system such as the attached devices
         """
         from i2c import i2c
+        
+        self.errors = Errors()
         
         self.maintenance()
         
@@ -25,13 +28,17 @@ class SYSTEM(object):
         # TODO Also get the sys.* version numbers
         # https://docs.pycom.io/pycom_esp32/library/sys.html
         from json import load
-
+        
         self.maintenance()
         
         # FIXME Change the version number file to JSON format, it's currently
         # plain text
-        with open(self.config['VERSION_NUMBER_FILE']) as versionH:
-            return load(versionH)
+        try:
+            with open(self.config['VERSION_NUMBER_FILE']) as versionH:
+                return load(versionH)
+        except:
+            error = "Cannot get our version number. ('system.py', 'version')"
+            self.errors.hard_error(error)
     
     
     @property

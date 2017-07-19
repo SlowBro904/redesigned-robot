@@ -20,9 +20,9 @@ class WIFI(object):
         self.antenna = self.antenna2int(antenna)
         
         if self.mode is not self.WLAN.STA:
-            from system import SYSTEM
+            from system import System
             
-            serial = SYSTEM().serial
+            serial = System().serial
 
             device_name = self.config['DEVICE_NAME']
 

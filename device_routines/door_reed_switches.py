@@ -1,10 +1,10 @@
 def status():
     """Tells whether the door is in the up or down position"""
     from machine import Pin
-    from errors import ERRORS
+    from errors import Errors
     from config import config
     
-    errors = ERRORS()
+    errors = Errors()
     
     up_pin_cfg = config['DOOR_REED_UP_PIN']
     dn_pin_cfg = config['DOOR_REED_DN_PIN']

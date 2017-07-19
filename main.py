@@ -3,24 +3,24 @@ import web_admin
 from rtc import RTC
 import factory_reset
 from leds import leds
-from cloud import CLOUD
+from cloud import Cloud
 from config import config
-from errors import ERRORS
-from system import SYSTEM
-from battery import BATTERY
-from schedule import SCHEDULE
+from errors import Errors
+from system import System
+from battery import Battery
+from schedule import Schedule
 from boot_cause import boot_cause
 from wifi import wifi, sta, sta_ap
 from maintenance import maintenance
 from machine import sleep, deepsleep, WAKEUP_ANY_HIGH, pin_deepsleep_wakeup
 
-errors = ERRORS()
+errors = Errors()
 
 # Every two seconds, a green blink. Set this as the default.
 leds.blink(run = True, pattern = (
             (leds.good, True, 300), 
-            (leds.good, False, 1700)
-            ), default = True)
+            (leds.good, False, 1700)),
+            default = True)
 
 if boot_cause == 'PwrBtn':
     wifi = sta_ap()
@@ -35,10 +35,10 @@ else:
     wifi = sta()
 
 rtc = RTC()
-battery = BATTERY()
-system = SYSTEM()
-schedule = SCHEDULE(system.attached_devices)
-cloud = CLOUD()
+battery = Battery()
+system = System()
+schedule = Schedule(system.attached_devices)
+cloud = Cloud()
 
 # Keep our watchdog fed or he'll bite
 wdt.start()

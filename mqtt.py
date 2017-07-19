@@ -5,7 +5,7 @@ class MQTT(object):
     
     def __init__(self):
         """Setup our MQTT object"""
-        from system import SYSTEM
+        from system import System
         # TODO Add exception AdafruitIOError but under what conditions
         from simple import MQTTClient
         
@@ -13,8 +13,8 @@ class MQTT(object):
         
         self.topics = set()
         
-        serial = SYSTEM().serial
-        version = SYSTEM().version
+        serial = System().serial
+        version = System().version
         
         self.key = bytes(self.config['ENCRYPTION_KEY'])
         

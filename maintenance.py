@@ -2,7 +2,7 @@
 
 def maintenance():
     import gc
-    from maintenance import maintenance
+    from wdt import wdt
 
     maintenance()
     gc.collect()

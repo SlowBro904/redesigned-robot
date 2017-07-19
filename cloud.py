@@ -1,9 +1,8 @@
-class CLOUD(object):
-    from errors import ERRORS
+class Cloud(object):
+    from errors import Errors
     from json import loads, dumps
     from maintenance import maintenance
     
-    errors = ERRORS()
     
     def __init__(self):
         """Sets up communications with the cloud servers"""
@@ -11,29 +10,45 @@ class CLOUD(object):
         
         self.maintenance()
         self.mqtt = MQTT()
+        self.errors = Errors()
     
     
     def connect(self):
         """Connect to our MQTT broker"""
-        self.mqtt.connect()
+        try:
+            return self.mqtt.connect()
+        except:
+            warning = ("Cannot connect to our MQTT broker.",
+                        "('cloud.py', 'connect')")
+            self.errors.warning(warning)
+            return False
     
     
     def ping(self):
         """Ping the cloud servers, but don't test login or encryption"""
         self.maintenance()
-        return self.send('ping', login = False, encrypt = False) == 'ack'
+        try:
+            return self.send('ping', login = False, encrypt = False) == 'ack'
+        except:
+            return False
     
     
     def can_login(self):
         """Ensure login is functioning"""
         self.maintenance()
-        return self.send('ping', login = True, encrypt = False) == 'ack'
+        try:
+            return self.send('ping', login = True, encrypt = False) == 'ack'
+        except:
+            return False
     
     
     def encryption_working(self):
         """Ensure encryption is functioning"""
         self.maintenance()
-        return self.send('ping', login = True, encrypt = True) == 'ack'
+        try:
+            return self.send('ping', login = True, encrypt = True) == 'ack'
+        except:
+            return False
     
     
     def isconnected(self):

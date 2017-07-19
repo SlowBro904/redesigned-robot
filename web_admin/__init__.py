@@ -1,6 +1,6 @@
-from errors import ERRORS
+from errors import Errors
 
-errors = ERRORS()
+errors = Errors()
 
 def status():
     """Returns True if running"""
@@ -171,17 +171,31 @@ def _daemon(run = True):
             data += '\r\n'
             data += web_page_content
             
-            conn.send(data)
+            try:
+                conn.send(data)
+            except:
+                warning = ("Web admin socket failure.",
+                            " ('web_admin/__init__.py', '_daemon')")
+                errors.warning(warning)
+                break
         
         maintenance()
         
-        # Close up our requests
-        connH.close()
-        conn.close()
+        try:
+            # Close up our requests
+            connH.close()
+            conn.close()
+        except:
+            # Ignore errors
+            pass
         
         if timer.read() >= timeout:
             break
     
-    timer.stop()
-    maintenance()
-    mysocket.close()
+    try:
+        timer.stop()
+        maintenance()
+        mysocket.close()
+    except:
+        # Ignore errors
+        pass

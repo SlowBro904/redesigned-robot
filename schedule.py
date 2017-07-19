@@ -1,28 +1,36 @@
-class SCHEDULE(object):
+class Schedule(object):
     from os import remove
     from json import dump, load
     from maintenance import maintenance
     
-    schedules = dict()
-    status = dict()
-    status_file = '/flash/data/status.json'
     
     def __init__(self, devices):
         """Sets up scheduled events for our devices"""        
+        self.status = dict()
+        self.schedules = dict()
+        self.status_file = '/flash/data/status.json'
+        
         for device in devices:
             self.maintenance()
             
-            with open('/flash/data/' + device + '.json') as device_fileH:
-                    self.schedules[device] = self.load(device_fileH)
+            try:
+                with open('/flash/data/' + device + '.json') as device_fileH:
+                        self.schedules[device] = self.load(device_fileH)
+            except:
+                # Ignore errors. If we have zero schedules nothing will run.
+                pass
         
-        status = self.load_saved_status()
+        try:
+            self.status = self.load_saved_status()
+        except:
+            # Ignore errors
+            pass
     
     
     @property
     def next_event_time(self):
         """Look across all schedules for all devices and return the time for
-        the next scheduled event
-        """
+        the next scheduled event for any device"""
         from time import mktime
         
         self.maintenance()
@@ -54,38 +62,54 @@ class SCHEDULE(object):
         
         self.maintenance()
         
-        with open(device_file, 'w') as device_fileH:
-            return self.dump(self.schedule[device], device_fileH)
+        try:
+            with open(device_file, 'w') as device_fileH:
+                return self.dump(self.schedule[device], device_fileH)
+        except:
+            warning = ("Cannot save to flash the schedule for " + device,
+                        "('schedule.py','save_schedule')")
+            self.errors.warning(warning)
+            return False
     
     
     def save_status(self):
         """If we cannot connect to the cloud, let's save the status to flash
-        for next time we can connect
-        """
+        for next time we can connect"""
         self.maintenance()
         
-        with open(self.status_file, 'w') as json_data:
-            if not self.dump(self.status, json_data):
-                return False
+        try:
+            with open(self.status_file, 'w') as json_data:
+                return self.dump(self.status, json_data)
+        except:
+            warning = "Cannot save the status. ('schedule.py', 'save_status')"
+            self.errors.warning(warning)
+            return False
     
     
     def load_saved_status(self):
         """Load the status from flash and delete the file"""
         self.maintenance()
         
-        with open(self.status_file) as status_fileH:
-            status = self.load(status_fileH)
+        try:
+            with open(self.status_file) as status_fileH:
+                status = self.load(status_fileH)
+        except:
+            warning = "Cannot save the status. ('schedule.py', 'save_status')"
+            self.errors.warning(warning)
+            return False
         
-        if status:
-            self.clear_saved_status()
-        
+        self.clear_saved_status()
         return status
     
     
     def clear_saved_status(self):
         """Delete the saved status file"""
         self.maintenance()
-        return self.remove(self.status_file)
+        try:
+            return self.remove(self.status_file)
+        except:
+            # Ignore errors
+            pass
     
     
     def clear_status(self):
@@ -99,7 +123,7 @@ class SCHEDULE(object):
         """Run any events that are due now"""
         from rtc import RTC
         from config import config
-        from device_routines import DEVICE_ROUTINE
+        from device_routines import DeviceRoutine
         
         rtc = RTC()
         
@@ -116,7 +140,7 @@ class SCHEDULE(object):
         
         # FIXME Add some kind of expected time buffer on the server so we're
         # not continuously running events and killing our battery. Want a long
-        # buffer between events, how about SCHEDULE_BUFFER x 5?
+        # buffer between events, how about Schedule_BUFFER x 5?
         items_scheduled = False
         while True:
             for device in self.schedules:
@@ -124,7 +148,7 @@ class SCHEDULE(object):
                 # that occurs between now and when the system goes to sleep.
                 # This addresses a different situation than the while True
                 # above.
-                stop_time = rtc.now() + config['SCHEDULE_BUFFER']
+                stop_time = rtc.now() + config['Schedule_BUFFER']
                 
                 # Get all items scheduled
                 all_scheduled_times = self.schedules[device].keys()
@@ -147,7 +171,7 @@ class SCHEDULE(object):
                 command = this_event['command']
                 arguments = this_event['arguments']
                 
-                device_routine = DEVICE_ROUTINE(device)
+                device_routine = DeviceRoutine(device)
                 
                 self.maintenance()
                 

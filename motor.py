@@ -1,4 +1,4 @@
-class MOTOR(object):
+class Motor(object):
     from config import config
     import door_reed_switches
     from time import sleep, sleep_ms

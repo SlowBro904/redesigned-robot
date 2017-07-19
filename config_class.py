@@ -1,4 +1,4 @@
-class CONFIG(object):
+class Config(object):
     import errors
     import temp_file
     from os import remove

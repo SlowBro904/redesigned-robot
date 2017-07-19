@@ -1,4 +1,4 @@
-class ERRORS(object):
+class Errors(object):
     from os import remove
     from leds import leds
     from json import dump, load

@@ -1,11 +1,11 @@
 def show(parameters):
     """Error log"""
-    from errors import ERRORS
+    from errors import Errors
     from maintenance import maintenance
     
     maintenance()
     
-    errors = ERRORS()
+    errors = Errors()
     
     title = "Error log"
     
