@@ -17,7 +17,8 @@ def start():
     
     try:
         # Fork a new thread so we can get back to the next step in our process
-        return start_new_thread(_daemon, (run = True))
+        run = True
+        return start_new_thread(_daemon, (run,))
     except:
         warning = ("Could not start the web admin.",
                     " ('web_admin/__init__.py', 'start')")
@@ -30,7 +31,8 @@ def stop():
     from maintenance import maintenance
     
     maintenance()
-    return self._daemon(run = False)
+    run = False
+    return self._daemon(run,)
 
 
 def _daemon(run = True):
@@ -65,16 +67,17 @@ def _daemon(run = True):
     port = config['WEB_ADMIN_PORT']
     
     try:
-        # TODO Is getaddrinfo() really needed? Bind() just needs the ip & port.
-        mysocket = socket().bind(getaddrinfo(ip, port)[0][-1]).listen(1)
+        # TODO Is getaddrinfo() really needed? Bind() just needs the ip & port.        
+        mysocket.bind(getaddrinfo(ip, port)[0][-1])
+        # TODO Should I leave this to the default? I only want one client.
+        mysocket.listen(1)
+        mysocket.settimeout(timeout)
     except:
         warning = ("Could not load the web admin template.",
                     " ('web_admin/__init__.py', '_daemon')")
         errors.warning(warning)
         return False
     
-    mysocket.settimeout(timeout)
-        
     timer.start()
     
     # TODO A kludge until Pycom fixes _thread.exit() from outside the thread
@@ -89,6 +92,7 @@ def _daemon(run = True):
         # https://www.scottklement.com/rpg/socktut/nonblocking.html
         try:
             conn = mysocket.accept()[0]
+        # FIXME AttributeError: 'socket' object has no attribute 'timeout'
         except mysocket.timeout:
             break
         
@@ -113,9 +117,11 @@ def _daemon(run = True):
             line = str(connH.readline())
             match = re_search('GET (.*?) HTTP\/1\.1', line)    
             if match:
+                # FIXME I think I want the break below this?
                 request = match.group(1)
             
             # If we're at the end of our request exit the loop
+            # FIXME I think I want to remove this?
             if not line or line == b'\r\n':
                 break
         
@@ -135,8 +141,8 @@ def _daemon(run = True):
             # Drop off hashes, which we don't need
             request = request.replace("#.*$", '')
             
-            # Remove the question mark delimiter, which may or may not now be at
-            # the beginning of url
+            # Remove the question mark delimiter, which may or may not now be
+            # at the beginning of url
             if request.startswith('?'):
                 request = request[1:]
             

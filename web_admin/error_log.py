@@ -1,5 +1,6 @@
 def show(parameters):
     """Error log"""
+    from os import dupterm
     from errors import Errors
     from maintenance import maintenance
     
@@ -33,7 +34,8 @@ def show(parameters):
         body += "<tr><td>" + log + "</td></tr>"
     
     body += """</table><br />
-    <br />
-    <a href='/'>Home</a>"""
+    <br />"""
+    # FIXME Insert the console output here
+    body += "<a href='/'>Home</a>"
     
     return (title, header, h1, body)

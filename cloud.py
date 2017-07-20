@@ -64,8 +64,6 @@ class Cloud(object):
         """
         self.maintenance()
         
-        # FIXME Do I need the try/except? If so do I need it elsewhere in this
-        # module?
         try:
             self.mqtt.publish(dumps(topic, message, encrypt))
         except:

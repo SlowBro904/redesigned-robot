@@ -38,7 +38,6 @@ def get_data_updates(get_all_data_files = False):
         else:
             updates = cloud.send('get_latest_data_updates')
     except RuntimeError as warning:
-        # FIXME All warnings list ('file.py', 'module')
         errors.warning(warning + " ('updates.py', 'get_data_updates')")
         return False
     

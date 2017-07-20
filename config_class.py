@@ -65,27 +65,40 @@ class Config(object):
     
     
     def update(self, updates):
-        """Takes a list of updates (each item is a tuple of parameter and value)
-        and updates the config file with new parameters and values, and also
-        updates the values in memory
+        """Takes a list of updates (each item is a tuple of parameter and 
+        value) and updates the config file with new parameters and values, and 
+        also updates the values in memory
         """
         self.maintenance()
         for parameter, value in updates:
             if parameter not in self.config:
                 return False
-            
-            # Update the value also in memory
+
+        for parameter, value in updates:
+            # Update the value in memory
             self.config[parameter] = value
         
         self.maintenance()
-        temp_config_fileH = self.temp_file.create(self.config_file)
         
         # Dump our config to the temp file
-        self.maintenance()
-        self.dump(self.config, temp_config_fileH)
+        try:
+            temp_config_fileH = self.temp_file.create(self.config_file)
+        except:
+            warning = ("Cannot update config file",
+                        "('config_class.py','update')")
+            self.errors.warning(warning)
+        
+        try:
+            self.dump(self.config, temp_config_fileH)
+        except:
+            warning = ("Cannot update config file",
+                        "('config_class.py','update')")
+            self.errors.warning(warning)
+        
         temp_config_fileH.close()
         
         # Install the temp file
         if not self.temp_file.install(temp_config_fileH, self.config_file):
-            # FIXME Add warnings everywhere
-            self.errors.warning('Cannot_update_config_file')
+            warning = ("Cannot update config file",
+                        "('config_class.py','update')")
+            self.errors.warning(warning)
