@@ -21,7 +21,7 @@ class Errors(object):
         self.log = self.load_saved_log()
     
     
-    def hard_error(self, message):
+    def error(self, message):
         """Called when things get real bad. Stop everything.
         
         Adds the message to the log, if possible to upload the log and schedule
@@ -70,8 +70,8 @@ class Errors(object):
         # Blink for 500 ms, off for 1500 ms, and set this as the default
         self.leds.blink(run = True, pattern = (
                         (self.leds.warn, True, 500),
-                        (self.leds.warn, False, 1500)
-                        ), default = True)
+                        (self.leds.warn, False, 1500)),
+                        default = True)
     
     
     def save_log(self):
@@ -132,20 +132,13 @@ class Errors(object):
             # For testing on a desktop
             from datetime import datetime
         
-        now = datetime.now()
-        year = now[0]
-        month = now[1]
-        day = now[2]
-        hour = now[3]
-        minute = now[4]
-        second = now[5]
-        microsecond = now[6]
-        
-        return (year, month, day, hour, minute, second, microsecond)
+        return datetime.now()
     
     
     # FIXME Everywhere I use self. in defaults, remove the self.
-    def log_exception(self, args = {}):
+    # FIXME Anti-pattern spotted.
+    #   https://docs.quantifiedcode.com/python-anti-patterns/correctness/mutable_default_value_as_argument.html
+    def log_exception(self, args = None):
         """Log uncaught exceptions in JSON format to memory.
         
         Ugly but necessary, since Pycom's WiPy 2.0 (as of version 1.7.6.b1) 
@@ -161,6 +154,9 @@ class Errors(object):
         'log_file': Change the log file from the default
         """
         # TODO Also optionally allow the exception to flow through to stderr
+        if entry is None:
+            entry = dict()
+        
         entry = args
         entry['timestamp'] = self.timestamp()
         entry['exc_type'] = str(self.sys.exc_info()[0])
