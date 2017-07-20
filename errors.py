@@ -1,16 +1,23 @@
 class Errors(object):
+    import sys
     from os import remove
-    from leds import leds
-    from json import dump, load
     from machine import deepsleep
-    from maintenance import maintenance
+    
+    try:
+        from leds import leds
+        from json import dump, load
+        from maintenance import maintenance
+    except ImportError:
+        # Ignore if testing
+        pass
     
     log = set()
-    log_file = '/flash/log.json'
+    log_file = '/flash/errors.json'
+    exceptions_log_file = '/flash/exceptions.log'
     
     def __init__(self):
         """A class for dealing with different error messages"""
-        log = self.load_saved_log()
+        self.log = self.load_saved_log()
     
     
     def hard_error(self, message):
@@ -25,8 +32,8 @@ class Errors(object):
         from cloud import cloud
         # TODO Should I move these object instantiations into another file? To
         # decouple from main.py.
-        from main import schedule, pin_deepsleep_wakeup, wake_pins,
-            WAKEUP_ANY_HIGH
+        from main import (schedule, pin_deepsleep_wakeup, wake_pins,
+            WAKEUP_ANY_HIGH)
         
         self.log.add(message)
         
@@ -52,7 +59,7 @@ class Errors(object):
         self.deepsleep()
     
     
-    def warning(self, message)
+    def warning(self, message):
         """Turns on the warning LED and adds the message to the log set"""
         self.maintenance()
         
@@ -81,12 +88,17 @@ class Errors(object):
     
     def load_saved_log(self):
         """Load the log from flash and delete the file"""
-        self.maintenance()
+        # FIXME Uncomment
+        #self.maintenance()
         
         log = set()
         
-        with open(self.log_file) as json_data:
-            log = self.load(json_data)
+        try:
+            with open(self.log_file) as json_data:
+                log = self.load(json_data)
+        except OSError:
+            # Ignore if it doesn't exist
+            pass
         
         # Only delete the save file if we were successful
         if log:
@@ -106,3 +118,55 @@ class Errors(object):
         self.maintenance()
         self.log = set()
         self.clear_saved_log()
+
+    
+    def log_exception(self, **kwargs):
+        """Log uncaught exceptions.
+        
+        Ugly but necessary, since Pycom's WiPy 2.0 (as of version 1.7.6.b1) 
+        doesn't seem to have a working sys.print_exception() and sys.excepthook
+        is completely missing from all MicroPython implementations.
+        
+        kwargs is a dict that can optionally include:
+        myfile: The file name such as __file__
+        myclass: The class name such as self.__class__.__name__
+        myfunc: The function we are in such as '__init__'
+        myaction: A human-readable string describing the action we were taking
+            such as "Testing exception logging"
+        log_file: Change the log file from the default (/flash/exceptions.log)
+        """
+        # TODO Also optionally allow the exception to flow through to stderr
+        
+        exceptions_log_file = self.exceptions_log_file
+        if kwargs is not None:
+            if 'log_file' in kwargs:
+                exceptions_log_file = kwargs['log_file']
+        
+        with open(exceptions_log_file, 'a') as exceptions_log:
+            exceptions_log.write('-'*79 + '\n')
+            if kwargs is not None:
+                if 'myfile' in kwargs:
+                    myfile = str(kwargs['myfile'])
+                    exceptions_log.write('File: ' + myfile + '\n')
+                
+                if 'myclass' in kwargs:
+                    myclass = str(kwargs['myclass'])
+                    exceptions_log.write('Class: ' + myclass + '\n')        
+                
+                if 'myfunc' in kwargs:
+                    myfunc = str(kwargs['myfunc'])
+                    exceptions_log.write('Function: ' + myfunc + '\n')
+                
+                if 'myaction' in kwargs:
+                    myaction = str(kwargs['myaction'])
+                    exceptions_log.write('Action: ' + myaction + '\n')
+            
+            exc_type = str(self.sys.exc_info()[0])
+            error = str(self.sys.exc_info()[1]).strip()
+            
+            exceptions_log.write('Exception type: ' + exc_type + '\n')
+            exceptions_log.write('Exception error text: ' + error + '\n')
+            # TODO And what about the exc_num like in OSError? For now,
+            # investigate by hand and later, by allowing an exception argument 
+            # to this module.
+        self.sys.exit(1)
