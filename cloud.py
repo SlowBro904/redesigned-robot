@@ -53,8 +53,15 @@ class Cloud(object):
     
     def isconnected(self):
         """Ensure we can ping the cloud, login, and use encryption"""
-        self.maintenance()
-        return self.ping() and self.can_login() and self.encryption_working()
+        try:
+            status = self._status
+        except NameError:
+            self.maintenance()
+            status = self.ping() and self.can_login() 
+                            and self.encryption_working()
+    
+        self._status = status
+        return self._status
     
     
     def send(self, topic, message = None, encrypt = True):
@@ -63,6 +70,10 @@ class Cloud(object):
         For example, topic = 'door_status', message = 'up'
         """
         self.maintenance()
+        
+        # TODO What if we only had a temporary burp at startup?
+        if not self.isconnected():
+            raise RuntimeError
         
         try:
             self.mqtt.publish(dumps(topic, message, encrypt))
@@ -73,3 +84,7 @@ class Cloud(object):
             raise RuntimeError(warning)
         
         return self.mqtt.get(loads(topic))
+
+# end of class Cloud(object)
+
+cloud = Cloud()

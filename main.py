@@ -8,9 +8,10 @@ from config import config
 from errors import Errors
 from system import System
 from battery import Battery
+from wifi import sta, sta_ap
 from schedule import Schedule
+from datastore import DataStore
 from boot_cause import boot_cause
-from wifi import wifi, sta, sta_ap
 from maintenance import maintenance
 from machine import sleep, deepsleep, WAKEUP_ANY_HIGH, pin_deepsleep_wakeup
 
@@ -31,7 +32,7 @@ cloud = Cloud()
 # Keep our watchdog fed or he'll bite
 wdt.start()
 
-# If our charge is too low this will hard error
+# If our charge is too low this will error
 battery.check_charge()
 
 if boot_cause == 'PwrBtn':
@@ -47,37 +48,24 @@ else:
     wifi = sta()
 
 wifi.connect()
-rtc.start_ntp_daemon()
+rtc.start()
 cloud.connect()
-
-# Checking to see if we are first connected reduces running time while we wait
-# for connections to time out
-if cloud.isconnected():
+    
+try:
     updates.get_system_updates()
     cloud.send('version', system.version)
     cloud.send('battery_charge', battery.charge)
     cloud.send('attached_devices', system.attached_devices)
     cloud.send('ntp_status', rtc.ntp_status)
     updates.get_data_updates()
-else:
-    rtc.check_system_clock()
+except RuntimeError:
+    # Ignore if not connected
+    pass
 
-# TODO Should this be schedule.status = schedule.run() ?
 schedule.run()
+DataStore().save_all()
 
-if cloud.isconnected():
-    if cloud.send('schedule_status', schedule.status):
-        schedule.clear_status()
-    
-    if cloud.send('log', errors.log):
-        errors.clear_log()
-else:
-    # FIXME For production disable the web repl, FTP, telnet, serial, etc.
-    
-    # Save our current status for next time we can connect
-    schedule.save_status()
-    errors.save_log()
-
+# FIXME For production disable the web repl, FTP, telnet, serial, etc.
 # TODO Inside webadmin, a read-only serial console. Or log the console and
 # upload it.
 

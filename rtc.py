@@ -13,11 +13,18 @@ class RTC(object):
         self.system_clock = RTC()
     
     
+    def start(self):
+        '''Let's get started'''
+        # FIXME Do a final code review, ensure I am doing self.maintenance()
+        # everywhere
+        self.maintenance()
+        self.start_ntp_daemon()
+        self.check_system_clock()
+    
+    
     def start_ntp_daemon(self, ntp_server = self.config['NTP_SERVER'])
         """Start an NTP sync daemon in the background"""
         # TODO If not syncing try another server
-        # TODO Check the status in main.py
-        
         self.maintenance()
         
         try:
@@ -66,4 +73,4 @@ class RTC(object):
         if this_year == 1970:
             error = ("Cannot setup clock so I cannot run the schedule",
                         "('rtc.py', 'check_system_clock')")
-            self.errors.hard_error(error)
+            self.errors.error(error)

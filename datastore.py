@@ -1,37 +1,69 @@
 class DataStore(object):
+    # FIXME Everywhere I self.remove() and self.load() get the exact exception 
+    # for not found
+    # http://docs.micropython.org/en/latest/wipy/library/builtins.html?highlight=builtin%20types#OSError
     from os import remove
+    from cloud import cloud
     from json import dump, load
     
-    def __init__(self, data):
-        '''Used to store data and present a variable with that data'''
-        self.data = data
+    # Keep a list of all objects created
+    registry = list()
     
-    
-    def load(self):
-        '''Load the data from a file'''
-        data = None
-        with open(self.file, mode) as json_data:
+    def __init__(self, dataset):
+        '''Takes the name of a dataset. When save(update) is issued, save the
+        value either to the cloud or if we cannot connect, on the flash for
+        uploading later.
+        '''
+        self.dataset = dataset
+        self.dataset_file = '/flash/datasets/'
+        
+        # Add myself to the registry
+        self.registry.append(self)
+        
+        # FIXME Add this directory to fac_rst
+        with open('/flash/dataset/' + self.dataset, 'w') as dataset_fileH:
             try:
-                data = self.load(json_data)
-                # TODO There is an anti-pattern for this somewhere...
-                loaded = True
-            # FIXME Which errno?
+                self.value = self.load(dataset_fileH)
             except OSError:
                 # Ignore if it does not exist
                 pass
         
-        if loaded:
-            self.clear_saved_file()
-        else:
-            raise # FIXME something...
+        self.save()
     
     
-    def clear_saved_file(self):
-        '''Clear out the save file'''
-        return self.remove(self.file)
+    def update(self, update):
+        '''Save the new value either in the cloud or in memory if we cannot 
+        connect, so we can save it to flash later with save_all().
+        '''
+        self.value = update
+        self.save()
     
     
     def save(self):
-        '''Save the data to a file'''
-        with open(self.file, 'w') as json_data:
-            return self.dump(self.data, json_data)
+        '''If it can be saved to the cloud delete the value in memory'''
+        try:
+            self.cloud.send(self.dataset, self.value)
+            del(self.value)
+            self.clear_saved_file()
+        except RuntimeError:
+            pass
+    
+    
+    @classmethod
+    def save_all(cls):
+        '''Save the dataset for all instances of this object to flash'''
+        for obj in cls.registry:
+            with open(obj.dataset_file, 'w') as dataset_fileH:
+                try:
+                    cls.dump(obj.value, dataset_fileH)
+                except NameError:
+                    # We must have been able to save it to the cloud
+                    pass
+    
+    
+    def clear_saved_file(self):
+        '''Clear out the save file, if it exists. If not, ignore.'''
+        try:
+            return self.remove(self.dataset_file)
+        except OSError:
+            pass
