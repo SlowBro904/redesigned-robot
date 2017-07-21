@@ -14,17 +14,17 @@ class Motor(object):
     
     def __init__(self, timeout = self.config['MOTOR_TIMEOUT'],
                     check_interval = self.config['MOTOR_CHECK_INTERVAL']):
-        """Sets up the motor object"""
+        '''Sets up the motor object'''
         self.maintenance()
         self.timeout = timeout
         self.check_interval = check_interval
         self.stop()
     
     def run(self, direction, timeout = self.timeout):
-        """Starts the motor in the requested direction.
+        '''Starts the motor in the requested direction.
         
         It will stop on its own based on the door reed switces.
-        """
+        '''
         self.maintenance()
         
         if direction == 'up':
@@ -65,14 +65,14 @@ class Motor(object):
     
     
     def stop(self):
-        """Stops all motors"""
+        '''Stops all motors'''
         self.up(False)
         self.dn(False)
     
     
     @property
     def voltage(self):
-        """Gets our motor voltage"""
+        '''Gets our motor voltage'''
         # Read the value of the voltage on the battery volt sense pin using 
         # ADC.ATTN_11DB which allows a range of 0-3.3V.
         return self.ADC().channel(pin = self.volt_pin, attn = ADC.ATTN_11DB)

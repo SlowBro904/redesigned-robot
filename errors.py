@@ -1,16 +1,11 @@
 class Errors(object):
     import sys
     from os import remove
+    from leds import leds
+    from json import dump, load
+    from system import deepsleep
     from datastore import DataStore
-    
-    try:
-        from leds import leds
-        from json import dump, load
-        from machine import deepsleep
-        from maintenance import maintenance
-    except ImportError:
-        # Testing
-        pass
+    from maintenance import maintenance
     
     
     def __init__(self):

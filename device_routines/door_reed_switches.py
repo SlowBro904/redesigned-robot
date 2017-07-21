@@ -1,5 +1,5 @@
 def status():
-    """Tells whether the door is in the up or down position"""
+    '''Tells whether the door is in the up or down position'''
     from machine import Pin
     from errors import Errors
     from config import config

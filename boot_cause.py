@@ -1,11 +1,11 @@
-"""Determines the wake cause.
+'''Determines the wake cause.
 
 Sets the boot_cause variable to 'PwrBtn', 'WDT', 'Alarm', 'UpReed', 'DnReed', 
 or 'Aux'
 
 Can be overridden by placing the boot cause in /flash/boot_cause.json in JSON
 format.
-"""
+'''
 from os import remove
 from json import load
 from maintenance import maintenance

@@ -5,7 +5,7 @@ class Schedule(object):
     
     
     def __init__(self, devices):
-        """Sets up scheduled events for our devices"""        
+        '''Sets up scheduled events for our devices'''        
         self.status = dict()
         self.schedules = dict()
         self.status_file = '/flash/data/status.json'
@@ -29,8 +29,8 @@ class Schedule(object):
     
     @property
     def next_event_time(self):
-        """Look across all schedules for all devices and return the time for
-        the next scheduled event for any device"""
+        '''Look across all schedules for all devices and return the time for
+        the next scheduled event for any device'''
         from time import mktime
         
         self.maintenance()
@@ -55,9 +55,9 @@ class Schedule(object):
     
     
     def save_schedule(self, device):
-        """Takes the current schedule in self.schedules[device] and writes it 
+        '''Takes the current schedule in self.schedules[device] and writes it 
         back to disk
-        """
+        '''
         device_file = '/flash/data/' + device + '.json'
         
         self.maintenance()
@@ -73,8 +73,8 @@ class Schedule(object):
     
     
     def save_status(self):
-        """If we cannot connect to the cloud, let's save the status to flash
-        for next time we can connect"""
+        '''If we cannot connect to the cloud, let's save the status to flash
+        for next time we can connect'''
         self.maintenance()
         
         try:
@@ -87,7 +87,7 @@ class Schedule(object):
     
     
     def load_saved_status(self):
-        """Load the status from flash and delete the file"""
+        '''Load the status from flash and delete the file'''
         self.maintenance()
         
         try:
@@ -103,7 +103,7 @@ class Schedule(object):
     
     
     def clear_saved_status(self):
-        """Delete the saved status file"""
+        '''Delete the saved status file'''
         self.maintenance()
         try:
             return self.remove(self.status_file)
@@ -113,14 +113,14 @@ class Schedule(object):
     
     
     def clear_status(self):
-        """Remove all current status"""
+        '''Remove all current status'''
         self.maintenance()
         self.status = dict()
         self.clear_saved_status()
     
     
     def run(self):
-        """Run any events that are due now"""
+        '''Run any events that are due now'''
         from rtc import RTC
         from config import config
         from device_routines import DeviceRoutine

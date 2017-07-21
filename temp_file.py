@@ -2,9 +2,9 @@ from os import remove, rename
 from maintenance import maintenance
 
 def create(target, mode = 'w'):
-    """Creates a temp file in the format of /flash/target.tmp using whatever
+    '''Creates a temp file in the format of /flash/target.tmp using whatever
     mode you want (default of 'w') and returns a file handle
-    """
+    '''
     target_basename = '/'.split(target)[-1]
     temp_file_name = '/flash/tmp/' + target_basename + '.tmp'
     
@@ -20,9 +20,9 @@ def create(target, mode = 'w'):
 
 
 def install(temp_fileH, target):
-    """Takes a file handle of a temp file and installs the temp file into the 
+    '''Takes a file handle of a temp file and installs the temp file into the 
     target, backing up any existing file
-    """
+    '''
     temp_fileH.seek(0)
     
     maintenance()

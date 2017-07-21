@@ -3,13 +3,13 @@ from errors import Errors
 errors = Errors()
 
 def status():
-    """Returns True if running"""
+    '''Returns True if running'''
     global _run
     return _run
 
 
 def start():
-    """Start the web admin interface"""
+    '''Start the web admin interface'''
     from maintenance import maintenance
     from _thread import start_new_thread
     
@@ -27,7 +27,7 @@ def start():
 
 
 def stop():
-    """Stop the web admin interface"""
+    '''Stop the web admin interface'''
     from maintenance import maintenance
     
     maintenance()
@@ -36,10 +36,10 @@ def stop():
 
 
 def _daemon(run = True):
-    """The actual web server process.
+    '''The actual web server process.
     
     Don't run this directly; use start() instead.
-    """
+    '''
     from config import config
     from machine import Timer
     from urllib import unquote_plus

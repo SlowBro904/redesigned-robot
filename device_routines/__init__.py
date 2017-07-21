@@ -1,13 +1,13 @@
 class DeviceRoutine(object):
     def __init__(self, device):
-        """This sets up an object for the routines of a particular device"""
+        '''This sets up an object for the routines of a particular device'''
         from errors import Errors
         
         self.errors = Errors()
         self.device = device
     
     def run(self, command, arguments = None):
-        """This runs a command for a particular device."""
+        '''This runs a command for a particular device.'''
         from maintenance import maintenance
         
         module = self.device + '.' + command

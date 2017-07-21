@@ -1,5 +1,5 @@
 def show(parameters):
-    """Error log"""
+    '''Error log'''
     from os import dupterm
     from errors import Errors
     from maintenance import maintenance
@@ -11,7 +11,7 @@ def show(parameters):
     title = "Error log"
     
     # Zebra striped table
-    header = """<style>
+    header = '''<style>
     table {
         border-collapse: collapse;
         width: 100%;
@@ -23,7 +23,7 @@ def show(parameters):
     }
 
     tr:nth-child(even){background-color: #f2f2f2}
-    </style>"""
+    </style>'''
     
     h1 = title
     
@@ -33,8 +33,8 @@ def show(parameters):
     for log in errors.log:
         body += "<tr><td>" + log + "</td></tr>"
     
-    body += """</table><br />
-    <br />"""
+    body += '''</table><br />
+    <br />'''
     # FIXME Insert the console output here
     body += "<a href='/'>Home</a>"
     

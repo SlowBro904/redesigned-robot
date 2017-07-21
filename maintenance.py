@@ -1,8 +1,13 @@
-"""This runs any regular maintenance tasks such as the garbage collector and watchdog feed."""
-
 def maintenance():
-    import gc
-    from wdt import wdt
-
-    maintenance()
-    gc.collect()
+    '''Run any regular maintenance tasks such as the garbage collector
+    or watchdog feed
+    '''
+    try:
+        import gc
+        from wdt import wdt
+        
+        wdt.feed()
+        gc.collect()
+    except ImportError:
+        # We must be on a desktop. Ignore.
+        pass

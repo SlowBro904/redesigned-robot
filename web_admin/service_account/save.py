@@ -1,5 +1,5 @@
 def show(parameters):
-    """Save the service account username and password"""
+    '''Save the service account username and password'''
     from config import config
     from reboot import reboot
     from maintenance import maintenance
@@ -25,14 +25,14 @@ def show(parameters):
     body = ""
     
     if not password1:
-        body += """Missing the password<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        body += '''Missing the password<br />
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
     
     if password1 != password2:
-        body += """Passwords don't match<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        body += '''Passwords don't match<br />
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
     
@@ -40,9 +40,9 @@ def show(parameters):
         config.update(('SERVICE_ACCOUNT_EMAIL', email),
                         ('SERVICE_ACCOUNT_PASSWORD', password1))
     except:
-        body += """There was some problem writing the config file. Try again or
+        body += '''There was some problem writing the config file. Try again or
         contact technical support.<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        <button onclick='window.history.back();'>Go back</button>'''
     
     body += "<meta http-equiv='refresh' content='0;url=/' />"
 

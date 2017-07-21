@@ -4,9 +4,9 @@ class System(object):
     from maintenance import maintenance
     
     def __init__(self):
-        """Configures our system object which keeps track of certain items
+        '''Configures our system object which keeps track of certain items
         regarding the system such as the attached devices
-        """
+        '''
         from i2c import i2c
         
         self.errors = Errors()
@@ -24,7 +24,7 @@ class System(object):
     
     @property
     def version(self):
-        """Sets the version number variable based on the version number file"""
+        '''Sets the version number variable based on the version number file'''
         # TODO Also get the sys.* version numbers
         # https://docs.pycom.io/pycom_esp32/library/sys.html
         from json import load
@@ -38,12 +38,12 @@ class System(object):
                 return load(versionH)
         except:
             error = "Cannot get our version number. ('system.py', 'version')"
-            self.errors.hard_error(error)
+            self.errors.error(error)
     
     
     @property
     def serial(self):
-        """ Sets our serial number variable based on the system's unique ID """
+        ''' Sets our serial number variable based on the system's unique ID '''
         from binascii import hexlify
         from machine import unique_id
 
@@ -53,11 +53,11 @@ class System(object):
     
     @property
     def attached_devices(self):
-        """Looks for i2c addresses for devices we certify and appends to a set
+        '''Looks for i2c addresses for devices we certify and appends to a set
         of attached devices.
         
         Ignores any non-certified hardware.
-        """
+        '''
         self.maintenance()
         
         # TODO Does this work?

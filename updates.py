@@ -10,7 +10,7 @@ errors = Errors()
 cloud = Cloud()
 
 def get_data_updates(get_all_data_files = False):
-    """Get all recent data updates such as new door schedules from our 
+    '''Get all recent data updates such as new door schedules from our 
     cloud servers.
     
     We can optionally specify which updates to get, whether only the latest
@@ -18,7 +18,7 @@ def get_data_updates(get_all_data_files = False):
     
     This can also be specified by writing True in JSON format into
     /flash/get_all_data_files.json which will get deleted once read.
-    """
+    '''
     maintenance()
     
     get_all_data_files_flag = '/flash/get_all_data_files.json'
@@ -80,7 +80,7 @@ def get_data_updates(get_all_data_files = False):
 
 def clean_failed_system_update(updates, successfully_updated_files, 
                                 web_admin_started, new_file = None):
-    """Cleans up failed system updates. All or nothing."""
+    '''Cleans up failed system updates. All or nothing.'''
     # TODO This feels kludgy and tightly coupled.
     import web_admin
     
@@ -116,7 +116,7 @@ def clean_failed_system_update(updates, successfully_updated_files,
 
 
 def get_system_updates():
-    """Update the scripts on our system"""
+    '''Update the scripts on our system'''
     try:
         # Create any new directories
         new_directories = send('get_new_directories')

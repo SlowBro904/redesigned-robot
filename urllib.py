@@ -1,11 +1,11 @@
-"""Open an arbitrary URL.
+'''Open an arbitrary URL.
 
 Adapted for Micropython by Alex Cowan <acowan@gmail.com>
 
 Includes some elements from the original urllib and urlencode libraries for Python
 
 Source: https://github.com/lucien2k/wipy-urllib/blob/master/urllib.py
-"""
+'''
 
 import socket
 try:
@@ -120,8 +120,8 @@ def quote_plus(s):
 #    return quote(s, safe)
 
 def unquote(s):
-    """Kindly rewritten by Damien from Micropython"""
-    """No longer uses caching because of memory limitations"""
+    '''Kindly rewritten by Damien from Micropython'''
+    '''No longer uses caching because of memory limitations'''
     res = s.split('%')
     for i in range(1, len(res)):
         item = res[i]
@@ -132,7 +132,7 @@ def unquote(s):
     return "".join(res)
 
 def unquote_plus(s):
-    """unquote('%7e/abc+def') -> '~/abc def'"""
+    '''unquote('%7e/abc+def') -> '~/abc def''''
     s = s.replace('+', ' ')
     return unquote(s)
 

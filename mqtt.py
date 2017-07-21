@@ -4,7 +4,7 @@ class MQTT(object):
     from maintenance import maintenance
     
     def __init__(self):
-        """Setup our MQTT object"""
+        '''Setup our MQTT object'''
         from system import System
         # TODO Add exception AdafruitIOError but under what conditions
         from simple import MQTTClient
@@ -44,7 +44,7 @@ class MQTT(object):
     
     
     def connect(self):
-        """Connect to the MQTT broker"""
+        '''Connect to the MQTT broker'''
         self.maintenance()
         self.client.connect()
         self.client_no_login.connect()
@@ -52,11 +52,11 @@ class MQTT(object):
     
     def publish(self, topic, message, retries = self.retries, login = True, 
                 encrypt = True):
-        """Publish a data update to an MQTT topic.
+        '''Publish a data update to an MQTT topic.
         
         Optionally don't require a login to the MQTT server or encryption.
         These are ideal for things such as ping.
-        """
+        '''
         # FIXME This demands that every MQTT topic have a value, which I think
         # they always will at least have the most recently published value
         from time import sleep
@@ -86,7 +86,7 @@ class MQTT(object):
     
     
     def get(self, topic, retries = self.retries):
-        """Gets any current data in an MQTT topic"""
+        '''Gets any current data in an MQTT topic'''
         self.maintenance()
         
         message = None
@@ -104,7 +104,7 @@ class MQTT(object):
     
     
     def subscribe(self, topic, retries = self.retries):
-        """Subscribes to an MQTT topic"""
+        '''Subscribes to an MQTT topic'''
         self.maintenance()
         
         result = None

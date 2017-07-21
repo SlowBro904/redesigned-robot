@@ -1,5 +1,5 @@
 def show(parameters):
-    """Save the advanced page"""
+    '''Save the advanced page'''
     from maintenance import maintenance
     
     maintenance()
@@ -18,23 +18,23 @@ def show(parameters):
         key2 = parameters['key2']
     
     if not key1:
-        body += """Missing the key<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        body += '''Missing the key<br />
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
     
     if key1 != key2:
-        body += """Keys don't match<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        body += '''Keys don't match<br />
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
     
     try:
         config.update(('ENCRYPTION_KEY', key1))
     except:
-        body += """There was some problem writing the config file. Try again or 
+        body += '''There was some problem writing the config file. Try again or 
         contact technical support.<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
     

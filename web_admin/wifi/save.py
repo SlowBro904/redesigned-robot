@@ -1,5 +1,5 @@
 def show(parameters):
-    """Save the Wi-Fi password and configuration"""
+    '''Save the Wi-Fi password and configuration'''
     from wifi import wifi
     from config import config
     from reboot import reboot
@@ -33,22 +33,22 @@ def show(parameters):
     body = ""
 
     if not ssid:
-        body += """Missing the SSID<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        body += '''Missing the SSID<br />
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
 
     if security_type not in ['None', 'WEP', 'WPA', 'WPA2']:
-        body += """Missing the security type<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        body += '''Missing the security type<br />
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
 
     # The password might be empty so don't check that it was passed, only that
     # it matches
     if password1 != password2:
-        body += """Passwords don't match<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        body += '''Passwords don't match<br />
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
 
@@ -56,9 +56,9 @@ def show(parameters):
         config.update(('WIFI_SSID', ssid), ('WIFI_PASSWORD', password1),
                         ('WIFI_SECURITY_TYPE', security_type))
     except:
-        body += """There was some problem writing the config file. Try again or 
+        body += '''There was some problem writing the config file. Try again or 
         contact technical support.<br />
-        <button onclick='window.history.back();'>Go back</button>"""
+        <button onclick='window.history.back();'>Go back</button>'''
         
         return (title, header, h1, body)
     
@@ -68,7 +68,7 @@ def show(parameters):
         body += "<meta http-equiv='refresh' content='10;url=/' />"
     else:
         # Service account not setup yet
-        body += """<meta http-equiv='refresh' 
-        content='0;url=/service_account/setup' />"""
+        body += '''<meta http-equiv='refresh' 
+        content='0;url=/service_account/setup' />'''
     
     return (title, header, h1, body)

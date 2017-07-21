@@ -5,7 +5,7 @@ class Cloud(object):
     
     
     def __init__(self):
-        """Sets up communications with the cloud servers"""
+        '''Sets up communications with the cloud servers'''
         from mqtt import MQTT
         
         self.maintenance()
@@ -14,7 +14,7 @@ class Cloud(object):
     
     
     def connect(self):
-        """Connect to our MQTT broker"""
+        '''Connect to our MQTT broker'''
         try:
             return self.mqtt.connect()
         except:
@@ -25,7 +25,7 @@ class Cloud(object):
     
     
     def ping(self):
-        """Ping the cloud servers, but don't test login or encryption"""
+        '''Ping the cloud servers, but don't test login or encryption'''
         self.maintenance()
         try:
             return self.send('ping', login = False, encrypt = False) == 'ack'
@@ -34,7 +34,7 @@ class Cloud(object):
     
     
     def can_login(self):
-        """Ensure login is functioning"""
+        '''Ensure login is functioning'''
         self.maintenance()
         try:
             return self.send('ping', login = True, encrypt = False) == 'ack'
@@ -43,7 +43,7 @@ class Cloud(object):
     
     
     def encryption_working(self):
-        """Ensure encryption is functioning"""
+        '''Ensure encryption is functioning'''
         self.maintenance()
         try:
             return self.send('ping', login = True, encrypt = True) == 'ack'
@@ -52,7 +52,7 @@ class Cloud(object):
     
     
     def isconnected(self):
-        """Ensure we can ping the cloud, login, and use encryption"""
+        '''Ensure we can ping the cloud, login, and use encryption'''
         try:
             status = self._status
         except NameError:
@@ -65,10 +65,10 @@ class Cloud(object):
     
     
     def send(self, topic, message = None, encrypt = True):
-        """Send a message to a topic and gets the reply.
+        '''Send a message to a topic and gets the reply.
         
         For example, topic = 'door_status', message = 'up'
-        """
+        '''
         self.maintenance()
         
         # TODO What if we only had a temporary burp at startup?

@@ -13,7 +13,7 @@ from schedule import Schedule
 from datastore import DataStore
 from boot_cause import boot_cause
 from maintenance import maintenance
-from machine import sleep, deepsleep, WAKEUP_ANY_HIGH, pin_deepsleep_wakeup
+from machine import sleep, WAKEUP_ANY_HIGH, deepsleep, pin_deepsleep_wakeup
 
 errors = Errors()
 

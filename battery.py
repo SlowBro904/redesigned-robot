@@ -7,7 +7,7 @@ class Battery(object):
     battery_pin = self.config['BATTERY_VOLT_SENSE_PIN']
     
     def check_charge(self):
-        """Checks if the battery charge is less than CRITICAL_BATTERY_LEVEL in
+        '''Checks if the battery charge is less than CRITICAL_BATTERY_LEVEL in
         the config file and if so, throws a hard error.
         
         The ADC runs at ATTN_11DB which allows measuring up to 3.3V.
@@ -21,7 +21,7 @@ class Battery(object):
         3.3 / 4096 = 0.0008056640625
         1.8 / 0.0008056640625 = 2,234.181818181818
         Rounded, it equals 2234.
-        """
+        '''
         self.errors = self.Errors()
         
         # TODO Calculate the value for CRITICAL_BATTERY_LEVEL here so the
@@ -33,11 +33,11 @@ class Battery(object):
     
     @property
     def charge(self):
-        """Returns the value of the battery charge.
+        '''Returns the value of the battery charge.
         
         Note that this does not return the actual voltage. See the note in
         check_charge().
-        """
+        '''
         self.maintenance()
         
         try:

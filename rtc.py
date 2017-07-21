@@ -5,10 +5,10 @@ class RTC(object):
     from maintenance import maintenance
     
     def __init__(self):
-        """A class for the RTC functionality.
+        '''A class for the RTC functionality.
         
         Can update the system clock and sets up an NTP synchronization.
-        """
+        '''
         self.errors = Errors()
         self.system_clock = RTC()
     
@@ -23,7 +23,7 @@ class RTC(object):
     
     
     def start_ntp_daemon(self, ntp_server = self.config['NTP_SERVER'])
-        """Start an NTP sync daemon in the background"""
+        '''Start an NTP sync daemon in the background'''
         # TODO If not syncing try another server
         self.maintenance()
         
@@ -38,25 +38,25 @@ class RTC(object):
     
     
     def ntp_status(self):
-        """Returns the status of NTP synchronization"""
+        '''Returns the status of NTP synchronization'''
         return self.system_clock.synced()
     
     
     def now(self):
-        """Returns the current time in seconds since epoch"""
+        '''Returns the current time in seconds since epoch'''
         from time import mktime
         return mktime(self.system_clock.now())
     
     
     def check_system_clock(self):
-        """Check that the system clock has been set at least once.
+        '''Check that the system clock has been set at least once.
         
         If not connected to get NTP sync and RTC time has not yet been set the 
         RTC year will be 1970. This is bad news, because our schedule won't 
         run. Throw a hard error.
         
         This should only be run if we're not able to connect to the network.
-        """
+        '''
         from wifi import wifi
         
         if wifi.isconnected():

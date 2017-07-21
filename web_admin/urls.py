@@ -1,8 +1,8 @@
 def get_web_page_content(path, parameters)
-    """Gets our web page data.
+    '''Gets our web page data.
     
     Configure this module for your URLs.
-    """
+    '''
     from maintenance import maintenance
     
     maintenance()

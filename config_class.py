@@ -6,12 +6,12 @@ class Config(object):
     from maintenance import maintenance
     
     def __init__(self, config_file, defaults_file):
-        """Provides a dictionary with keys and values coming from the config
+        '''Provides a dictionary with keys and values coming from the config
         file's options and values.
         
         If the config file is unreadable or missing it will load values from the
         defaults file.
-        """
+        '''
         self.maintenance()
         self.config = load_config()
         self.config_file = config_file
@@ -19,11 +19,11 @@ class Config(object):
     
     
     def load_config(self):
-        """Loads the config file from flash into memory.
+        '''Loads the config file from flash into memory.
         
         If it doesn't exist it will copy the defaults file into place as the new
         config file and load from that.
-        """
+        '''
         self.maintenance()
         
         try:
@@ -43,7 +43,7 @@ class Config(object):
     
     
     def reset_to_defaults(self):
-        """Resets the config file to defaults"""
+        '''Resets the config file to defaults'''
         self.maintenance()
         with open(self.defaults_file) as defaults_fileH:
             defaults = self.load(defaults_fileH)
@@ -65,10 +65,10 @@ class Config(object):
     
     
     def update(self, updates):
-        """Takes a list of updates (each item is a tuple of parameter and 
+        '''Takes a list of updates (each item is a tuple of parameter and 
         value) and updates the config file with new parameters and values, and 
         also updates the values in memory
-        """
+        '''
         self.maintenance()
         for parameter, value in updates:
             if parameter not in self.config:

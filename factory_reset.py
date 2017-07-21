@@ -1,7 +1,7 @@
-"""Listens to our factory reset switch.
+'''Listens to our factory reset switch.
 
 If it's held down more than five seconds do a reset back to factory settings.
-"""
+'''
 from leds import leds
 from time import sleep
 from machine import Pin
@@ -13,7 +13,7 @@ from maintenance import maintenance
 errors = Errors()
 
 def fac_rst_handler():
-    """ Triggered when the reset button is pressed """
+    ''' Triggered when the reset button is pressed '''
     maintenance()
     
     # Blink our yellow/red LEDs to let the user know the button is held

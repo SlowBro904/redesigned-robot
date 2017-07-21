@@ -1,6 +1,5 @@
 class LEDs(object):
     from machine import Pin
-    from errors import Errors
     from maintenance import maintenance
     
     # These must be hard-coded to prevent a recursion issue where
@@ -14,7 +13,7 @@ class LEDs(object):
     
     
     def blink(self, run = True, pattern = None, default = False):
-        """Blink the LEDs on a pattern.
+        '''Blink the LEDs on a pattern.
         
         Takes a run command and a pattern, which is a tuple of tuples.
         
@@ -52,7 +51,7 @@ class LEDs(object):
         red/yellow is initiated, when that pattern stops it returns back to the
         default. Calling blink() multiple times with default = True will set
         the last called pattern as the default.
-        """
+        '''
         from _thread import start_new_thread
         
         self.maintenance()
@@ -68,10 +67,10 @@ class LEDs(object):
             start_new_thread(_blink, (True, self.default_pattern))
     
     def _blink(self, run, pattern):
-        """The actual blink process.
+        '''The actual blink process.
         
         Don't run this directly, use blink() instead.
-        """
+        '''
         from time import sleep_ms
         
         # TODO A kludge until Pycom fixes _thread.exit() from outside the

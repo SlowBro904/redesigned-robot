@@ -1,5 +1,5 @@
 def reboot(delay = 0, boot_cause = None):
-    """Reboots the device.
+    '''Reboots the device.
     
     Takes an optional delay value in seconds and an optional boot cause (the
     values in boot_cause.py) that can override the normal boot cause detection. 
@@ -13,7 +13,7 @@ def reboot(delay = 0, boot_cause = None):
     
     The boot cause can be overridden by placing the value in JSON format in
     /flash/boot_cause.json.
-    """
+    '''
     from json import dump
     from maintenance import maintenance
     from _thread import start_new_thread
@@ -33,10 +33,10 @@ def reboot(delay = 0, boot_cause = None):
     start_new_thread(_reboot, (delay, id = 0))
 
 def _reboot(delay, id):
-    """This is the actual reboot command.
+    '''This is the actual reboot command.
     
     Not recommended you call this directly. Use reboot() instead.
-    """
+    '''
     from time import sleep
     from machine import reset
     from maintenance import maintenance
