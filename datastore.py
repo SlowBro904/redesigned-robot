@@ -14,18 +14,18 @@ class DataStore(object):
         value either to the cloud or if we cannot connect, on the flash for
         uploading later.
         '''
+        # FIXME Add this directory to fac_rst
+        self.dataset_file = '/flash/datasets/' + dataset
         self.dataset = dataset
-        self.dataset_file = '/flash/datasets/'
         
         # Add myself to the registry
         self.registry.append(self)
         
-        # FIXME Add this directory to fac_rst
-        with open('/flash/dataset/' + self.dataset, 'w') as dataset_fileH:
+        with open(self.dataset_file, 'w') as dataset_fileH:
             try:
                 self.value = self.load(dataset_fileH)
             except OSError:
-                # Ignore if it does not exist
+                # Ignore if not exist
                 pass
         
         self.save()
@@ -35,35 +35,33 @@ class DataStore(object):
         '''Save the new value either in the cloud or in memory if we cannot 
         connect, so we can save it to flash later with save_all().
         '''
-        self.value = update
+        try:
+            self.value.append(update)
+        except NameError:
+            self.value = [update]
+        
         self.save()
     
     
     def save(self):
         '''If it can be saved to the cloud delete the value in memory'''
         try:
+            # FIXME Retry sends, and what if that fails
             self.cloud.send(self.dataset, self.value)
             del(self.value)
-            self.clear_saved_file()
-        except RuntimeError:
+            self.remove(self.dataset_file)
+        except (RuntimeError, OSError):
             pass
     
     
     @classmethod
     def save_all(cls):
-        '''Save the dataset for all instances of this object to flash'''
+        '''Save the datasets for all instances of this class to flash'''
         for obj in cls.registry:
             with open(obj.dataset_file, 'w') as dataset_fileH:
                 try:
                     cls.dump(obj.value, dataset_fileH)
+                    del(obj.value)
                 except NameError:
-                    # We must have been able to save it to the cloud
+                    # We must have been able to save the value to the cloud
                     pass
-    
-    
-    def clear_saved_file(self):
-        '''Clear out the save file, if it exists. If not, ignore.'''
-        try:
-            return self.remove(self.dataset_file)
-        except OSError:
-            pass

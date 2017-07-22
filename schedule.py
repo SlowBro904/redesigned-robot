@@ -1,6 +1,7 @@
 class Schedule(object):
     from os import remove
     from json import dump, load
+    from datastore import DataStore
     from maintenance import maintenance
     
     
@@ -8,7 +9,7 @@ class Schedule(object):
         '''Sets up scheduled events for our devices'''        
         self.status = dict()
         self.schedules = dict()
-        self.status_file = '/flash/data/status.json'
+        self.datastore = DataStore('status')
         
         for device in devices:
             self.maintenance()
@@ -19,12 +20,6 @@ class Schedule(object):
             except:
                 # Ignore errors. If we have zero schedules nothing will run.
                 pass
-        
-        try:
-            self.status = self.load_saved_status()
-        except:
-            # Ignore errors
-            pass
     
     
     @property
@@ -70,53 +65,6 @@ class Schedule(object):
                         "('schedule.py','save_schedule')")
             self.errors.warning(warning)
             return False
-    
-    
-    def save_status(self):
-        '''If we cannot connect to the cloud, let's save the status to flash
-        for next time we can connect'''
-        self.maintenance()
-        
-        try:
-            with open(self.status_file, 'w') as json_data:
-                return self.dump(self.status, json_data)
-        except:
-            warning = "Cannot save the status. ('schedule.py', 'save_status')"
-            self.errors.warning(warning)
-            return False
-    
-    
-    def load_saved_status(self):
-        '''Load the status from flash and delete the file'''
-        self.maintenance()
-        
-        try:
-            with open(self.status_file) as status_fileH:
-                status = self.load(status_fileH)
-        except:
-            warning = "Cannot save the status. ('schedule.py', 'save_status')"
-            self.errors.warning(warning)
-            return False
-        
-        self.clear_saved_status()
-        return status
-    
-    
-    def clear_saved_status(self):
-        '''Delete the saved status file'''
-        self.maintenance()
-        try:
-            return self.remove(self.status_file)
-        except:
-            # Ignore errors
-            pass
-    
-    
-    def clear_status(self):
-        '''Remove all current status'''
-        self.maintenance()
-        self.status = dict()
-        self.clear_saved_status()
     
     
     def run(self):
@@ -175,16 +123,11 @@ class Schedule(object):
                 
                 self.maintenance()
                 
-                status = None
-                
-                for i in range(device_retries):
-                    status = device_routine.run(command, arguments)
-                    
-                    if status is not None:
-                        break
-                
-                self.status[device] += status
-                
+                # FIXME Do retries in DataStore
+                # TODO Does MQTT have built-in retries?
+                status = device_routine.run(command, arguments)
+                self.datastore.update((device, status))
+            
                 # Remove everything due (including but not limited to the one
                 # we just executed) and write our modified schedule to disk
                 for this_event in due:
@@ -198,5 +141,6 @@ class Schedule(object):
             # this never gets set in this for loop we know we have no items
             # scheduled under any device, and so we can exit the while loop
             # as well.
+            # TODO There's an anti-pattern for this. Should be an else.
             if not items_scheduled:
                 break

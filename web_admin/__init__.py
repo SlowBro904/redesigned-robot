@@ -151,9 +151,9 @@ def _daemon(run = True):
             # Split the remainder of our request into variables
             for var in request.split('&'):
                 # TODO I don't think this is needed anymore
-                #if not var:
-                #    # Next variable
-                #    continue
+                if not var:
+                    # Next variable
+                    continue
                 
                 # Split this variable into parameter and value using the 
                 # unquote_plus function

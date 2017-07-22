@@ -2,6 +2,7 @@ class Errors(object):
     import sys
     from os import remove
     from leds import leds
+    from rtc import RTC
     from json import dump, load
     from system import deepsleep
     from datastore import DataStore
@@ -10,23 +11,27 @@ class Errors(object):
     
     def __init__(self):
         '''A class for dealing with different error messages'''
+        self.rtc = RTC()
+        self.log = list()
         datastore = self.DataStore('error_log')
-        self.log = set()
     
     
-    def timestamp(self):
-        '''Returns a datetime.now() object, whether we're on the WiPy or a
-        desktop
+    def warning(self, message):
+        '''Turns on the warning LED, adds the warning to the log set, and saves
+        it to the datastore
         '''
-        try:
-            from machine import RTC
-            rtc = self.RTC()
-            datetime = rtc.datetime()
-        except ImportError:
-            # For testing on a desktop
-            from datetime import datetime
+        # FIXME Do a code review, ensure I do maintenance() everywhere
+        self.maintenance()
         
-        return datetime.now()
+        log_entry = (self.rtc.now(), 'warning', {'message': message})
+        self.log.append(log_entry)
+        self.datastore.update(log_entry)
+        
+        # Blink for 500 ms, off for 1500 ms, and set this as the default
+        self.leds.blink(run = True, pattern = (
+                        (self.leds.warn, True, 500),
+                        (self.leds.warn, False, 1500)),
+                        default = True)
     
     
     def error(self, message):
@@ -37,8 +42,8 @@ class Errors(object):
             WAKEUP_ANY_HIGH)
         
         # Add the error to the ongoing in-memory log and save to the datastore
-        log_entry = (self.timestamp(), 'error', {'message': message})
-        self.log.add(log_entry)
+        log_entry = (self.rtc.now(), 'error', {'message': message})
+        self.log.append(log_entry)
         self.datastore.update(log_entry)
         self.DataStore().save_all()
                 
@@ -54,23 +59,6 @@ class Errors(object):
         pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
         
         self.deepsleep()
-    
-    
-    def warning(self, message):
-        '''Turns on the warning LED, adds the warning to the log set, and saves
-        it to the datastore
-        '''
-        self.maintenance()
-        
-        log_entry = (self.timestamp(), 'warning', {'message': message})
-        self.log.add(log_entry)
-        self.datastore.update(log_entry)
-        
-        # Blink for 500 ms, off for 1500 ms, and set this as the default
-        self.leds.blink(run = True, pattern = (
-                        (self.leds.warn, True, 500),
-                        (self.leds.warn, False, 1500)),
-                        default = True)
     
     
     # FIXME Everywhere I use self. in defaults, remove the self.
@@ -100,8 +88,8 @@ class Errors(object):
         # investigate by hand and later, by allowing an exception argument 
         # to this module.
         
-        log_entry = (self.timestamp(), 'exception', content)
-        self.log.add(log_entry)
+        log_entry = (self.rtc.now(), 'exception', content)
+        self.log.append(log_entry)
         self.datastore.update(log_entry)
         
         self.sys.exit(1)
