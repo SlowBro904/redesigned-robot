@@ -90,7 +90,7 @@ class LEDs(object):
                 
                 LED(state)
                 
-                if not delay:
+                if not delay or delay < 10:
                     # Always have a little bit of delay. Don't want this to
                     # hammer our little system. 10 ms should be imperceptible.
                     delay = 10
