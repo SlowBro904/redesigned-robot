@@ -14,7 +14,7 @@ class DataStore(object):
         value either to the cloud or if we cannot connect, on the flash for
         uploading later.
         '''
-        self.dataset_file = '/flash/datasets/' + dataset
+        self.dataset_file = '/flash/datasets/' + dataset + '.json'
         self.dataset = dataset
         self.testing = testing
         
@@ -39,16 +39,20 @@ class DataStore(object):
     def save(self):
         '''If it can be saved to the cloud delete the value in memory'''
         # We need to be able to test this and save to disk
-        if self.testing:
-            return
-        
         try:
             # FIXME Retry sends, and what if that fails
             self.cloud.send(self.dataset, self.value)
-            del(self.value)
-            self.remove(self.dataset_file)
+            if self.testing:
+                self.save_all()
+            else:
+                del(self.value)
+                self.clear_save_file()
         except (RuntimeError, OSError):
             pass
+    
+    
+    def clear_save_file(self):
+        return self.remove(self.dataset_file)
     
     
     def load_to_memory(self):

@@ -16,3 +16,6 @@ try:
     assert datastore.value is not test_value
 except NameError:
     raise AssertionError
+
+del(datastore.value)
+datastore.clear_save_file()
