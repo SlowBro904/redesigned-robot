@@ -1,15 +1,17 @@
 class LEDs(object):
     from machine import Pin
-    from maintenance import maintenance
     
     # These must be hard-coded to prevent a recursion issue where
     # config_class.py cannot load the config file and throws an error.
     # TODO Do I need this now? I don't think I'm running any errors in 
     # config_class.py. But I am pretty sure I will be soon. And/or maybe I
     # don't need it now that it's in a separate file?
-    good = Pin('P10', mode = self.Pin.OUT)
-    warn = Pin('P11', mode = self.Pin.OUT)
-    err = Pin('P12', mode = self.Pin.OUT)
+    good = Pin('P10', mode = Pin.OUT)
+    warn = Pin('P11', mode = Pin.OUT)
+    err = Pin('P12', mode = Pin.OUT)
+    
+    def __init__(self):
+        pass
     
     
     def blink(self, run = True, pattern = None, default = False):
@@ -33,10 +35,11 @@ class LEDs(object):
         blink(run = True, pattern = ((self.warn, True, None))
         
         This example will start the good LED for 300 milliseconds then off for
-        1700 milliseconds:
+        1700 milliseconds and set it as the default:
         blink(run = True, pattern = (
                 (self.good, True, 300),
-                (self.good, False, 1700)))
+                (self.good, False, 1700)),
+                default = True)
         
         This example will stop any currently-running pattern and return to the
         default.
@@ -52,11 +55,14 @@ class LEDs(object):
         default. Calling blink() multiple times with default = True will set
         the last called pattern as the default.
         '''
+        from maintenance import maintenance
         from _thread import start_new_thread
         
-        self.maintenance()
+        maintenance()
         
-        if default:
+        if not default:
+            self.default_pattern = None
+        else:
             self.default_pattern = pattern
         
         if run:
@@ -95,6 +101,7 @@ class LEDs(object):
                     # hammer our little system. 10 ms should be imperceptible.
                     delay = 10
                 
+                # TODO Is it better maybe to setup a timer and callback?
                 for i in range(delay):
                     if not _run:
                         break
