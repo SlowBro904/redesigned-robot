@@ -9,25 +9,18 @@ class DataStore(object):
     # Keep a list of all objects created
     registry = list()
     
-    def __init__(self, dataset):
+    def __init__(self, dataset, testing = False):
         '''Takes the name of a dataset. When save(update) is issued, save the
         value either to the cloud or if we cannot connect, on the flash for
         uploading later.
         '''
-        # FIXME Add this directory to fac_rst
         self.dataset_file = '/flash/datasets/' + dataset
         self.dataset = dataset
+        self.testing = testing
         
         # Add myself to the registry
         self.registry.append(self)
-        
-        with open(self.dataset_file, 'w') as dataset_fileH:
-            try:
-                self.value = self.load(dataset_fileH)
-            except OSError:
-                # Ignore if not exist
-                pass
-        
+        self.load_to_memory()
         self.save()
     
     
@@ -40,11 +33,15 @@ class DataStore(object):
         except NameError:
             self.value = [update]
         
-        self.save()
+        return self.save()
     
     
     def save(self):
         '''If it can be saved to the cloud delete the value in memory'''
+        # We need to be able to test this and save to disk
+        if self.testing:
+            return
+        
         try:
             # FIXME Retry sends, and what if that fails
             self.cloud.send(self.dataset, self.value)
@@ -52,6 +49,16 @@ class DataStore(object):
             self.remove(self.dataset_file)
         except (RuntimeError, OSError):
             pass
+    
+    
+    def load_to_memory(self):
+        '''Loads the saved file (if any) to memory'''
+        with open(self.dataset_file, 'w') as dataset_fileH:
+            try:
+                self.value = self.load(dataset_fileH)
+            except OSError:
+                # Ignore if not exist
+                pass
     
     
     @classmethod

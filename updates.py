@@ -1,13 +1,16 @@
 import temp_file
-from os import remove
 from leds import leds
 from cloud import Cloud
 from errors import Errors
+from reboot import reboot
 from json import load, dump
+from os import remove, rename
 from maintenance import maintenance
 
 errors = Errors()
 cloud = Cloud()
+
+updated_files_listing = '/flash/updated_files.json'
 
 def get_data_updates(get_all_data_files = False):
     '''Get all recent data updates such as new door schedules from our 
@@ -19,6 +22,7 @@ def get_data_updates(get_all_data_files = False):
     This can also be specified by writing True in JSON format into
     /flash/get_all_data_files.json which will get deleted once read.
     '''
+    # FIXME If our schedule is incomplete for some reason error/warn
     maintenance()
     
     get_all_data_files_flag = '/flash/get_all_data_files.json'
@@ -211,7 +215,7 @@ def get_system_updates():
     
     if successfully_updated_files:
         try:
-            with open('/flash/updated_files.json') as updated_filesH:
+            with open(updated_files_listing) as updated_filesH:
                 dump(successfully_updated_files, updated_filesH)
         except:
             clean_failed_system_update(updates, successfully_updated_files,
@@ -219,5 +223,43 @@ def get_system_updates():
         
         # Reboot and the system will install any .new files
         # FIXME Test to ensure that boot.py is run on reboot()
-        from reboot import reboot
+        reboot()
+
+
+def install_updates():
+    '''Install any recent updates'''
+    # FIXME Test upgrading this file (updates.py) as well
+    maintenance()
+    reboot = False
+    
+    try:
+        open(updated_files_listing)
+    except OSError:
+        return
+    
+    # Install any new versions of scripts
+    with open(updated_files_listing) as updated_filesH:
+        for file in load(updated_filesH):
+            # Set the flag to reboot after installing new files
+            # TODO I think there is an anti-pattern for this...
+            do_reboot = True
+            
+            maintenance()
+            
+            try:
+                remove('/flash/' + file)
+            except OSError: # FIXME Get the exact exception type
+                # Ignore if it does not exist
+                pass
+            
+            rename('/flash/' + file + '.new', '/flash/' + file)
+    
+    if do_reboot:
+        try:
+            maintenance()
+            remove(updated_files_listing)
+        except OSError: # FIXME Get the exact exception type
+            # Ignore if it does not exist
+            pass
+        
         reboot()

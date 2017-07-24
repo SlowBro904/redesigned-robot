@@ -1,19 +1,37 @@
 class Errors(object):
     import sys
+    from rtc import RTC
     from os import remove
     from leds import leds
-    from rtc import RTC
     from json import dump, load
-    from system import deepsleep
+    from machine import deepsleep
     from datastore import DataStore
     from maintenance import maintenance
     
     
-    def __init__(self):
+    def __init__(self, datastore = None):
         '''A class for dealing with different error messages'''
         self.rtc = RTC()
         self.log = list()
-        datastore = self.DataStore('error_log')
+        if not datastore:
+            datastore = self.DataStore('error_log')
+    
+    
+    def log_entry(self, mytype, content):
+        '''Returns a log entry tuple'''
+        # Needed for testing
+        return (self.rtc.now(), mytype, content)
+    
+    
+    def message(self, mytype, message):
+        '''Adds a message of a certain type to the ongoing in-memory log and
+        saves it to the datastore
+        '''
+        # FIXME This won't work yet
+        # Add the error to the ongoing in-memory log and save to the datastore
+        self.log.append(self.log_entry(mytype = mytype,
+                        content = {'message': message}))
+        return self.datastore.update(log_entry)
     
     
     def warning(self, message):
@@ -23,9 +41,7 @@ class Errors(object):
         # FIXME Do a code review, ensure I do maintenance() everywhere
         self.maintenance()
         
-        log_entry = (self.rtc.now(), 'warning', {'message': message})
-        self.log.append(log_entry)
-        self.datastore.update(log_entry)
+        self.message('warning', message)
         
         # Blink for 500 ms, off for 1500 ms, and set this as the default
         self.leds.blink(run = True, pattern = (
@@ -37,27 +53,24 @@ class Errors(object):
     def error(self, message):
         '''Things got real bad. Stop everything.'''
         from time import sleep
-        
         from main import (schedule, pin_deepsleep_wakeup, wake_pins,
             WAKEUP_ANY_HIGH)
         
-        # Add the error to the ongoing in-memory log and save to the datastore
-        log_entry = (self.rtc.now(), 'error', {'message': message})
-        self.log.append(log_entry)
+        self.message('error', message)
         self.datastore.update(log_entry)
+        
+        # FIXME Is that enough time?
+        sleep(3)
+        
+        # Whatever hasn't been sent, save it to flash
         self.DataStore().save_all()
-                
+        
         # Steady red LED
         # TODO The pattern is awkward. See if we can pass only a single pattern
         # by doing some kind of detection.
         self.leds.blink(run = True, pattern = ((self.leds.err, True, None)))
-        
         self.wdt.stop()
-        
-        self.sleep(3)
-        
         pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
-        
         self.deepsleep()
     
     

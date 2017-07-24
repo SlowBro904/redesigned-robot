@@ -14,4 +14,4 @@ try:
     config = Config('/flash/sb.json', '/flash/sb.defaults.json').config
 except:
     error = "Could not load the config. ('config.py', 'main')"
-    errors.hard_error(error)
+    errors.error(error)

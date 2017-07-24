@@ -85,7 +85,7 @@ class MQTT(object):
         return result
     
     
-    def get(self, topic, retries = self.retries):
+    def get(self, topic, retries = self.retries, decrypt = True):
         '''Gets any current data in an MQTT topic'''
         self.maintenance()
         
@@ -99,13 +99,18 @@ class MQTT(object):
             if message:
                 break
         
-        cipher = self.AES(self.key, self.AES.MODE_CFB, message[:16])
-        return cipher.decrypt(message[16:])
+        if decrypt:
+            cipher = self.AES(self.key, self.AES.MODE_CFB, message[:16])
+            message = cipher.decrypt(message[16:])
+        
+        return message
     
     
     def subscribe(self, topic, retries = self.retries):
         '''Subscribes to an MQTT topic'''
         self.maintenance()
+        
+        topic = self.root_path + '/' + topic
         
         result = None
         

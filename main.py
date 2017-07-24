@@ -1,4 +1,12 @@
+# Automatic garbage collector
+import gc
+gc.enable()
+
+# Did we download any new updates? Install them now before anything runs.
 import updates
+install_updates()
+
+# The rest of our modules
 import web_admin
 from rtc import RTC
 import factory_reset
@@ -12,6 +20,7 @@ from wifi import sta, sta_ap
 from schedule import Schedule
 from datastore import DataStore
 from boot_cause import boot_cause
+from updates import install_updates
 from maintenance import maintenance
 from machine import sleep, WAKEUP_ANY_HIGH, deepsleep, pin_deepsleep_wakeup
 
