@@ -1,8 +1,8 @@
 class Battery(object):
     from machine import ADC
     from config import config
-    from errors import Errors
-    from maintenance import maintenance
+    from err import Err
+    from maintenance import maint
     
     battery_pin = self.config['BATTERY_VOLT_SENSE_PIN']
     
@@ -22,13 +22,13 @@ class Battery(object):
         1.8 / 0.0008056640625 = 2,234.181818181818
         Rounded, it equals 2234.
         '''
-        self.errors = self.Errors()
+        self.err = self.Err()
         
         # TODO Calculate the value for CRITICAL_BATTERY_LEVEL here so the
         # config file can be more natural (1.8 instead of 2234)
         if self.charge <= self.config['CRITICAL_BATTERY_LEVEL']:
             error = "Battery too low. ('battery.py', 'check_charge')"
-            self.errors.hard_error(error)
+            self.err.hard_error(error)
     
     
     @property
@@ -38,7 +38,7 @@ class Battery(object):
         Note that this does not return the actual voltage. See the note in
         check_charge().
         '''
-        self.maintenance()
+        self.maint()
         
         try:
             # Read the value of the voltage on the battery volt sense pin using 
@@ -47,5 +47,5 @@ class Battery(object):
                                         attn = ADC.ATTN_11DB)
         except:
             warning = "Cannot get the battery charge. ('battery.py', 'charge')"
-            self.errors.warning(warning)
+            self.err.warning(warning)
             return False

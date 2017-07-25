@@ -3,7 +3,7 @@ class Motor(object):
     import door_reed_switches
     from time import sleep, sleep_ms
     from machine import Pin, Timer, ADC
-    from maintenance import maintenance
+    from maintenance import maint
     
     up = Pin(config['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
     dn = Pin(config['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
@@ -15,7 +15,7 @@ class Motor(object):
     def __init__(self, timeout = self.config['MOTOR_TIMEOUT'],
                     check_interval = self.config['MOTOR_CHECK_INTERVAL']):
         '''Sets up the motor object'''
-        self.maintenance()
+        self.maint()
         self.timeout = timeout
         self.check_interval = check_interval
         self.stop()
@@ -25,7 +25,7 @@ class Motor(object):
         
         It will stop on its own based on the door reed switces.
         '''
-        self.maintenance()
+        self.maint()
         
         if direction == 'up':
             self.up(True)
@@ -56,7 +56,7 @@ class Motor(object):
                 timer.reset()
                 self.run(direction = reverse, timeout = 3)
             
-            self.maintenance()
+            self.maint()
             self.sleep_ms(self.check_interval)
             
             if timer.read() >= timeout:

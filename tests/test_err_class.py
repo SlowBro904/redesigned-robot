@@ -1,0 +1,2 @@
+class Err(object):
+    pass

@@ -1,12 +1,12 @@
 def show(parameters):
     '''Error log'''
     from os import dupterm
-    from errors import Errors
-    from maintenance import maintenance
+    from err import Err
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
-    errors = Errors()
+    err = Err()
     
     title = "Error log"
     
@@ -30,7 +30,7 @@ def show(parameters):
     body = "<table>"
     
     # TODO Paginate
-    for log in errors.log:
+    for log in err.log:
         body += "<tr><td>" + log + "</td></tr>"
     
     body += '''</table><br />

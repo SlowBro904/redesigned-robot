@@ -1,6 +1,6 @@
-from errors import Errors
+from err import Err
 
-errors = Errors()
+err = Err()
 
 def status():
     '''Returns True if running'''
@@ -10,10 +10,10 @@ def status():
 
 def start():
     '''Start the web admin interface'''
-    from maintenance import maintenance
+    from maintenance import maint
     from _thread import start_new_thread
     
-    maintenance()
+    maint()
     
     try:
         # Fork a new thread so we can get back to the next step in our process
@@ -22,15 +22,15 @@ def start():
     except:
         warning = ("Could not start the web admin.",
                     " ('web_admin/__init__.py', 'start')")
-        errors.warning(warning)
+        err.warning(warning)
         return False
 
 
 def stop():
     '''Stop the web admin interface'''
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     run = False
     return self._daemon(run,)
 
@@ -44,11 +44,11 @@ def _daemon(run = True):
     from machine import Timer
     from urllib import unquote_plus
     from re import search as re_search
-    from maintenance import maintenance
+    from maintenance import maint
     from socket import getaddrinfo, socket
     from urls import get_web_page_content
     
-    maintenance()
+    maint()
     
     timeout = config['WEB_ADMIN_DAEMON_TIMEOUT']
     timer = Timer.Chrono()
@@ -59,7 +59,7 @@ def _daemon(run = True):
     except OSError:
         warning = ("Could not load the web admin template.",
                     " ('web_admin/__init__.py', '_daemon')")
-        errors.warning(warning)
+        err.warning(warning)
         return False
 
     # Start our web server
@@ -75,7 +75,7 @@ def _daemon(run = True):
     except:
         warning = ("Could not load the web admin template.",
                     " ('web_admin/__init__.py', '_daemon')")
-        errors.warning(warning)
+        err.warning(warning)
         return False
     
     timer.start()
@@ -84,7 +84,7 @@ def _daemon(run = True):
     global _run
     _run = run
     while _run:
-        maintenance()
+        maint()
         
         # Listen on our socket for incoming requests
         # FIXME Will this trigger a wdt? Should we setblocking(False)? Test it.
@@ -98,16 +98,16 @@ def _daemon(run = True):
         
         # We just got a request. Reset our timer.
         timer.reset()
-        maintenance()
+        maint()
         
         # Create a file handle on our incoming request
         try:
             connH = conn.makefile('wb')
         except:
-            # TODO Also a 500 error or equivalent. Also add 40* and 50* errors.
+            # TODO Also a 500 error or equivalent. Also add 40* and 50* err.
             warning = ("Web admin socket failure.",
                         " ('web_admin/__init__.py', '_daemon')")
-            errors.warning(warning)
+            err.warning(warning)
             break
         
         # We have an incoming browser request, pull out just the relevant info 
@@ -125,7 +125,7 @@ def _daemon(run = True):
             if not line or line == b'\r\n':
                 break
         
-        maintenance()
+        maint()
         
         # If we don't have any request for some reason default to the root 
         # directory with no parameters
@@ -163,7 +163,7 @@ def _daemon(run = True):
                 # Add to our dictionary
                 parameters[parameter] = value
         
-        maintenance()
+        maint()
         
         web_page_content = get_web_page_content(path, parameters)
         
@@ -182,17 +182,17 @@ def _daemon(run = True):
             except:
                 warning = ("Web admin socket failure.",
                             " ('web_admin/__init__.py', '_daemon')")
-                errors.warning(warning)
+                err.warning(warning)
                 break
         
-        maintenance()
+        maint()
         
         try:
             # Close up our requests
             connH.close()
             conn.close()
         except:
-            # Ignore errors
+            # Ignore err
             pass
         
         if timer.read() >= timeout:
@@ -200,8 +200,8 @@ def _daemon(run = True):
     
     try:
         timer.stop()
-        maintenance()
+        maint()
         mysocket.close()
     except:
-        # Ignore errors
+        # Ignore err
         pass

@@ -2,9 +2,9 @@ def show(parameters):
     '''Save the service account username and password'''
     from config import config
     from reboot import reboot
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
     email = None
     if 'email' in parameters and parameters['email']:

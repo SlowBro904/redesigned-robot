@@ -1,4 +1,4 @@
-from errors import Errors
+from err import Err
 from datastore import DataStore
 datastore = DataStore('testing', testing = True)
 datastore.load_to_memory()

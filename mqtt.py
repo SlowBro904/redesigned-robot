@@ -1,7 +1,7 @@
 class MQTT(object):
     from config import config
     from crypto import AES, getrandbits
-    from maintenance import maintenance
+    from maintenance import maint
     
     def __init__(self):
         '''Setup our MQTT object'''
@@ -9,7 +9,7 @@ class MQTT(object):
         # TODO Add exception AdafruitIOError but under what conditions
         from simple import MQTTClient
         
-        self.maintenance()
+        self.maint()
         
         self.topics = set()
         
@@ -45,7 +45,7 @@ class MQTT(object):
     
     def connect(self):
         '''Connect to the MQTT broker'''
-        self.maintenance()
+        self.maint()
         self.client.connect()
         self.client_no_login.connect()
     
@@ -61,7 +61,7 @@ class MQTT(object):
         # they always will at least have the most recently published value
         from time import sleep
         
-        self.maintenance()
+        self.maint()
         
         if self.login:
             myclient = self.client
@@ -87,7 +87,7 @@ class MQTT(object):
     
     def get(self, topic, retries = self.retries, decrypt = True):
         '''Gets any current data in an MQTT topic'''
-        self.maintenance()
+        self.maint()
         
         message = None
         
@@ -108,7 +108,7 @@ class MQTT(object):
     
     def subscribe(self, topic, retries = self.retries):
         '''Subscribes to an MQTT topic'''
-        self.maintenance()
+        self.maint()
         
         topic = self.root_path + '/' + topic
         

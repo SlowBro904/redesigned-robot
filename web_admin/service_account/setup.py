@@ -1,9 +1,9 @@
 def show(parameters):
     ''' The service account username and password '''
     from config import config
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
     device_name = config['DEVICE_NAME']
     

@@ -3,9 +3,9 @@ def show(parameters):
     from wifi import wifi
     from config import config
     from reboot import reboot
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
     ssid = None
     if 'ssid' in parameters and parameters['ssid']:

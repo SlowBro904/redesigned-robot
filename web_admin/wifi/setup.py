@@ -2,9 +2,9 @@ def show(parameters):
     title = "Connect to a new Wi-Fi network"
     
     from config import config
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
     ssid = None
     if 'ssid' in parameters and parameters['ssid']:

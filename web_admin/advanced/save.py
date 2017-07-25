@@ -1,8 +1,8 @@
 def show(parameters):
     '''Save the advanced page'''
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
     title = "Please wait..."
     header = ""

@@ -1,104 +1,122 @@
+import debugging
+import temp_file
+#from err import Err
+from os import remove
+from maintenance import maint
+from ujson import loads, dumps
+
 class Config(object):
-    import errors
-    import temp_file
-    from os import remove
-    from json import load, dump
-    from maintenance import maintenance
-    
-    def __init__(self, config_file, defaults_file):
+    def __init__(self, config_file, defaults_file, debug = False):
         '''Provides a dictionary with keys and values coming from the config
         file's options and values.
         
-        If the config file is unreadable or missing it will load values from the
-        defaults file.
+        If the config file is unreadable or missing it will load values from 
+        the defaults file.
         '''
-        self.maintenance()
-        self.config = load_config()
+        
+        maint()
+        debugging.enable = debug
+        self.debug = debugging.printmsg
         self.config_file = config_file
         self.defaults_file = defaults_file
+        self.config = self.load_config()
     
     
     def load_config(self):
         '''Loads the config file from flash into memory.
         
-        If it doesn't exist it will copy the defaults file into place as the new
-        config file and load from that.
+        If it doesn't exist it will copy the defaults file into place as the 
+        new config file and load from that.
         '''
-        self.maintenance()
-        
+        maint()
         try:
-            config_fileH = open(self.config_file)
-        except: # Missing or unreadable
-            # TODO Get the exact exception
+            open(self.config_file)
+            self.debug("Successfully opened our config file")
+        except OSError:
+            self.debug("Resetting to defaults")
             # TODO What if even this fails
             self.reset_to_defaults()
-            
-            # Retry
-            config_fileH = open(self.config_file)
         
-        self.maintenance()
-        config = self.load(config_fileH)
-        config_fileH.close()
-        return config
+        maint()
+        with open(self.config_file) as f:
+            self.debug("Reading our config file...")
+            #self.debug("Contents: " + str(loads(f.read())))
+            #f.seek(0)
+            return loads(f.read())
     
     
     def reset_to_defaults(self):
         '''Resets the config file to defaults'''
-        self.maintenance()
-        with open(self.defaults_file) as defaults_fileH:
-            defaults = self.load(defaults_fileH)
+        maint()
+        with open(self.defaults_file) as f:
+            defaults = loads(f.read())
         
-        self.maintenance()
+        maint()
         try:
-            self.remove(self.config_file)
-        except: # TODO Get the precise exception
+            remove(self.config_file)
+        except OSError: # TODO Get the precise exception
             # Ignore if it does not exist
             pass
         
-        self.maintenance()
-        with open(self.config_file, 'w') as config_fileH:
+        maint()
+        with open(self.config_file, 'w') as f:
             # Write the new config file from the defaults
-            self.dump(defaults, config_fileH)
+            f.write(dumps(defaults))
         
-        self.config = dict()
-        defaults_fileH.close()
+        self.config = self.load_config()
     
     
+    # TODO I thought I could make this into a setter but was not successful
     def update(self, updates):
-        '''Takes a list of updates (each item is a tuple of parameter and 
-        value) and updates the config file with new parameters and values, and 
-        also updates the values in memory
+        '''Takes a dict of updates and updates the config file with the new
+        parameters and values, and also updates the values in memory
         '''
-        self.maintenance()
-        for parameter, value in updates:
+        maint()
+        self.debug("Attempting to update our config file")
+        
+        if not isinstance(updates, dict):
+            self.debug("Did not pass a dict()")
+            return False
+        
+        found = False
+        for parameter in updates.keys():
             if parameter not in self.config:
-                return False
-
-        for parameter, value in updates:
-            # Update the value in memory
-            self.config[parameter] = value
+                # Next parameter
+                self.debug("Attempted to update the config file with")
+                self.debug("a nonexistant parameter '" + str(parameter) + "'")
+                continue
         
-        self.maintenance()
+            # TODO There's an anti-pattern for this...    
+            found = True
         
-        # Dump our config to the temp file
-        try:
-            temp_config_fileH = self.temp_file.create(self.config_file)
-        except:
-            warning = ("Cannot update config file",
-                        "('config_class.py','update')")
-            self.errors.warning(warning)
+        if not found:
+            self.debug("No existing config parameters found in update")
+            return False
         
-        try:
-            self.dump(self.config, temp_config_fileH)
-        except:
-            warning = ("Cannot update config file",
-                        "('config_class.py','update')")
-            self.errors.warning(warning)
+        config = self.config
+        for parameter, value in updates.items():
+            config[parameter] = value
         
-        temp_config_fileH.close()
+        maint()
+        # Update the config file
+        #try:
+        with open(self.config_file, 'w') as f:
+            self.debug("Updating our config file on flash")
+            # FIXME Also backup the config file and/or get temp file working,
+            # I don't want some error leaving us without a config
+            f.write(dumps(config))
+            #except:
+            #    warning = ("Cannot update config file",
+            #                "('config_class.py','update')")
+            #    self.err.warning(warning)
         
-        # Install the temp file
-        if not self.temp_file.install(temp_config_fileH, self.config_file):
-            warning = ("Cannot update config file",
-                        "('config_class.py','update')")
-            self.errors.warning(warning)
+            # Install the temp file
+            #temp_file.install(f, self.config_file)
+            #    warning = ("Cannot update config file",
+            #                "('config_class.py','update')")
+            #    self.err.warning(warning)
+            # TODO Delete the temp file
+        
+        # Update the values in memory from flash
+        self.config = self.load_config()
+        #self.debug("New config: " + str(self.config))

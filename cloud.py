@@ -1,16 +1,16 @@
 class Cloud(object):
-    from errors import Errors
+    from err import Err
     from json import loads, dumps
-    from maintenance import maintenance
+    from maintenance import maint
     
     
     def __init__(self):
         '''Sets up communications with the cloud servers'''
         from mqtt import MQTT
         
-        self.maintenance()
+        self.maint()
         self.mqtt = MQTT()
-        self.errors = Errors()
+        self.err = Err()
     
     
     def connect(self):
@@ -20,13 +20,13 @@ class Cloud(object):
         except:
             warning = ("Cannot connect to our MQTT broker.",
                         "('cloud.py', 'connect')")
-            self.errors.warning(warning)
+            self.err.warning(warning)
             return False
     
     
     def ping(self):
         '''Ping the cloud servers, but don't test login or encryption'''
-        self.maintenance()
+        self.maint()
         try:
             return self.send('ping', login = False, encrypt = False) == 'ack'
         except:
@@ -35,7 +35,7 @@ class Cloud(object):
     
     def can_login(self):
         '''Ensure login is functioning'''
-        self.maintenance()
+        self.maint()
         try:
             return self.send('ping', login = True, encrypt = False) == 'ack'
         except:
@@ -44,7 +44,7 @@ class Cloud(object):
     
     def encryption_working(self):
         '''Ensure encryption is functioning'''
-        self.maintenance()
+        self.maint()
         try:
             return self.send('ping', login = True, encrypt = True) == 'ack'
         except:
@@ -56,9 +56,9 @@ class Cloud(object):
         try:
             status = self._status
         except NameError:
-            self.maintenance()
-            status = self.ping() and self.can_login() 
-                            and self.encryption_working()
+            self.maint()
+            status = (self.ping() and self.can_login() 
+                            and self.encryption_working())
     
         self._status = status
         return self._status
@@ -69,7 +69,7 @@ class Cloud(object):
         
         For example, topic = 'door_status', message = 'up'
         '''
-        self.maintenance()
+        self.maint()
         
         # TODO What if we only had a temporary burp at startup?
         if not self.isconnected():

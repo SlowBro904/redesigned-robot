@@ -3,7 +3,7 @@ def show(parameters):
     from wifi import wifi
     from config import config
     from system import System
-    from maintenance import maintenance
+    from maintenance import maint
     
     device_name = config['DEVICE_NAME']
     title = device_name
@@ -14,7 +14,7 @@ def show(parameters):
     serial = System().serial
     version = System().version
     
-    maintenance()
+    maint()
 
     if not wifi.ssid:
         body += '''Let's get started!

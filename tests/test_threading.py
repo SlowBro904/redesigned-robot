@@ -1,13 +1,13 @@
 class Testing(object):
-    from errors import Errors
+    from err import Err
     
-    errors = Errors()
+    err = Err()
 
     def __init__(self):
         try:
             raise ValueError
         except:
-            self.errors.log_exception(myfile = __file__,
+            self.err.log_exception(myfile = __file__,
                 myclass = self.__class__.__name__,
                 myfunc = '__init__',
                 myaction = 'Testing exception logging inside a class')
@@ -15,14 +15,14 @@ class Testing(object):
         print("We shouldn't get here.")
 
 def testing():
-    from errors import Errors
+    from err import Err
     
-    errors = Errors()
+    err = Err()
 
     try:
         raise ValueError
     except:
-        errors.log_exception(myfile = __file__,
+        err.log_exception(myfile = __file__,
             myfunc = 'testing',
             myaction = 'Testing exception logging inside a function')
 

@@ -2,7 +2,7 @@ class Schedule(object):
     from os import remove
     from json import dump, load
     from datastore import DataStore
-    from maintenance import maintenance
+    from maintenance import maint
     
     
     def __init__(self, devices):
@@ -12,13 +12,13 @@ class Schedule(object):
         self.datastore = DataStore('status')
         
         for device in devices:
-            self.maintenance()
+            self.maint()
             
             try:
                 with open('/flash/data/' + device + '.json') as device_fileH:
                         self.schedules[device] = self.load(device_fileH)
             except:
-                # Ignore errors. If we have zero schedules nothing will run.
+                # Ignore err. If we have zero schedules nothing will run.
                 pass
     
     
@@ -28,7 +28,7 @@ class Schedule(object):
         the next scheduled event for any device'''
         from time import mktime
         
-        self.maintenance()
+        self.maint()
         
         next_event = None
         
@@ -55,7 +55,7 @@ class Schedule(object):
         '''
         device_file = '/flash/data/' + device + '.json'
         
-        self.maintenance()
+        self.maint()
         
         try:
             with open(device_file, 'w') as device_fileH:
@@ -63,7 +63,7 @@ class Schedule(object):
         except:
             warning = ("Cannot save to flash the schedule for " + device,
                         "('schedule.py','save_schedule')")
-            self.errors.warning(warning)
+            self.err.warning(warning)
             return False
     
     
@@ -75,7 +75,7 @@ class Schedule(object):
         
         rtc = RTC()
         
-        self.maintenance()
+        self.maint()
         
         # TODO I might want a per-device retry but quite difficult to implement
         # so let's wait 'til we need it
@@ -88,7 +88,7 @@ class Schedule(object):
         
         # FIXME Add some kind of expected time buffer on the server so we're
         # not continuously running events and killing our battery. Want a long
-        # buffer between events, how about Schedule_BUFFER x 5?
+        # buffer between events, how about SCHEDULE_BUFFER x 5?
         items_scheduled = False
         while True:
             for device in self.schedules:
@@ -96,7 +96,7 @@ class Schedule(object):
                 # that occurs between now and when the system goes to sleep.
                 # This addresses a different situation than the while True
                 # above.
-                stop_time = rtc.now() + config['Schedule_BUFFER']
+                stop_time = rtc.now() + config['SCHEDULE_BUFFER']
                 
                 # Get all items scheduled
                 all_scheduled_times = self.schedules[device].keys()
@@ -121,7 +121,7 @@ class Schedule(object):
                 
                 device_routine = DeviceRoutine(device)
                 
-                self.maintenance()
+                self.maint()
                 
                 # FIXME Do retries in DataStore
                 # TODO Does MQTT have built-in retries?

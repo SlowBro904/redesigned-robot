@@ -1,19 +1,19 @@
 class DeviceRoutine(object):
     def __init__(self, device):
         '''This sets up an object for the routines of a particular device'''
-        from errors import Errors
+        from err import Err
         
-        self.errors = Errors()
+        self.err = Err()
         self.device = device
     
     def run(self, command, arguments = None):
         '''This runs a command for a particular device.'''
-        from maintenance import maintenance
+        from maintenance import maint
         
         module = self.device + '.' + command
         routine = __import__(module)
         
-        maintenance()
+        maint()
         
         try:
             return routine(arguments)
@@ -21,5 +21,5 @@ class DeviceRoutine(object):
             warning = ("Could not run command " + command + " on device ",
                         device + " with these arguments: '" + str(arguments),
                         "' ('device_routines/__init__.py','run')")
-            self.errors.warning(warning)
+            self.err.warning(warning)
             return False

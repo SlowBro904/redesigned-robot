@@ -15,10 +15,10 @@ def reboot(delay = 0, boot_cause = None):
     /flash/boot_cause.json.
     '''
     from json import dump
-    from maintenance import maintenance
+    from maintenance import maint
     from _thread import start_new_thread
     
-    maintenance()
+    maint()
     
     # Override boot cause detection using this text file
     if boot_cause:
@@ -39,8 +39,8 @@ def _reboot(delay, id):
     '''
     from time import sleep
     from machine import reset
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     sleep(delay)
     reset()

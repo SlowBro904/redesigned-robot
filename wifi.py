@@ -1,7 +1,7 @@
 class WIFI(object):
     from network import WLAN
     from config import config
-    from maintenance import maintenance
+    from maintenance import maint
     
     def __init__(self, mode = 'STA', antenna = self.config['WIFI_ANTENNA'],
                     power_save = self.config['WIFI_POWER_SAVE']):
@@ -126,7 +126,7 @@ class WIFI(object):
         
         from machine import idle
         
-        self.maintenance()       
+        self.maint()       
         
         password = self.config['WIFI_PASSWORD']
         timeout = self.config['WIFI_TIMEOUT']
@@ -136,7 +136,7 @@ class WIFI(object):
         
         # Save power while waiting
         while not self.wlan.isconnected():
-            self.maintenance()
+            self.maint()
             idle()
         
         return self.wlan.isconnected()
@@ -144,13 +144,13 @@ class WIFI(object):
     
     def disconnect(self):
         '''Disconnect from the Wi-Fi network'''
-        self.maintenance()
+        self.maint()
         return self.wlan.disconnect()
     
     
     def isconnected(self):
         '''See if we are connected to the Wi-Fi network'''
-        self.maintenance()
+        self.maint()
         return self.wlan.isconnected()
     
     
@@ -160,7 +160,7 @@ class WIFI(object):
         
         (ip, subnet_mask, gateway, DNS_server)
         '''
-        self.maintenance()
+        self.maint()
         
         # We don't always need gateway and DNS server
         if ip and subnet_mask:

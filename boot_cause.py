@@ -8,11 +8,11 @@ format.
 '''
 from os import remove
 from json import load
-from maintenance import maintenance
+from maintenance import maint
 from machine import BROWN_OUT_RESET, WDT_RESET, DEEPSLEEP_RESET
 from machine import reset_cause, PWRON_RESET, HARD_RESET, SOFT_RESET
 
-maintenance()
+maint()
 
 boot_cause = None
 
@@ -34,7 +34,7 @@ elif reset_cause() in [DEEPSLEEP_RESET]:
         elif config['AUX_WAKE_PIN'] in gpio_list:
             boot_cause = 'Aux'
 
-maintenance()
+maint()
 
 # If this file is present it overrides what was discovered above
 try:

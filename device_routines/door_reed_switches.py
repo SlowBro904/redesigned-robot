@@ -1,10 +1,10 @@
 def status():
     '''Tells whether the door is in the up or down position'''
     from machine import Pin
-    from errors import Errors
+    from err import Err
     from config import config
     
-    errors = Errors()
+    err = Err()
     
     up_pin_cfg = config['DOOR_REED_UP_PIN']
     dn_pin_cfg = config['DOOR_REED_DN_PIN']
@@ -19,6 +19,6 @@ def status():
     elif dn_pin and not up_pin:
         status = 'dn'
     elif up_pin and dn_pin:
-        errors.hard_error('Door reed switch malfunction.')
+        err.hard_error('Door reed switch malfunction.')
     
     return status

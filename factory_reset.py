@@ -8,15 +8,15 @@ from time import sleep
 from machine import Pin
 from reboot import reboot
 from config import config
-from errors import Errors
+from err import Err
 from os import listdir, remove
-from maintenance import maintenance
+from maintenance import maint
 
-errors = Errors()
+err = Err()
 
 def fac_rst_handler():
     ''' Triggered when the reset button is pressed '''
-    maintenance()
+    maint()
     
     # Blink our yellow/red LEDs to let the user know the button is held
     leds.blink(run = True, pattern = (
@@ -26,7 +26,7 @@ def fac_rst_handler():
                 (leds.err, False, 0)))
     sleep(5)
     
-    maintenance()
+    maint()
     
     if not fac_rst_pin:
         return
@@ -34,14 +34,14 @@ def fac_rst_handler():
     # We're still holding it after 5 seconds. Now steady red until rebooted.
     leds.blink(run = True, pattern = (('err', True, None)))
     
-    maintenance()
+    maint()
     
     try:
         config.reset_to_defaults()
     except:
         error = ("Could not reset to factory defaults.",
                     "('factory_reset.py', 'fac_rst_handler')"
-        errors.hard_error(error)
+        err.hard_error(error)
     
     # Also delete local data files
     for data_path in ['/flash/data/', '/flash/datasets/']:
@@ -59,12 +59,12 @@ def fac_rst_handler():
         with open(get_all_data_files_flag, 'w') as get_all_data_filesH:
             dump(True, get_all_data_filesH)
     except:
-        # Ignore errors
+        # Ignore err
         pass
     
     reboot(delay = 3, boot_cause = 'PwrBtn')
 
-maintenance()
+maint()
 
 # Setup our listener
 fac_rst_pin = config['FACTORY_RESET_PIN']
@@ -74,5 +74,5 @@ try:
     fac_rst_pin_lsnr.callback(Pin.IRQ_FALLING | Pin.IRQ_RISING,
                                 fac_rst_handler)
 except:
-    errors.error("Cannot listen for factory reset button presses.",
+    err.error("Cannot listen for factory reset button presses.",
                         "('factory_reset.py', 'main')")

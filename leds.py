@@ -3,7 +3,7 @@ class LEDs(object):
     
     # These must be hard-coded to prevent a recursion issue where
     # config_class.py cannot load the config file and throws an error.
-    # TODO Do I need this now? I don't think I'm running any errors in 
+    # TODO Do I need this now? I don't think I'm running any err in 
     # config_class.py. But I am pretty sure I will be soon. And/or maybe I
     # don't need it now that it's in a separate file?
     good = Pin('P10', mode = Pin.OUT)
@@ -55,10 +55,10 @@ class LEDs(object):
         default. Calling blink() multiple times with default = True will set
         the last called pattern as the default.
         '''
-        from maintenance import maintenance
+        from maintenance import maint
         from _thread import start_new_thread
         
-        maintenance()
+        maint()
         
         if not default:
             self.default_pattern = None
@@ -92,7 +92,7 @@ class LEDs(object):
         # prepended with underscore?
         while _run:
             for LED, state, delay in pattern:
-                self.maintenance()
+                self.maint()
                 
                 LED(state)
                 
@@ -117,7 +117,7 @@ class LEDs(object):
                 # that variable is now False the while loop will also exit.
                 break
         
-        self.maintenance()
+        self.maint()
 
 # End of class LEDs(object)
 

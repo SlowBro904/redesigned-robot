@@ -155,13 +155,13 @@ class TestRunner:
 
 class TestResult:
     def __init__(self):
-        self.errorsNum = 0
+        self.errNum = 0
         self.failuresNum = 0
         self.skippedNum = 0
         self.testsRun = 0
 
     def wasSuccessful(self):
-        return self.errorsNum == 0 and self.failuresNum == 0
+        return self.errNum == 0 and self.failuresNum == 0
 
 # TODO: Uncompliant
 def run_class(c, test_result):

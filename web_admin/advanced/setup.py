@@ -1,8 +1,8 @@
 def show(parameters):
     '''Advanced page for setting up things such as the encryption key'''
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
     title = "Advanced"
     header = ""

@@ -3,9 +3,9 @@ def get_web_page_content(path, parameters)
     
     Configure this module for your URLs.
     '''
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
 
     if path == '/':
         from webadmin.home import show

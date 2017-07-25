@@ -1,8 +1,8 @@
 def operate(direction):
     '''Takes 'up' or 'dn' and moves the door in that direction'''
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
     motor = MOTOR()
     motor.run(direction)

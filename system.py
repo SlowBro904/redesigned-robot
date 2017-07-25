@@ -1,7 +1,7 @@
 class System(object):
-    from errors import Errors
+    from err import Err
     from config import config
-    from maintenance import maintenance
+    from maintenance import maint
     
     def __init__(self):
         '''Configures our system object which keeps track of certain items
@@ -9,9 +9,9 @@ class System(object):
         '''
         from i2c import i2c
         
-        self.errors = Errors()
+        self.err = Err()
         
-        self.maintenance()
+        self.maint()
         
         self.i2c = i2c
         self.attached_devices = set()
@@ -29,7 +29,7 @@ class System(object):
         # https://docs.pycom.io/pycom_esp32/library/sys.html
         from json import load
         
-        self.maintenance()
+        self.maint()
         
         # FIXME Change the version number file to JSON format, it's currently
         # plain text
@@ -38,7 +38,7 @@ class System(object):
                 return load(versionH)
         except:
             error = "Cannot get our version number. ('system.py', 'version')"
-            self.errors.error(error)
+            self.err.error(error)
     
     
     @property
@@ -47,7 +47,7 @@ class System(object):
         from binascii import hexlify
         from machine import unique_id
 
-        self.maintenance()
+        self.maint()
         return str(hexlify(unique_id()), 'utf-8')
     
     
@@ -58,7 +58,7 @@ class System(object):
         
         Ignores any non-certified hardware.
         '''
-        self.maintenance()
+        self.maint()
         
         # TODO Does this work?
         if self.attached_devices:
@@ -69,7 +69,7 @@ class System(object):
         
         # TODO See where else I should use iteritems()
         for name, address in certified_addresses.iteritems():
-            self.maintenance()
+            self.maint()
             
             try:
                 if self.i2c.readfrom(address, 1):

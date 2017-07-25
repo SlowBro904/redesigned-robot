@@ -2,9 +2,9 @@ def show(parameters):
     title = "Wi-Fi configuration"
     
     from wifi import wifi
-    from maintenance import maintenance
+    from maintenance import maint
     
-    maintenance()
+    maint()
     
     h1 = title
     body = ""

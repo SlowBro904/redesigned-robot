@@ -1,13 +1,13 @@
 import temp_file
 from leds import leds
 from cloud import Cloud
-from errors import Errors
+from err import Err
 from reboot import reboot
 from json import load, dump
 from os import remove, rename
-from maintenance import maintenance
+from maintenance import maint
 
-errors = Errors()
+err = Err()
 cloud = Cloud()
 
 updated_files_listing = '/flash/updated_files.json'
@@ -23,7 +23,7 @@ def get_data_updates(get_all_data_files = False):
     /flash/get_all_data_files.json which will get deleted once read.
     '''
     # FIXME If our schedule is incomplete for some reason error/warn
-    maintenance()
+    maint()
     
     get_all_data_files_flag = '/flash/get_all_data_files.json'
     
@@ -42,7 +42,7 @@ def get_data_updates(get_all_data_files = False):
         else:
             updates = cloud.send('get_latest_data_updates')
     except RuntimeError as warning:
-        errors.warning(warning + " ('updates.py', 'get_data_updates')")
+        err.warning(warning + " ('updates.py', 'get_data_updates')")
         return False
     
     if not updates:
@@ -55,7 +55,7 @@ def get_data_updates(get_all_data_files = False):
         # This might be a list
         values = update[2]
         
-        maintenance()
+        maint()
         
         data_file_full_path = '/flash/data/' + data_file
         try:
@@ -68,7 +68,7 @@ def get_data_updates(get_all_data_files = False):
         
         existing_data[data_file][parameter] = values
     
-    maintenance()
+    maint()
     
     for data_file in existing_data:
         # TODO Do general Pythonic cleanup everywhere
@@ -79,7 +79,7 @@ def get_data_updates(get_all_data_files = False):
         except OSError:
             warning = ("Failed to get data updates.",
                         " ('updates.py', 'get_data_updates')")
-            errors.warning(warning)
+            err.warning(warning)
 
 
 def clean_failed_system_update(updates, successfully_updated_files, 
@@ -92,7 +92,7 @@ def clean_failed_system_update(updates, successfully_updated_files,
     # would only be called from the get_system_updates() function.
     warning = ("Update failure. Reverting.",
                 "('updates.py', 'get_system_updates'")
-    errors.warning(warning)
+    err.warning(warning)
     
     for update in updates:
         try:
@@ -113,7 +113,7 @@ def clean_failed_system_update(updates, successfully_updated_files,
             try:
                 web_admin.start()
             except:
-                # Ignore errors
+                # Ignore err
                 pass
         
         leds.blink(run = False)
@@ -125,15 +125,15 @@ def get_system_updates():
         # Create any new directories
         new_directories = send('get_new_directories')
     except RuntimeError as warning:
-        errors.warning(warning + " ('updates.py', 'get_system_updates')")
+        err.warning(warning + " ('updates.py', 'get_system_updates')")
     
-    maintenance()
+    maint()
     
     if new_directories:
         from os import mkdir
         
         for new_directory in new_directories:
-            maintenance()
+            maint()
             try:
                 # exist_ok = True is a counter-intuitively-named flag. If the 
                 # parent directory does not exist we will create it first.
@@ -142,15 +142,15 @@ def get_system_updates():
                 warning = ("Unable to create new directory ",
                             new_directory,
                             " ('updates.py', 'get_system_updates')")
-                errors.warning(warning)
+                err.warning(warning)
     
-    maintenance()
+    maint()
     
     # Now check for system updates
     try:
         updates = send('get_system_updates')
     except RuntimeError as warning:
-        errors.warning(warning + " ('updates.py', 'get_system_updates')")
+        err.warning(warning + " ('updates.py', 'get_system_updates')")
         return False
     
     if not updates:
@@ -183,7 +183,7 @@ def get_system_updates():
         script_contents = update[2]
         new_file = script_file + '.new'
         
-        maintenance()
+        maint()
         
         try:
             # Create the file as .new and upon reboot our system will see the
@@ -229,7 +229,7 @@ def get_system_updates():
 def install_updates():
     '''Install any recent updates'''
     # FIXME Test upgrading this file (updates.py) as well
-    maintenance()
+    maint()
     reboot = False
     
     try:
@@ -244,7 +244,7 @@ def install_updates():
             # TODO I think there is an anti-pattern for this...
             do_reboot = True
             
-            maintenance()
+            maint()
             
             try:
                 remove('/flash/' + file)
@@ -256,7 +256,7 @@ def install_updates():
     
     if do_reboot:
         try:
-            maintenance()
+            maint()
             remove(updated_files_listing)
         except OSError: # FIXME Get the exact exception type
             # Ignore if it does not exist

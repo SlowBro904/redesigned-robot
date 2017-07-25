@@ -4,14 +4,13 @@ specific to this device.
 Improves performance by avoiding reloading the config file every time it's
 imported. For other devices, change the config file variable below.
 '''
+#from err import Err
 from config_class import Config
-from errors import Errors
 
-errors = Errors()
+#err = Err()
 
-# FIXME Change to the real filename
-try:
-    config = Config('/flash/sb.json', '/flash/sb.defaults.json').config
-except:
-    error = "Could not load the config. ('config.py', 'main')"
-    errors.error(error)
+#try:
+config = Config('/flash/config.json', '/flash/defaults.json').config
+#except:
+#    error = "Could not load the config. ('config.py', 'main')"
+#    #err.error(error)
