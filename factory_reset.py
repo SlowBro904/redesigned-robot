@@ -44,7 +44,7 @@ def fac_rst_handler():
         err.hard_error(error)
     
     # Also delete local data files
-    for data_path in ['/flash/data/', '/flash/datasets/']:
+    for data_path in ['/flash/device_data/', '/flash/datasets/']:
         for file in listdir(data_path):
             try:
                 remove(data_path + file)
@@ -67,7 +67,7 @@ def fac_rst_handler():
 maint()
 
 # Setup our listener
-fac_rst_pin = config['FACTORY_RESET_PIN']
+fac_rst_pin = config.conf['FACTORY_RESET_PIN']
 
 try:
     fac_rst_pin_lsnr = Pin(fac_rst_pin, mode = Pin.IN, pull = Pin.PULL_UP)

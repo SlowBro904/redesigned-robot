@@ -5,7 +5,7 @@ def show(parameters):
     from system import System
     from maintenance import maint
     
-    device_name = config['DEVICE_NAME']
+    device_name = config.conf['DEVICE_NAME']
     title = device_name
     header = ""
     h1 = title

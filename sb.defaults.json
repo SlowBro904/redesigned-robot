@@ -1,4 +1,4 @@
-# FIXME Do a search for all config['*'] items and add here
+# FIXME Do a search for all config.config['*'] items and add here
 # FIXME Convert this from the current Python dictionary format to JSON
 # TODO Can I add JSON comments?
 {

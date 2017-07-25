@@ -4,7 +4,7 @@ class Battery(object):
     from err import Err
     from maintenance import maint
     
-    battery_pin = self.config['BATTERY_VOLT_SENSE_PIN']
+    battery_pin = self.config.conf['BATTERY_VOLT_SENSE_PIN']
     
     def check_charge(self):
         '''Checks if the battery charge is less than CRITICAL_BATTERY_LEVEL in
@@ -26,7 +26,7 @@ class Battery(object):
         
         # TODO Calculate the value for CRITICAL_BATTERY_LEVEL here so the
         # config file can be more natural (1.8 instead of 2234)
-        if self.charge <= self.config['CRITICAL_BATTERY_LEVEL']:
+        if self.charge <= self.config.conf['CRITICAL_BATTERY_LEVEL']:
             error = "Battery too low. ('battery.py', 'check_charge')"
             self.err.hard_error(error)
     

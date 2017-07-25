@@ -3,8 +3,8 @@ class WIFI(object):
     from config import config
     from maintenance import maint
     
-    def __init__(self, mode = 'STA', antenna = self.config['WIFI_ANTENNA'],
-                    power_save = self.config['WIFI_POWER_SAVE']):
+    def __init__(self, mode = 'STA', antenna = self.config.conf['WIFI_ANTENNA'],
+                    power_save = self.config.conf['WIFI_POWER_SAVE']):
         '''Sets up a Wi-Fi connection based on the mode.
         
         Mode may be one of 'STA', 'AP', or 'STA_AP'. Defaults to 'STA'.
@@ -24,7 +24,7 @@ class WIFI(object):
             
             serial = System().serial
 
-            device_name = self.config['DEVICE_NAME']
+            device_name = self.config.conf['DEVICE_NAME']
 
             # Access point SSID is the device name plus the last six digits of
             # the serial number. There may be more than one of my devices in
@@ -33,9 +33,9 @@ class WIFI(object):
             ssid = device_name + '_' + serial[-6:]
 
             # AP or STA_AP mode
-            password = self.config['WEB_ADMIN_WIFI_PASSWORD']
-            channel = int(self.config['WEB_ADMIN_WIFI_CHANNEL'])
-            security_type_str = self.config['WEB_ADMIN_WIFI_SECURITY_TYPE']
+            password = self.config.conf['WEB_ADMIN_WIFI_PASSWORD']
+            channel = int(self.config.conf['WEB_ADMIN_WIFI_CHANNEL'])
+            security_type_str = self.config.conf['WEB_ADMIN_WIFI_SECURITY_TYPE']
             security_type = self.security_type2int(security_type_str)
             
             # When we set this up it automatically starts the access point on 
@@ -57,13 +57,13 @@ class WIFI(object):
     @property
     def ssid(self):
         '''Sets the ssid variable'''
-        return self.config['WIFI_SSID']
+        return self.config.conf['WIFI_SSID']
     
     
     @property
     def security_type(self):
         '''Sets the security_type variable'''
-        return self.security_type2int(self.config['WIFI_SECURITY_TYPE'])
+        return self.security_type2int(self.config.conf['WIFI_SECURITY_TYPE'])
     
     
     def security_type2str(self, security_type_int):
@@ -128,8 +128,8 @@ class WIFI(object):
         
         self.maint()       
         
-        password = self.config['WIFI_PASSWORD']
-        timeout = self.config['WIFI_TIMEOUT']
+        password = self.config.conf['WIFI_PASSWORD']
+        timeout = self.config.conf['WIFI_TIMEOUT']
         
         self.wlan.connect(self.ssid, auth=(self.security_type, password),
                             timeout = timeout)
@@ -272,10 +272,10 @@ def sta_ap():
     from config import config
     
     # FIXME Set it to 1.1.1.1
-    ip = config['WEB_ADMIN_IP']
-    subnet_mask = config['WEB_ADMIN_SUBNET_MASK']
-    gateway = config['WEB_ADMIN_NETWORK_GATEWAY']
-    DNS_server = config['WEB_ADMIN_DNS_SERVER']
+    ip = config.conf['WEB_ADMIN_IP']
+    subnet_mask = config.conf['WEB_ADMIN_SUBNET_MASK']
+    gateway = config.conf['WEB_ADMIN_NETWORK_GATEWAY']
+    DNS_server = config.conf['WEB_ADMIN_DNS_SERVER']
 
     # FIXME Set a default AP_PASSWORD at the factory and add to documentation, 
     # show in server web admin.

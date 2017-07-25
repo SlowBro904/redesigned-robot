@@ -1,5 +1,5 @@
 #!/usr/bin/python3.6
-'''Goes through every file in this suite looking for config['XYZ'] settings and
+'''Goes through every file in this suite looking for config.conf['XYZ'] settings and
 populates the config defaults file.
 
 Usage: ./create_config_defaults.py > config_defaults.json

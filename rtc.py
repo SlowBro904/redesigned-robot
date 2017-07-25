@@ -22,7 +22,7 @@ class RTC(object):
         self.check_system_clock()
     
     
-    def start_ntp_daemon(self, ntp_server = config['NTP_SERVER']):
+    def start_ntp_daemon(self, ntp_server = config.conf['NTP_SERVER']):
         '''Start an NTP sync daemon in the background'''
         # TODO If not syncing try another server
         self.maint()

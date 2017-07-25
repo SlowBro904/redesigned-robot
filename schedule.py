@@ -1,12 +1,11 @@
+from os import remove
+from json import dumps, loads
+from maintenance import maint
+from datastore import DataStore
+
 class Schedule(object):
-    from os import remove
-    from json import dump, load
-    from datastore import DataStore
-    from maintenance import maint
-    
-    
     def __init__(self, devices):
-        '''Sets up scheduled events for our devices'''        
+        '''Sets up scheduled events for our devices'''
         self.status = dict()
         self.schedules = dict()
         self.datastore = DataStore('status')
@@ -15,10 +14,11 @@ class Schedule(object):
             self.maint()
             
             try:
-                with open('/flash/data/' + device + '.json') as device_fileH:
-                        self.schedules[device] = self.load(device_fileH)
+                device_file = '/flash/device_data/' + device + '.json'
+                with open(device_file) as f:
+                    self.schedules[device] = self.load(f.read())
             except:
-                # Ignore err. If we have zero schedules nothing will run.
+                # Ignore errors. If we have zero schedules nothing will run.
                 pass
     
     
@@ -53,13 +53,13 @@ class Schedule(object):
         '''Takes the current schedule in self.schedules[device] and writes it 
         back to disk
         '''
-        device_file = '/flash/data/' + device + '.json'
+        device_file = '/flash/device_data/' + device + '.json'
         
         self.maint()
         
         try:
-            with open(device_file, 'w') as device_fileH:
-                return self.dump(self.schedule[device], device_fileH)
+            with open(device_file, 'w') as f:
+                return f.write(dumps(self.schedule[device]))
         except:
             warning = ("Cannot save to flash the schedule for " + device,
                         "('schedule.py','save_schedule')")
@@ -79,7 +79,7 @@ class Schedule(object):
         
         # TODO I might want a per-device retry but quite difficult to implement
         # so let's wait 'til we need it
-        device_retries = config['DEVICE_RETRIES']
+        device_retries = config.conf['DEVICE_RETRIES']
         
         # Keep re-checking the schedule until we're all clear. What might 
         # happen is we finish an event and the schedule starts for the next 
@@ -96,7 +96,7 @@ class Schedule(object):
                 # that occurs between now and when the system goes to sleep.
                 # This addresses a different situation than the while True
                 # above.
-                stop_time = rtc.now() + config['SCHEDULE_BUFFER']
+                stop_time = rtc.now() + config.conf['SCHEDULE_BUFFER']
                 
                 # Get all items scheduled
                 all_scheduled_times = self.schedules[device].keys()

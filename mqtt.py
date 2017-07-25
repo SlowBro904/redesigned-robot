@@ -16,15 +16,15 @@ class MQTT(object):
         serial = System().serial
         version = System().version
         
-        self.key = bytes(self.config['ENCRYPTION_KEY'])
+        self.key = bytes(self.config.conf['ENCRYPTION_KEY'])
         
-        port = self.config['MQTT_PORT']
-        server = self.config['MQTT_SERVER']
-        retries = self.config['MQTT_RETRIES']
-        timeout = self.config['MQTT_TIMEOUT']
-        device_name = self.config['DEVICE_NAME']
-        username = self.config['SERVICE_ACCOUNT_EMAIL']
-        password = self.config['SERVICE_ACCOUNT_PASSWORD']
+        port = self.config.conf['MQTT_PORT']
+        server = self.config.conf['MQTT_SERVER']
+        retries = self.config.conf['MQTT_RETRIES']
+        timeout = self.config.conf['MQTT_TIMEOUT']
+        device_name = self.config.conf['DEVICE_NAME']
+        username = self.config.conf['SERVICE_ACCOUNT_EMAIL']
+        password = self.config.conf['SERVICE_ACCOUNT_PASSWORD']
         
         # Use the device name, the version, and the serial number for the root 
         # path. I'm including the device name and version so that we can have 

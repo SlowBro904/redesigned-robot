@@ -27,11 +27,11 @@ elif reset_cause() in [DEEPSLEEP_RESET]:
     elif wake_reason == machine.PWRON_WAKE:
         boot_cause = 'PwrBtn'
     elif wake_reason == machine.PIN_WAKE:
-        if config['DOOR_REED_UP_PIN'] in gpio_list:
+        if config.conf['DOOR_REED_UP_PIN'] in gpio_list:
             boot_cause = 'UpReed'
-        elif config['DOOR_REED_DN_PIN'] in gpio_list:
+        elif config.conf['DOOR_REED_DN_PIN'] in gpio_list:
             boot_cause = 'DnReed'
-        elif config['AUX_WAKE_PIN'] in gpio_list:
+        elif config.conf['AUX_WAKE_PIN'] in gpio_list:
             boot_cause = 'Aux'
 
 maint()

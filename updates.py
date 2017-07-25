@@ -1,7 +1,7 @@
 import temp_file
+from err import Err
 from leds import leds
 from cloud import Cloud
-from err import Err
 from reboot import reboot
 from json import load, dump
 from os import remove, rename
@@ -12,8 +12,8 @@ cloud = Cloud()
 
 updated_files_listing = '/flash/updated_files.json'
 
-def get_data_updates(get_all_data_files = False):
-    '''Get all recent data updates such as new door schedules from our 
+def get_data_updates(get_all = False):
+    '''Get recent data updates such as new door schedules from our 
     cloud servers.
     
     We can optionally specify which updates to get, whether only the latest
@@ -25,19 +25,19 @@ def get_data_updates(get_all_data_files = False):
     # FIXME If our schedule is incomplete for some reason error/warn
     maint()
     
-    get_all_data_files_flag = '/flash/get_all_data_files.json'
+    get_all_flag = '/flash/get_all_data_files.json'
     
     try:
-        with open(get_all_data_files_flag) as get_all_data_filesH:
-            get_all_data_files = load(get_all_data_filesH)
+        with open(get_all_flag) as f:
+            get_all = load(f.read())
         
-        remove(get_all_data_files_flag)
+        remove(get_all_flag)
     except OSError:
         # Does not exist, ignore
         pass
 
     try:
-        if get_all_data_files:
+        if get_all:
             updates = cloud.send('get_all_data_files')
         else:
             updates = cloud.send('get_latest_data_updates')
@@ -57,11 +57,11 @@ def get_data_updates(get_all_data_files = False):
         
         maint()
         
-        data_file_full_path = '/flash/data/' + data_file
+        data_file_full_path = '/flash/device_data/' + data_file
         try:
             # Read the original file
-            with open(data_file_full_path) as data_fileH:
-                existing_data[data_file] = load(data_fileH)
+            with open(data_file_full_path) as f:
+                existing_data[data_file] = load(f.read())
         except OSError:
             # File doesn't exist yet. We'll create it in memory first.
             existing_data[data_file] = dict()
@@ -73,9 +73,9 @@ def get_data_updates(get_all_data_files = False):
     for data_file in existing_data:
         # TODO Do general Pythonic cleanup everywhere
         try:
-            with temp_file.create(data_file) as temp_fileH:
-                if dump(existing_data[data_file], temp_fileH):
-                    temp_file.install(temp_fileH, data_file)
+            with temp_file.create(data_file) as f:
+                if f.write(dump(existing_data[data_file]):
+                    temp_file.install(f, data_file)
         except OSError:
             warning = ("Failed to get data updates.",
                         " ('updates.py', 'get_data_updates')")
@@ -113,7 +113,7 @@ def clean_failed_system_update(updates, successfully_updated_files,
             try:
                 web_admin.start()
             except:
-                # Ignore err
+                # Ignore errors
                 pass
         
         leds.blink(run = False)
@@ -188,8 +188,9 @@ def get_system_updates():
         try:
             # Create the file as .new and upon reboot our system will see the
             # .new file and delete the existing version, install the new.
-            with open('/flash/' + new_file, 'w') as script_fileH:
-                script_fileH.writelines(script_contents)
+            with open('/flash/' + new_file, 'w') as f:
+                for row in script_contents:
+                    f.write(row)
         except:
             clean_failed_system_update(updates, successfully_updated_files,
                                         web_admin_started)
@@ -198,8 +199,8 @@ def get_system_updates():
             successfully_updated_files = list()
             return False
         
-        with open('/flash/' + new_file) as script_fileH:
-            stored_md5sum = MD5(script_fileH)
+        with open('/flash/' + new_file) as f:
+            stored_md5sum = MD5(f)
         
         if stored_md5sum == expected_md5sum:
             successfully_updated_files.append('/flash/' + script_file)
@@ -215,8 +216,8 @@ def get_system_updates():
     
     if successfully_updated_files:
         try:
-            with open(updated_files_listing) as updated_filesH:
-                dump(successfully_updated_files, updated_filesH)
+            with open(updated_files_listing) as f:
+                f.write(dump(successfully_updated_files))
         except:
             clean_failed_system_update(updates, successfully_updated_files,
                                         web_admin_started)
@@ -238,8 +239,8 @@ def install_updates():
         return
     
     # Install any new versions of scripts
-    with open(updated_files_listing) as updated_filesH:
-        for file in load(updated_filesH):
+    with open(updated_files_listing) as f:
+        for file in load(f.read()):
             # Set the flag to reboot after installing new files
             # TODO I think there is an anti-pattern for this...
             do_reboot = True

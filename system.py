@@ -34,7 +34,7 @@ class System(object):
         # FIXME Change the version number file to JSON format, it's currently
         # plain text
         try:
-            with open(self.config['VERSION_NUMBER_FILE']) as versionH:
+            with open(self.config.conf['VERSION_NUMBER_FILE']) as versionH:
                 return load(versionH)
         except:
             error = "Cannot get our version number. ('system.py', 'version')"
@@ -65,7 +65,7 @@ class System(object):
             return True
         
         attached_devices = set()
-        certified_addresses = self.config['CERTIFIED_DEVICE_I2C_ADDRESSES']
+        certified_addresses = self.config.conf['CERTIFIED_DEVICE_I2C_ADDRESSES']
         
         # TODO See where else I should use iteritems()
         for name, address in certified_addresses.iteritems():

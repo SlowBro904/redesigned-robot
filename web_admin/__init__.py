@@ -50,11 +50,11 @@ def _daemon(run = True):
     
     maint()
     
-    timeout = config['WEB_ADMIN_DAEMON_TIMEOUT']
+    timeout = config.conf['WEB_ADMIN_DAEMON_TIMEOUT']
     timer = Timer.Chrono()
     
     try:
-        with open(config['WEB_ADMIN_TEMPLATE_FILE']) as templateH:
+        with open(config.conf['WEB_ADMIN_TEMPLATE_FILE']) as templateH:
             template = templateH.readlines()
     except OSError:
         warning = ("Could not load the web admin template.",
@@ -63,8 +63,8 @@ def _daemon(run = True):
         return False
 
     # Start our web server
-    ip = config['WEB_ADMIN_IP']
-    port = config['WEB_ADMIN_PORT']
+    ip = config.conf['WEB_ADMIN_IP']
+    port = config.conf['WEB_ADMIN_PORT']
     
     try:
         # TODO Is getaddrinfo() really needed? Bind() just needs the ip & port.        

@@ -5,15 +5,15 @@ class Motor(object):
     from machine import Pin, Timer, ADC
     from maintenance import maint
     
-    up = Pin(config['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
-    dn = Pin(config['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
-    volt_pin = Pin(config['MOTOR_VOLT_PIN'], mode = Pin.IN,
+    up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
+    dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
+    volt_pin = Pin(config.conf['MOTOR_VOLT_PIN'], mode = Pin.IN,
                     pull = PULL_DOWN)
-    low_voltage = config['MOTOR_LOW_VOLTAGE']
-    high_voltage = config['MOTOR_HIGH_VOLTAGE']
+    low_voltage = config.conf['MOTOR_LOW_VOLTAGE']
+    high_voltage = config.conf['MOTOR_HIGH_VOLTAGE']
     
-    def __init__(self, timeout = self.config['MOTOR_TIMEOUT'],
-                    check_interval = self.config['MOTOR_CHECK_INTERVAL']):
+    def __init__(self, timeout = self.config.conf['MOTOR_TIMEOUT'],
+                    check_interval = self.config.conf['MOTOR_CHECK_INTERVAL']):
         '''Sets up the motor object'''
         self.maint()
         self.timeout = timeout

@@ -10,7 +10,7 @@ from config_class import Config
 #err = Err()
 
 #try:
-config = Config('/flash/config.json', '/flash/defaults.json').config
+config = Config('/flash/config.json', '/flash/defaults.json')
 #except:
 #    error = "Could not load the config. ('config.py', 'main')"
 #    #err.error(error)

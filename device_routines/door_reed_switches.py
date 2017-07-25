@@ -6,8 +6,8 @@ def status():
     
     err = Err()
     
-    up_pin_cfg = config['DOOR_REED_UP_PIN']
-    dn_pin_cfg = config['DOOR_REED_DN_PIN']
+    up_pin_cfg = config.conf['DOOR_REED_UP_PIN']
+    dn_pin_cfg = config.conf['DOOR_REED_DN_PIN']
     
     up_pin = Pin(up_pin_cfg, mode = Pin.IN, pull = Pin.PULL_UP)
     dn_pin = Pin(dn_pin_cfg, mode = Pin.IN, pull = Pin.PULL_UP)

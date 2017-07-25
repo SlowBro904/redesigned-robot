@@ -6,4 +6,4 @@ want timeouts.
 # running feed.
 from machine import WDT
 from config import config
-wdt = WDT(timeout = config['WDT_TIMEOUT'])
+wdt = WDT(timeout = config.conf['WDT_TIMEOUT'])

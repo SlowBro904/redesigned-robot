@@ -64,7 +64,7 @@ def show(parameters):
     
     wifi.connect()
     
-    if config['SERVICE_ACCOUNT_EMAIL']:
+    if config.conf['SERVICE_ACCOUNT_EMAIL']:
         body += "<meta http-equiv='refresh' content='10;url=/' />"
     else:
         # Service account not setup yet

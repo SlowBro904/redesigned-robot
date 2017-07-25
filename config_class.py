@@ -6,7 +6,10 @@ from maintenance import maint
 from ujson import loads, dumps
 
 class Config(object):
-    def __init__(self, config_file, defaults_file, debug = False):
+    # TODO How do I handle debugging and testing variables without adding to
+    # the constructor?
+    def __init__(self, config_file, defaults_file, debug = False, 
+                    debug_level = 0):
         '''Provides a dictionary with keys and values coming from the config
         file's options and values.
         
@@ -15,11 +18,12 @@ class Config(object):
         '''
         
         maint()
-        debugging.enable = debug
+        debugging.enabled = debug
+        debugging.level = debug_level
         self.debug = debugging.printmsg
         self.config_file = config_file
         self.defaults_file = defaults_file
-        self.config = self.load_config()
+        self.conf = self.load_config()
     
     
     def load_config(self):
@@ -40,8 +44,10 @@ class Config(object):
         maint()
         with open(self.config_file) as f:
             self.debug("Reading our config file...")
-            #self.debug("Contents: " + str(loads(f.read())))
-            #f.seek(0)
+            if debugging.level > 0:
+                self.debug("Contents: " + str(loads(f.read())))
+                f.seek(0)
+            
             return loads(f.read())
     
     
@@ -63,7 +69,7 @@ class Config(object):
             # Write the new config file from the defaults
             f.write(dumps(defaults))
         
-        self.config = self.load_config()
+        self.conf = self.load_config()
     
     
     # TODO I thought I could make this into a setter but was not successful
@@ -80,7 +86,7 @@ class Config(object):
         
         found = False
         for parameter in updates.keys():
-            if parameter not in self.config:
+            if parameter not in self.conf:
                 # Next parameter
                 self.debug("Attempted to update the config file with")
                 self.debug("a nonexistant parameter '" + str(parameter) + "'")
@@ -93,9 +99,9 @@ class Config(object):
             self.debug("No existing config parameters found in update")
             return False
         
-        config = self.config
+        config = self.conf
         for parameter, value in updates.items():
-            config[parameter] = value
+            config.conf[parameter] = value
         
         maint()
         # Update the config file
@@ -118,5 +124,6 @@ class Config(object):
             # TODO Delete the temp file
         
         # Update the values in memory from flash
-        self.config = self.load_config()
-        #self.debug("New config: " + str(self.config))
+        self.conf = self.load_config()
+        if debugging.level > 0:
+            self.debug("New config: " + str(self.conf))

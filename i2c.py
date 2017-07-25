@@ -6,8 +6,8 @@ from maintenance import maint
 
 maint()
 
-scl_pin = config['I2C_SCL_PIN']
-sda_pin = config['I2C_SDA_PIN']
+scl_pin = config.conf['I2C_SCL_PIN']
+sda_pin = config.conf['I2C_SDA_PIN']
 
 try:
     i2c = I2C(scl = Pin(scl_pin), sda = Pin(sda_pin))

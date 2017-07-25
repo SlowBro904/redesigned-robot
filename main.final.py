@@ -72,7 +72,6 @@ except RuntimeError:
     pass
 
 schedule.run()
-DataStore().save_all()
 
 # FIXME For production disable the web repl, FTP, telnet, serial, etc.
 # TODO Inside webadmin, a read-only serial console. Or log the console and
@@ -82,12 +81,10 @@ wdt.stop()
 
 # Ensure these are on P2, P3, P4, P6, P8 to P10 or P13 to P23 per the
 # documentation.
-wake_pins = [config['DOOR_REED_UP_PIN'],
-                config['DOOR_REED_DN_PIN'],
-                config['AUX_WAKE_PIN']]
+wake_pins = [config.conf['DOOR_REED_UP_PIN'],
+                config.conf['DOOR_REED_DN_PIN'],
+                config.conf['AUX_WAKE_PIN']]
 
 pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
-
-# In other words setup our interrupts and wakeup reasons
 sleep_microseconds = (schedule.next_event_time - rtc.now())*1000
 deepsleep(sleep_microseconds)
