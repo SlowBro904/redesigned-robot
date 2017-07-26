@@ -1,26 +1,24 @@
+import sys
+from rtc import RTC
+from os import remove
+from leds import leds
+from json import dump, load
+from machine import deepsleep
+from maintenance import maint
+from data_store import DataStore
+
 class Err(object):
-    import sys
-    from rtc import RTC
-    from os import remove
-    from leds import leds
-    from json import dump, load
-    from machine import deepsleep
-    from data_store import DataStore
-    from maintenance import maint
-    
-    
-    def __init__(self, data_store = None):
+    def __init__(self):
         '''A class for dealing with different error messages'''
         self.rtc = RTC()
         self.log = list()
-        if not data_store:
-            data_store = self.DataStore('error_log')
+        data_store = DataStore('error_log')
     
     
     def log_entry(self, mytype, content):
         '''Returns a log entry tuple'''
         # Needed for testing
-        return (self.rtc.now(), mytype, content)
+        return (rtc.now(), mytype, content)
     
     
     def message(self, mytype, message):
@@ -39,15 +37,15 @@ class Err(object):
         it to the data_store
         '''
         # FIXME Do a code review, ensure I do maint() everywhere
-        self.maint()
+        maint()
         
         self.message('warning', message)
         
         # Blink for 500 ms, off for 1500 ms, and set this as the default
-        self.leds.blink(run = True, pattern = (
-                        (self.leds.warn, True, 500),
-                        (self.leds.warn, False, 1500)),
-                        default = True)
+        leds.blink(run = True, pattern = (
+                    (self.leds.warn, True, 500),
+                    (self.leds.warn, False, 1500)),
+                    default = True)
     
     
     def error(self, message):
@@ -63,18 +61,17 @@ class Err(object):
         sleep(3)
         
         # Whatever hasn't been sent, save it to flash
-        self.DataStore().save_all()
+        DataStore().save_all()
         
         # Steady red LED
         # TODO The pattern is awkward. See if we can pass only a single pattern
         # by doing some kind of detection.
-        self.leds.blink(run = True, pattern = ((self.leds.err, True, None)))
-        self.wdt.stop()
+        leds.blink(run = True, pattern = ((leds.err, True, None)))
+        wdt.stop()
         pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
-        self.deepsleep()
+        deepsleep()
     
     
-    # FIXME Everywhere I use self. in defaults, remove the self.
     def exception(self, args = None):
         '''Log uncaught exceptions.
         
@@ -94,15 +91,15 @@ class Err(object):
         if args:
             content = args
         
-        content['exc_type'] = str(self.sys.exc_info()[0])
-        content['error'] = str(self.sys.exc_info()[1]).strip()
+        content['exc_type'] = str(sys.exc_info()[0])
+        content['error'] = str(sys.exc_info()[1]).strip()
         
         # TODO And what about the exc_num like in OSError? For now,
         # investigate by hand and later, by allowing an exception argument 
         # to this module.
         
-        log_entry = (self.rtc.now(), 'exception', content)
+        log_entry = (rtc.now(), 'exception', content)
         self.log.append(log_entry)
         self.data_store.update(log_entry)
         
-        self.sys.exit(1)
+        sys.exit(1)

@@ -1,6 +1,6 @@
+from machine import Pin
+
 class LEDs(object):
-    from machine import Pin
-    
     # These must be hard-coded to prevent a recursion issue where
     # config_class.py cannot load the config file and throws an error.
     # TODO Do I need this now? I don't think I'm running any err in 
@@ -10,6 +10,8 @@ class LEDs(object):
     warn = Pin('P11', mode = Pin.OUT)
     err = Pin('P12', mode = Pin.OUT)
     
+    
+    # TODO Is this needed?
     def __init__(self):
         pass
     
