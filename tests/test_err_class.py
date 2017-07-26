@@ -1,2 +1,0 @@
-class Err(object):
-    pass
