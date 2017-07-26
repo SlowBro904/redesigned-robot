@@ -5,16 +5,16 @@ class Err(object):
     from leds import leds
     from json import dump, load
     from machine import deepsleep
-    from datastore import DataStore
+    from data_store import DataStore
     from maintenance import maint
     
     
-    def __init__(self, datastore = None):
+    def __init__(self, data_store = None):
         '''A class for dealing with different error messages'''
         self.rtc = RTC()
         self.log = list()
-        if not datastore:
-            datastore = self.DataStore('error_log')
+        if not data_store:
+            data_store = self.DataStore('error_log')
     
     
     def log_entry(self, mytype, content):
@@ -25,18 +25,18 @@ class Err(object):
     
     def message(self, mytype, message):
         '''Adds a message of a certain type to the ongoing in-memory log and
-        saves it to the datastore
+        saves it to the data_store
         '''
         # FIXME This won't work yet
-        # Add the error to the ongoing in-memory log and save to the datastore
+        # Add the error to the ongoing in-memory log and save to the data_store
         self.log.append(self.log_entry(mytype = mytype,
                         content = {'message': message}))
-        return self.datastore.update(log_entry)
+        return self.data_store.update(log_entry)
     
     
     def warning(self, message):
         '''Turns on the warning LED, adds the warning to the log set, and saves
-        it to the datastore
+        it to the data_store
         '''
         # FIXME Do a code review, ensure I do maint() everywhere
         self.maint()
@@ -57,9 +57,9 @@ class Err(object):
             WAKEUP_ANY_HIGH)
         
         self.message('error', message)
-        self.datastore.update(log_entry)
+        self.data_store.update(log_entry)
         
-        # FIXME Is that enough time?
+        # FIXME Is that enough time? Maybe wait for a completion flag.
         sleep(3)
         
         # Whatever hasn't been sent, save it to flash
@@ -103,6 +103,6 @@ class Err(object):
         
         log_entry = (self.rtc.now(), 'exception', content)
         self.log.append(log_entry)
-        self.datastore.update(log_entry)
+        self.data_store.update(log_entry)
         
         self.sys.exit(1)

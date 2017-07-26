@@ -72,6 +72,7 @@ except RuntimeError:
     pass
 
 schedule.run()
+DataStore.save_all()
 
 # FIXME For production disable the web repl, FTP, telnet, serial, etc.
 # TODO Inside webadmin, a read-only serial console. Or log the console and

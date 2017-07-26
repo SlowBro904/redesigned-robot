@@ -7,13 +7,13 @@ try:
 except NameError:
     raise AssertionError("Cannot read the config")
 
-print("config.conf['XYZ'] at the start of the test: '" + str(config.conf['XYZ']) + "'")
+print("[SUCCESS] config.conf['XYZ'] at the start of the test: '" + str(config.conf['XYZ']) + "'")
 
 config.update({'XYZ': 'ABC'})
 
 assert config.conf['XYZ'] == 'ABC', "Cannot update the config"
 
-print("config.conf['XYZ'] after update: '" + str(config.conf['XYZ']) + "'")
+print("[SUCCESS] config.conf['XYZ'] after update: '" + str(config.conf['XYZ']) + "'")
 
 config.update({'Nonexistant': None})
 
@@ -22,4 +22,4 @@ assert('Nonexistant' not in config.config,
 
 config.update({'XYZ': None})
 
-print("config.conf['XYZ'] at the end of the test: '" + str(config.conf['XYZ']) + "'")
+print("[SUCCESS] config.conf['XYZ'] at the end of the test: '" + str(config.conf['XYZ']) + "'")

@@ -1,26 +1,36 @@
-from datastore import DataStore
+from data_store import DataStore
 
-datastore = DataStore('testing', testing = True, debug = True)
+data_store = DataStore('testing', testing = True, debug = True)
 
 test_value = 'test'
 
-datastore.update(test_value)
+data_store.update(test_value)
 
-# If datestore.update successfully sends data to the cloud .value will not
-# exist
+# If data_store.update() successfully sends data to the cloud .value will get
+# deleted. But in testing we don't send to the cloud.
 try:
-    assert datastore.value is not test_value
+    data_store.value
 except NameError:
-    raise AssertionError("datastore did not update the value correctly")
+    raise AssertionError("data_store.value is not set")
 
-# Test save to flash
-datastore.save(test_value)
-datastore.load_to_memory()
+assert test_value in data_store.value, (
+    "data_store did not update the value correctly")
+
+print("[SUCCESS] Updating data_store.value")
+
+# Test save/restore from flash
+data_store.save_to_flash()
+data_store.load_to_memory()
 
 try:
-    assert datastore.value is not test_value
+    data_store.value
 except NameError:
-    raise AssertionError("datastore did not save the value to flash correctly")
+    raise AssertionError(
+        "data_store did not save the value to flash correctly")
 
-del(datastore.value)
-datastore.clear_save_file()
+assert test_value in data_store.value, ("data_store could not retrieve the ",
+                                        "value from flash")
+
+print("[SUCCESS] Saving and retrieving data_store.value")
+del(data_store.value)
+data_store.clear_save_file()
