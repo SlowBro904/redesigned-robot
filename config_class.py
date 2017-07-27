@@ -16,7 +16,6 @@ class Config(object):
         If the config file is unreadable or missing it will load values from 
         the defaults file.
         '''
-        
         maint()
         debugging.enabled = debug
         debugging.level = debug_level

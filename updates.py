@@ -1,3 +1,4 @@
+# FIXME Self-healing, check md5sums every time
 import temp_file
 from err import Err
 from leds import leds

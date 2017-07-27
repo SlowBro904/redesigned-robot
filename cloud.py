@@ -1,9 +1,8 @@
+from err import Err
+from json import loads, dumps
+from maintenance import maint
+
 class Cloud(object):
-    from err import Err
-    from json import loads, dumps
-    from maintenance import maint
-    
-    
     def __init__(self):
         '''Sets up communications with the cloud servers'''
         from mqtt import MQTT
