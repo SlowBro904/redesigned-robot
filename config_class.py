@@ -18,7 +18,7 @@ class Config(object):
         '''
         maint()
         debugging.enabled = debug
-        debugging.level = debug_level
+        debugging.default_level = debug_level
         self.debug = debugging.printmsg
         self.config_file = config_file
         self.defaults_file = defaults_file
@@ -44,10 +44,15 @@ class Config(object):
         with open(self.config_file) as f:
             self.debug("Reading our config file...")
             if debugging.level > 0:
-                self.debug("Contents: " + str(loads(f.read())))
+                self.debug("Contents: " + str(loads(f.read())), level = 1)
                 f.seek(0)
             
-            return loads(f.read())
+            try:
+                return loads(f.read())
+            except ValueError:
+                # FIXME What? Means we have a corrupt config. I think reset to
+                # default and error.
+                pass
     
     
     def reset_to_defaults(self):
@@ -98,9 +103,8 @@ class Config(object):
             self.debug("No existing config parameters found in update")
             return False
         
-        config = self.conf
         for parameter, value in updates.items():
-            config.conf[parameter] = value
+            self.conf[parameter] = value
         
         maint()
         # Update the config file
@@ -109,7 +113,7 @@ class Config(object):
             self.debug("Updating our config file on flash")
             # FIXME Also backup the config file and/or get temp file working,
             # I don't want some error leaving us without a config
-            f.write(dumps(config))
+            f.write(dumps(self.conf))
             #except:
             #    warning = ("Cannot update config file",
             #                "('config_class.py','update')")
@@ -124,5 +128,4 @@ class Config(object):
         
         # Update the values in memory from flash
         self.conf = self.load_config()
-        if debugging.level > 0:
-            self.debug("New config: " + str(self.conf))
+        self.debug("New config: " + str(self.conf), level = 1)

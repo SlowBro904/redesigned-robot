@@ -1,4 +1,7 @@
-from leds import leds
+import leds
+from time import sleep
+print("Starting test_leds")
+leds = leds.LEDs(debug = True, debug_level = 0)
 
 # Default
 leds.blink(run = True,
@@ -6,14 +9,15 @@ leds.blink(run = True,
                 (leds.good, True, None),
                 (leds.warn, True, None), 
                 (leds.err, True, None)),
-                default = True)
+                default = True, id = 1)
 
-assert leds.good == True, "Cannot set the good LED"
-assert leds.warn == True, "Cannot set the warn LED"
-assert leds.err == True, "Cannot set the err LED"
+sleep(5)
+assert leds.good.value() is 1, "Cannot set the good LED"
+assert leds.warn.value() is 1, "Cannot set the warn LED"
+assert leds.err.value() is 1, "Cannot set the err LED"
 
 print("[SUCCESS] Able to turn on the LEDs as default")
-leds.blink(run = False)
+leds.blink(run = False, id = 2)
 
 # Non-default
 leds.blink(run = True,
@@ -21,19 +25,21 @@ leds.blink(run = True,
                 (leds.good, True, None),
                 (leds.warn, False, None), 
                 (leds.err, False, None)),
-                default = False)
+                default = False, id = 3)
 
-assert leds.good == True, "Cannot set the good LED"
-assert leds.warn == False, "Cannot set the warn LED"
-assert leds.err == False, "Cannot set the err LED"
+sleep(5)
+assert leds.good.value() is 1, "Cannot set the good LED"
+assert leds.warn.value() is 0, "Cannot set the warn LED"
+assert leds.err.value() is 0, "Cannot set the err LED"
 
 print("[SUCCESS] Able to turn on the LEDs as non-default")
-leds.blink(run = False)
+leds.blink(run = False, id = 4)
 
 # Should still be on, based on the default
-assert leds.good == True, "Cannot set the good LED"
-assert leds.warn == True, "Cannot set the good LED"
-assert leds.err == True, "Cannot set the good LED"
+sleep(5)
+assert leds.good.value() is 1, "Cannot set the good LED"
+assert leds.warn.value() is 1, "Cannot set the warn LED"
+assert leds.err.value() is 1, "Cannot set the err LED"
 
 print("[SUCCESS] The LED default setting works")
 
@@ -42,9 +48,10 @@ leds.blink(run = False,
             (leds.good, False, None),
             (leds.warn, False, None),
             (leds.err, False, None)),
-            default = True)
+            default = True, id = 5)
 
-assert leds.good == False, "Cannot set the good LED"
-assert leds.warn == False, "Cannot set the good LED"
-assert leds.err == False, "Cannot set the good LED"
+sleep(5)
+assert leds.good.value() is 0, "Cannot set the good LED"
+assert leds.warn.value() is 0, "Cannot set the warn LED"
+assert leds.err.value() is 0, "Cannot set the err LED"
 print("[SUCCESS] Able to turn off the LEDs")

@@ -1,4 +1,8 @@
+import _thread
+import debugging
 from machine import Pin
+from time import sleep_ms
+from maintenance import maint
 
 class LEDs(object):
     # These must be hard-coded to prevent a recursion issue where
@@ -12,14 +16,17 @@ class LEDs(object):
     
     
     # TODO Is this needed?
-    def __init__(self):
-        pass
+    def __init__(self, debug = False, debug_level = 0):
+        debugging.enabled = debug
+        debugging.default_level = debug_level
+        self.debug = debugging.printmsg
+        self.debug("Initialization complete")
     
     
-    def blink(self, run = True, pattern = None, default = False):
+    def blink(self, run = True, pattern = None, default = False, id = None):
         '''Blink the LEDs on a pattern.
         
-        Takes a run command and a pattern, which is a tuple of tuples.
+        Takes a run command and a pattern, which is a list of tuples.
         
         The pattern is which LED (self.good, self.warn, or self.err) followed 
         by whether to turn it on (True) or off (False) followed by the delay in 
@@ -27,20 +34,20 @@ class LEDs(object):
         on.
         
         This example will flash the warn and error LEDs every 500 milliseconds:
-        blink(run = True, pattern = (
+        blink(run = True, pattern = [
                 (self.warn, True, 500),
                 (self.warn, False, 0), 
                 (self.err, True, 500),
-                (self.err, False, 0)))
+                (self.err, False, 0)])
         
         This example will start the warn LED and leave it on indefinitely:
-        blink(run = True, pattern = ((self.warn, True, None))
+        blink(run = True, pattern = [(self.warn, True, None)])
         
         This example will start the good LED for 300 milliseconds then off for
         1700 milliseconds and set it as the default:
-        blink(run = True, pattern = (
+        blink(run = True, pattern = [
                 (self.good, True, 300),
-                (self.good, False, 1700)),
+                (self.good, False, 1700)],
                 default = True)
         
         This example will stop any currently-running pattern and return to the
@@ -57,9 +64,6 @@ class LEDs(object):
         default. Calling blink() multiple times with default = True will set
         the last called pattern as the default.
         '''
-        from maintenance import maint
-        from _thread import start_new_thread
-        
         maint()
         
         if not default:
@@ -68,18 +72,23 @@ class LEDs(object):
             self.default_pattern = pattern
         
         if run:
+            self.debug("Running the _blink thread")
             # Multithreading so we can get back to the next step in our process
-            start_new_thread(_blink, (True, pattern))
+            _thread.start_new_thread(self._blink, (True, pattern, id))
         else:
-            # Go back to our default pattern
-            start_new_thread(_blink, (True, self.default_pattern))
+            self.debug("Stopping the _blink thread and returning to default")
+            global _run
+            _run = False
+            _thread.start_new_thread(self._blink, (True, self.default_pattern))
     
-    def _blink(self, run, pattern):
+    
+    def _blink(self, run, pattern, id = 0):
         '''The actual blink process.
         
         Don't run this directly, use blink() instead.
         '''
-        from time import sleep_ms
+        self.debug("id: " + str(id))
+        self.debug("pattern: '" + str(pattern) + "'")
         
         # TODO A kludge until Pycom fixes _thread.exit() from outside the
         # thread
@@ -90,35 +99,46 @@ class LEDs(object):
         
         _run = run
         
+        if not pattern:
+            return
+        
         # TODO What other internal variables do we use elsewhere that are not
-        # prepended with underscore?
+        # prepended with underscore (private)?
         while _run:
+            self.debug("Begin of the while loop, id: " + str(id), level = 2)
             for LED, state, delay in pattern:
-                self.maint()
+                self.debug("LED: '" + str(LED) + "'", level = 2)
+                self.debug("state: '" + str(state) + "'", level = 2)
+                self.debug("delay: '" + str(delay) + "'", level = 2)
+                if debugging.enabled and debugging.default_level > 0:
+                    sleep_ms(1000)
+                
+                maint()
+                
+                self.debug("Before setting, LED is '" + str(LED.value()) + "'",
+                            level = 2)
                 
                 LED(state)
                 
-                if not delay or delay < 10:
+                self.debug("Now LED is set to '" + str(LED.value()) + "'",
+                            level = 2)
+                
+                if not delay or delay < 1:
                     # Always have a little bit of delay. Don't want this to
-                    # hammer our little system. 10 ms should be imperceptible.
-                    delay = 10
+                    # hammer our little system. 1ms should be imperceptible.
+                    delay = 1
+                self.debug("Now delay is set to '" + str(delay) + "'", 
+                            level = 2)
                 
                 # TODO Is it better maybe to setup a timer and callback?
                 for i in range(delay):
+                    self.debug("Delay count: " + str(i), level = 3)
                     if not _run:
-                        break
+                        # FIXME Fails to reach here
+                        self.debug("_thread.exit()")
+                        _thread.exit()
                     
                     sleep_ms(1)
-                
-                else:
-                    # _run was True during the entire delay loop. Start
-                    # on the next outer for loop on the next pattern.
-                    continue
-                # _run was set to False during the delay loop. Don't run
-                # any more outer for loops on any more patterns, and because
-                # that variable is now False the while loop will also exit.
-                break
-        
         self.maint()
 
 # End of class LEDs(object)
