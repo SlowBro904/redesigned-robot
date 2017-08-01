@@ -1,7 +1,7 @@
 class Battery(object):
+    from err import Err
     from machine import ADC
     from config import config
-    from err import Err
     from maintenance import maint
     
     battery_pin = self.config.conf['BATTERY_VOLT_SENSE_PIN']
@@ -28,7 +28,7 @@ class Battery(object):
         # config file can be more natural (1.8 instead of 2234)
         if self.charge <= self.config.conf['CRITICAL_BATTERY_LEVEL']:
             error = "Battery too low. ('battery.py', 'check_charge')"
-            self.err.hard_error(error)
+            self.err.error(error)
     
     
     @property

@@ -7,7 +7,7 @@ class MQTT(object):
         '''Setup our MQTT object'''
         from system import System
         # TODO Add exception AdafruitIOError but under what conditions
-        from simple import MQTTClient
+        from umqtt.robust import MQTTClient
         
         self.maint()
         
