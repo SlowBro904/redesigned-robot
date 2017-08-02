@@ -38,11 +38,13 @@ class Err(object):
         
         self.msg('warning', message)
         
-        # Blink for 500 ms, off for 1500 ms, and set this as the default
-        leds.blink(run = True, pattern = (
-                    (self.leds.warn, True, 500),
-                    (self.leds.warn, False, 1500)),
-                    default = True)
+        # TODO Not working
+        ## Blink for 500 ms, off for 1500 ms, and set this as the default
+        #leds.blink(run = True, pattern = (
+        #            (self.leds.warn, True, 500),
+        #            (self.leds.warn, False, 1500)),
+        #            default = True)
+        leds.('warn', default = True)
     
     
     def err(self, message):
@@ -61,9 +63,11 @@ class Err(object):
         DataStore().save_all()
         
         # Steady red LED
+        # TODO Not working
         # TODO The pattern is awkward. See if we can pass only a single pattern
         # by doing some kind of detection.
-        leds.blink(run = True, pattern = ((leds.err, True, None)))
+        #leds.blink(run = True, pattern = ((leds.err, True, None)))
+        leds.('err', default = True)
         
         # TODO How can I test this as part of a suite?
         if not self.testing:

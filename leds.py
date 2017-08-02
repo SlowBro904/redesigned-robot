@@ -20,11 +20,62 @@ class LEDs(object):
         debugging.enabled = debug
         debugging.default_level = debug_level
         self.debug = debugging.printmsg
-        self.debug("Initialization complete")
+        self.debug("Initialization complete", level = 1)
+        self.default = {'good': False, 'warn': False, 'err': False}
     
+    
+    def run_default(self):
+        '''Runs the default LED'''
+        self.debug("self.default: '" + str(self.default) + "'", level = 1)
+        for LED_name, value in self.default.items():
+            if LED_name is 'good':
+                self.good(value)
+            elif LED_name is 'warn':
+                self.warn(value)
+            elif LED_name is 'err':
+                self.err(value)
+    
+    
+    def LED(self, LED_name = None, default = False):
+        '''Shine the LED we specify. If we set a default this is what shines
+        even when we turn off the LED. That way for example if we are in a 
+        warning state and we run another LED, we want to return to a warning
+        state when that is done. Calling default = True will set the last
+        called LED as the default.
+        '''
+        if not LED_name:
+            if default:
+                self.default = {'good': False, 'warn': False, 'err': False}
+            
+            self.run_default()
+            return
+        
+        if LED_name is 'good':
+            self.good(True)
+            self.warn(False)
+            self.err(False)
+        elif LED_name is 'warn':
+            self.good(False)
+            self.warn(True)
+            self.err(False)
+        elif LED_name is 'err':
+            self.good(False)
+            self.warn(False)
+            self.err(True)
+        
+        if default:
+            for this_LED in self.default:
+                if this_LED is LED_name:
+                    self.default[this_LED] = True
+                else:
+                    self.default[this_LED] = False
+    
+            self.debug("self.default: '" + str(self.default) + "'", level = 1)
     
     def blink(self, run = True, pattern = None, default = False, id = None):
         '''Blink the LEDs on a pattern.
+        
+        NOT CURRENTLY WORKING. Use standard LEDs off and on (no blink) for now.
         
         Takes a run command and a pattern, which is a list of tuples.
         
@@ -72,11 +123,12 @@ class LEDs(object):
             self.default_pattern = pattern
         
         if run:
-            self.debug("Running the _blink thread")
+            self.debug("Running the _blink thread", level = 1)
             # Multithreading so we can get back to the next step in our process
             _thread.start_new_thread(self._blink, (True, pattern, id))
         else:
-            self.debug("Stopping the _blink thread and returning to default")
+            self.debug("Stopping the _blink thread and returning to default", 
+                        level = 1)
             global _run
             _run = False
             _thread.start_new_thread(self._blink, (True, self.default_pattern))
@@ -87,8 +139,8 @@ class LEDs(object):
         
         Don't run this directly, use blink() instead.
         '''
-        self.debug("id: " + str(id))
-        self.debug("pattern: '" + str(pattern) + "'")
+        self.debug("id: " + str(id), level = 1)
+        self.debug("pattern: '" + str(pattern) + "'", level = 1)
         
         # TODO A kludge until Pycom fixes _thread.exit() from outside the
         # thread
@@ -105,7 +157,7 @@ class LEDs(object):
         # TODO What other internal variables do we use elsewhere that are not
         # prepended with underscore (private)?
         while _run:
-            self.debug("Begin of the while loop, id: " + str(id), level = 2)
+            self.debug("Begin of the while loop, id: " + str(id), level = 0)
             for LED, state, delay in pattern:
                 self.debug("LED: '" + str(LED) + "'", level = 2)
                 self.debug("state: '" + str(state) + "'", level = 2)
@@ -128,13 +180,13 @@ class LEDs(object):
                     # hammer our little system. 1ms should be imperceptible.
                     delay = 1
                 self.debug("Now delay is set to '" + str(delay) + "'", 
-                            level = 2)
+                            level = 0)
                 
                 # TODO Is it better maybe to setup a timer and callback?
                 for i in range(delay):
                     self.debug("Delay count: " + str(i), level = 3)
                     if not _run:
-                        # FIXME Fails to reach here
+                        # TODO Fails to reach here
                         self.debug("_thread.exit()")
                         _thread.exit()
                     

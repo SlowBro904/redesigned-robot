@@ -117,7 +117,10 @@ def clean_failed_system_update(updates, successfully_updated_files,
                 # Ignore errors
                 pass
         
-        leds.blink(run = False)
+        # TODO Not working
+        #leds.blink(run = False)
+        # Return to LED default
+        leds.LED()
 
 
 def get_system_updates():
@@ -157,12 +160,14 @@ def get_system_updates():
     if not updates:
         return None
     
-    # Signal that we are doing stuff. Warn/err every 500 ms.
-    leds.blink(run = True, pattern = (
-                    (leds.warn, True, 500),
-                    (leds.warn, False, 0),
-                    (leds.err, True, 500),
-                    (leds.err, False, 0)))
+    # TODO Not working
+    ##Signal that we are doing stuff. Warn/err every 500 ms.
+    # leds.blink(run = True, pattern = (
+                    # (leds.warn, True, 500),
+                    # (leds.warn, False, 0),
+                    # (leds.err, True, 500),
+                    # (leds.err, False, 0)))
+    leds.LED('warn')
     
     # FIXME Ensure we always update /flash/version.json via the server
     
@@ -213,7 +218,10 @@ def get_system_updates():
             successfully_updated_files = list()
             return False
     
-    leds.blink(run = False)
+    # TODO Not working
+    #leds.blink(run = False)
+    # Return to LED default
+    leds.LED()
     
     if successfully_updated_files:
         try:

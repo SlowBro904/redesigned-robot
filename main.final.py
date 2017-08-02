@@ -26,11 +26,13 @@ from machine import sleep, WAKEUP_ANY_HIGH, deepsleep, pin_deepsleep_wakeup
 
 err = Err()
 
-# Every two seconds, a green blink. Set this as the default.
-leds.blink(run = True, pattern = (
-            (leds.good, True, 300), 
-            (leds.good, False, 1700)),
-            default = True)
+# TODO Not working
+##Every two seconds, a green blink. Set this as the default.
+# leds.blink(run = True, pattern = (
+            # (leds.good, True, 300), 
+            # (leds.good, False, 1700)),
+            # default = True)
+leds.LED('good', default = True)
 
 rtc = RTC()
 battery = Battery()

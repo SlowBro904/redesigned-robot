@@ -1,29 +1,36 @@
-class Testing(object):
-    from err import Err
-    
-    err = Err()
+import _thread
+from time import sleep
 
+class ThrTest(object):
     def __init__(self):
-        try:
-            raise ValueError
-        except:
-            self.err.log_exception(myfile = __file__,
-                myclass = self.__class__.__name__,
-                myfunc = '__init__',
-                myaction = 'Testing exception logging inside a class')
-
-        print("We shouldn't get here.")
-
-def testing():
-    from err import Err
+        pass
     
-    err = Err()
+    def thread(self, run = True, id = None):
+        if run:
+            _thread.start_new_thread(self.thr_func, (True, id))
+        else:
+            self.thr_func(False, id)
+    
+    
+    def thr_func(self, run, id = 0):
+        print("id: " + str(id))
+        
+        global _run
+        _run = False
+        _run = run
+        
+        while _run:
+            print("Running thread id " + str(id))
+            sleep(1)
+            if not _run:
+                print("Stopping thread id " + str(id))
+                _thread.exit()
 
-    try:
-        raise ValueError
-    except:
-        err.log_exception(myfile = __file__,
-            myfunc = 'testing',
-            myaction = 'Testing exception logging inside a function')
+thr_test = ThrTest()
+for id in range(2):
+    thr_test.thread(True, id)
 
-    print("We shouldn't get here.")
+sleep(5)
+for id in range(2):
+    thr_test.thread(False, id)
+    sleep(5)

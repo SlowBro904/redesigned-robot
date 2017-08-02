@@ -18,12 +18,15 @@ def fac_rst_handler():
     ''' Triggered when the reset button is pressed '''
     maint()
     
-    # Blink our yellow/red LEDs to let the user know the button is held
-    leds.blink(run = True, pattern = (
-                (leds.warn, True, 500),
-                (leds.warn, False, 0), 
-                (leds.err, True, 500),
-                (leds.err, False, 0)))
+    # TODO Not working
+    ## Blink our yellow/red LEDs to let the user know the button is held
+    # leds.blink(run = True, pattern = (
+                # (leds.warn, True, 500),
+                # (leds.warn, False, 0), 
+                # (leds.err, True, 500),
+                # (leds.err, False, 0)))
+    # TODO Can I do multiple colors?
+    leds.LED('warn')
     sleep(5)
     
     maint()
@@ -31,8 +34,10 @@ def fac_rst_handler():
     if not fac_rst_pin:
         return
     
-    # We're still holding it after 5 seconds. Now steady red until rebooted.
-    leds.blink(run = True, pattern = (('err', True, None)))
+    # TODO Not working
+    ## We're still holding it after 5 seconds. Now steady red until rebooted.
+    #leds.blink(run = True, pattern = (('err', True, None)))
+    leds.LED('err')
     
     maint()
     
