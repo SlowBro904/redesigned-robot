@@ -42,7 +42,13 @@ assert wifi.ifconfig() == (ip, subnet_mask, gateway, DNS_server), "ifconfig()"
 good("ifconfig()")
 assert wifi.ip == ip, "Cannot get IP"
 good("Got the IP")
-assert len(wifi.all_APs()) > 0, "all_access_points()"
-good("all_access_points()")
+assert len(wifi.all_APs) > 0, "all_APs"
+good("all_APs")
 assert wifi.get_AP_sec_type('xfinitywifi') == 'None', "get_AP_sec_type()"
 good("get_AP_sec_type()")
+assert len(wifi.all_SSIDs) > 0, "all_SSIDs"
+good("all_SSIDs")
+assert len(wifi.all_APs) >= len(wifi.all_SSIDs), "all_SSIDs list not right"
+good("all_SSIDs list correct length")
+assert wifi.conn_strength < 0, "conn_strength >= 0"
+good("conn_strength < 0")

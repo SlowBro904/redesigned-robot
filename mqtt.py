@@ -1,17 +1,18 @@
+from config import config
+from system import System
+from maintenance import maint
+from crypto import AES, getrandbits
+# TODO Add exception AdafruitIOError but under what conditions
+from umqtt.robust import MQTTClient
+
 class MQTT(object):
-    from config import config
-    from crypto import AES, getrandbits
-    from maintenance import maint
-    
     def __init__(self):
-        '''Setup our MQTT object'''
-        from system import System
-        # TODO Add exception AdafruitIOError but under what conditions
-        from umqtt.robust import MQTTClient
-        
-        self.maint()
+        '''Setup our MQTT object'''       
+        maint()
         
         self.topics = set()
+        # Topics that I use without logging in
+        self.topics_nl = set()
         
         serial = System().serial
         version = System().version
@@ -26,32 +27,41 @@ class MQTT(object):
         username = self.config.conf['SERVICE_ACCOUNT_EMAIL']
         password = self.config.conf['SERVICE_ACCOUNT_PASSWORD']
         
+        clientID = device_name + ":" + serial
+        
         # Use the device name, the version, and the serial number for the root 
         # path. I'm including the device name and version so that we can have 
         # multiple devices and a newer version does not break the interface for 
         # clients not upgraded yet
-        self.root_path = '/'.join([device_name, version, serial])
+        self.root_path = device_name + '/' + version + '/' + serial
         
         # A no-username/pass for pings
         # FIXME Look out for security implications especially a DoS. I think we
         # can limit the rate of the client's connections. Best to use an MQTT
         # service.
-        self.client_no_login = MQTTClient(server, port)
+        self.client_nl = MQTTClient(clientID, server, port)
         
         # A normal client
-        self.client = MQTTClient(username, password, server, port)
+        self.client = MQTTClient(clientID, username, password, server, port)
         client.settimeout = timeout
     
     
     def connect(self):
         '''Connect to the MQTT broker'''
-        self.maint()
+        maint()
         self.client.connect()
-        self.client_no_login.connect()
+        self.client_nl.connect()
     
     
-    def publish(self, topic, message, retries = self.retries, login = True, 
-                encrypt = True):
+    def disconnect(self):
+        '''Disconnect from the MQTT broker'''
+        maint()
+        self.client.disconnect()
+        self.client_nl.disconnect()
+    
+    
+    def publish(self, topic, message, login = True, encrypt = True, 
+                retries = retries):
         '''Publish a data update to an MQTT topic.
         
         Optionally don't require a login to the MQTT server or encryption.
@@ -59,14 +69,13 @@ class MQTT(object):
         '''
         # FIXME This demands that every MQTT topic have a value, which I think
         # they always will at least have the most recently published value
-        from time import sleep
         
-        self.maint()
+        maint()
         
-        if self.login:
+        if login:
             myclient = self.client
         else:
-            myclient = self.client_no_login
+            myclient = self.client_nl
         
         if encrypt:
             iv = self.getrandbits(128)
@@ -76,26 +85,30 @@ class MQTT(object):
         result = None
         
         for i in range(retries):
-            result = myclient.publish(self.root_path + '/' + topic, message)
+            root_path = bytes(self.root_path + '/' + topic)
+            message = bytes(message)
+            result = myclient.publish(root_path, message)
             
-            sleep(1) # TODO Is this necessary?
             if result:
                 break
         
         return result
     
     
-    def get(self, topic, retries = self.retries, decrypt = True):
+    def get(self, topic, login = True, decrypt = True, retries = retries):
         '''Gets any current data in an MQTT topic'''
-        self.maint()
+        maint()
+        
+        if login:
+            myclient = self.client
+        else:
+            myclient = self.client_nl
+        
+        self.sub(topic)
         
         message = None
-        
-        if topic not in self.topics:
-            self.subscribe(topic)
-            
         for i in range(retries):        
-            message = self.client.receive(topic)[1]
+            message = myclient.wait_msg(topic)[1]
             if message:
                 break
         
@@ -106,18 +119,35 @@ class MQTT(object):
         return message
     
     
-    def subscribe(self, topic, retries = self.retries):
+    def sub_cb(self, topic, msg):
+        '''Callback to collect messages as they come in'''
+        # FIXME Finish. Add to sub, change topics to a data structure, and as
+        # new data comes in overwrite what is in memory. Setup sub so it's non-
+        # blocking and get so it just fetches what is in memory, if we even
+        # need that. Maybe just login+decrypt right here, everything in get.
+        self.data
+    
+    
+    def sub(self, topic, login = True, retries = retries):
         '''Subscribes to an MQTT topic'''
-        self.maint()
+        maint()
+        
+        if login:
+            if topic in self.topics:
+                return
+            myclient = self.client
+        else:
+            if topic in self.topics_nl:
+                return
+            myclient = self.client_nl
         
         topic = self.root_path + '/' + topic
         
-        result = None
-        
         for i in range(retries):
-            result = self.client.subscribe(topic)
-            if result:
+            if myclient.sub(topic):
+                if login:
+                    self.topics.add(topic)
+                else:
+                    self.topics_nl.add(topic)
+
                 break
-        
-        self.topics.add(topic)
-        return result
