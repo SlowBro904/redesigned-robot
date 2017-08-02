@@ -30,15 +30,15 @@ def show(parameters):
     body = '''<form action='/wifi/save' method='get'>
     <table>'''
 
-    security_type = 'None'
+    sec_type = 'None'
     
     if ssid:
-        security_type = wifi.get_access_point_security_type(ssid)
+        sec_type = wifi.get_AP_sec_type(ssid)
         
         body += '''<tr><td>Network name (ssid): </td><td><div align='right'>'''
         body += ssid + '''</div></td></tr>
         <input type='hidden' name='ssid' value='''' + ssid + '''' />
-        <input type='hidden' name='security_type' value='''' + security_type 
+        <input type='hidden' name='sec_type' value='''' + sec_type 
         body += "' />"
     else:
         body += '''<tr><td>Network name (ssid):</td><td><div align='right'>
@@ -53,13 +53,13 @@ def show(parameters):
             </td></tr>'''
         
         body += '''<tr><td>Security type: </td><td>
-        <input type='radio' name='security_type' value='None' 
+        <input type='radio' name='sec_type' value='None' 
             onclick='hide_passwords();'>None</input>
-        <input type='radio' name='security_type' value='WEP'  
+        <input type='radio' name='sec_type' value='WEP'  
             onclick='show_passwords();'>WEP</input>
-        <input type='radio' name='security_type' value='WPA'  
+        <input type='radio' name='sec_type' value='WPA'  
             onclick='show_passwords();'>WPA</input>
-        <input type='radio' name='security_type' value='WPA2' 
+        <input type='radio' name='sec_type' value='WPA2' 
             onclick='show_passwords();'>WPA2</input>
         </td></tr>'''
 
@@ -73,7 +73,7 @@ def show(parameters):
     </table>
     </form>'''
 
-    if security_type != 'None':
+    if sec_type != 'None':
         body += '''<script>show_passwords();</script>'''
     
     return (title, header, h1, body)
