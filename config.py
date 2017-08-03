@@ -4,6 +4,7 @@ specific to this device.
 Improves performance by avoiding reloading the config file every time it's
 imported. For other devices, change the config file variable below.
 '''
+# FIXME Uncomment, and find everywhere it's commented out
 #from err import Err
 from config_class import Config
 

@@ -1,4 +1,5 @@
 import sys
+import debugging
 from rtc import RTC
 from os import remove
 from leds import leds
@@ -6,16 +7,24 @@ from machine import deepsleep
 from maintenance import maint
 from data_store import DataStore
 
-class Err(object):
-    def __init__(self, debug = False, testing = False):
+class ErrCls(object):
+    def __init__(self, testing = False, debug = False, debug_level = 0):
         '''A class for dealing with different error messages'''
         maint()
         debugging.enabled = debug
-        debugging.level = debug_level
+        debugging.default_level = debug_level
+        self.debug = debugging.printmsg
+        
+        # FIXME Remove
+        print("debugging.enabled: '" + str(debugging.enabled) + "'")
+        print("debugging.default_level: '" + str(debugging.default_level) + "'")
+        print("type(self.debug): '" + str(type(self.debug)) + "'")
+        print("self.debug: '" + str(self.debug) + "'")
+        
         self.testing = testing
         self.rtc = RTC()
         self.log = list()
-        data_store = DataStore('error_log', testing = testing)
+        self.data_store = DataStore('error_log', testing = testing)
     
     
     def msg(self, mytype, message):
@@ -23,20 +32,27 @@ class Err(object):
         saves it to the data_store
         '''
         # Add the error to the ongoing in-memory log and save to the data_store
-        debug("In Err.msg(), message: '" + str(message) + "'")
+        self.debug("In Err.msg(), message: '" + str(message) + "'")
         log_entry = (self.rtc.now(), mytype, {'message': message})
         self.log.append(log_entry)
         return self.data_store.update(log_entry)
     
     
-    def warn(self, message):
+    def warn(self, msg):
         '''Turns on the warning LED, adds the warning to the log set, and saves
         it to the data_store
         '''
         # FIXME Do a code review, ensure I do maint() everywhere
         maint()
         
-        self.msg('warning', message)
+        # FIXME Remove
+        print("debugging.enabled: '" + str(debugging.enabled) + "'")
+        print("debugging.default_level: '" + str(debugging.default_level) + "'")
+        print("type(self.debug): '" + str(type(self.debug)) + "'")
+        print("self.debug: '" + str(self.debug) + "'")
+        
+        self.debug("self.msg(msg): '" + str(msg) + "'")
+        self.msg('warning', msg)
         
         # TODO Not working
         ## Blink for 500 ms, off for 1500 ms, and set this as the default
@@ -44,7 +60,7 @@ class Err(object):
         #            (self.leds.warn, True, 500),
         #            (self.leds.warn, False, 1500)),
         #            default = True)
-        leds.('warn', default = True)
+        leds.LED('warn', default = True)
     
     
     def err(self, message):
@@ -67,7 +83,7 @@ class Err(object):
         # TODO The pattern is awkward. See if we can pass only a single pattern
         # by doing some kind of detection.
         #leds.blink(run = True, pattern = ((leds.err, True, None)))
-        leds.('err', default = True)
+        leds.LED('err', default = True)
         
         # TODO How can I test this as part of a suite?
         if not self.testing:

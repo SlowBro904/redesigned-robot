@@ -1,6 +1,6 @@
 enabled = False
 default_level = 0
-def printmsg(message, level = 0):
+def printmsg(msg, level = 0):
     '''Prints a debug message'''
     if default_level < level:
         return
@@ -8,4 +8,4 @@ def printmsg(message, level = 0):
     if not enabled:
         return
 
-    print("[DEBUG]", str(message))
+    print("[DEBUG]", str(msg))

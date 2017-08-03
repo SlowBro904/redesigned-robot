@@ -43,8 +43,12 @@ class Config(object):
         maint()
         with open(self.config_file) as f:
             self.debug("Reading our config file...")
-            if debugging.level > 0:
-                self.debug("Contents: " + str(loads(f.read())), level = 1)
+            if debugging.default_level > 0:
+                self.debug("type(f): '" + str(type(f)) + "'")
+                self.debug("f: '" + str(f) + "'")
+                self.debug("f.read(): '" + str(f.read()) + "'")
+                f.seek(0)
+                self.debug("Contents: " + str(loads(f.read())))
                 f.seek(0)
             
             try:

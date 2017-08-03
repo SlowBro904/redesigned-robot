@@ -1,5 +1,6 @@
 from network import WLAN
 from config import config
+from system import System
 from maintenance import maint
     
 class WIFI(object):
@@ -15,14 +16,17 @@ class WIFI(object):
         applicable in STA mode.
         '''
         self._all_SSIDs = set()
-        self.mode = mode2int(mode)
+        self.mode = self.mode2int(mode)
         self._all_APs = list()
         self.ant = self.ant2int(ant)
         self._conn_strength = None
         
-        if self.mode is not WLAN.STA:
-            from system import System
-
+        if self.mode is WLAN.STA:
+            self.power_save = power_save
+            self.wlan = WLAN(mode = self.mode, ant = self.ant, 
+                                    power_save = power_save)
+        else:
+            # Either AP or STA_AP mode
             device_name = config.conf['DEVICE_NAME']
 
             # Access point SSID is the device name plus the last six digits of
@@ -43,11 +47,6 @@ class WIFI(object):
             self.wlan = WLAN(mode = self.mode, ssid = ssid, 
                                     auth = (sec_type, password),
                                     channel = channel, ant = self.ant)
-        else:
-            # STA mode
-            self.power_save = power_save
-            self.wlan = WLAN(mode = self.mode, ant = self.ant, 
-                                    power_save = power_save)
     
     
     @property
@@ -246,7 +245,7 @@ class WIFI(object):
 # End of class WIFI(object)
 
 
-wifi = None
+mywifi = None
 
 def sta():
     '''Sets up a connection as a station only, not an access point as well.

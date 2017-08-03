@@ -191,7 +191,7 @@ class LEDs(object):
                         _thread.exit()
                     
                     sleep_ms(1)
-        self.maint()
+        maint()
 
 # End of class LEDs(object)
 

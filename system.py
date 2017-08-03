@@ -1,8 +1,8 @@
+from err import Err
+from config import config
+from maintenance import maint
+
 class System(object):
-    from err import Err
-    from config import config
-    from maintenance import maint
-    
     def __init__(self):
         '''Configures our system object which keeps track of certain items
         regarding the system such as the attached devices
@@ -11,7 +11,7 @@ class System(object):
         
         self.err = Err()
         
-        self.maint()
+        maint()
         
         self.i2c = i2c
         self.attached_devices = set()
@@ -29,7 +29,7 @@ class System(object):
         # https://docs.pycom.io/pycom_esp32/library/sys.html
         from json import load
         
-        self.maint()
+        maint()
         
         # FIXME Change the version number file to JSON format, it's currently
         # plain text
@@ -47,7 +47,7 @@ class System(object):
         from binascii import hexlify
         from machine import unique_id
 
-        self.maint()
+        maint()
         return str(hexlify(unique_id()), 'utf-8')
     
     
@@ -58,7 +58,7 @@ class System(object):
         
         Ignores any non-certified hardware.
         '''
-        self.maint()
+        maint()
         
         # TODO Does this work?
         if self.attached_devices:
@@ -69,7 +69,7 @@ class System(object):
         
         # TODO See where else I should use iteritems()
         for name, address in certified_addresses.iteritems():
-            self.maint()
+            maint()
             
             try:
                 if self.i2c.readfrom(address, 1):
