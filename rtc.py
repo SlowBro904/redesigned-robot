@@ -1,5 +1,5 @@
 # FIXME Uncomment
-#from err import Errors
+#from err import ErrClsors
 from config import config
 from maintenance import maint
 from machine import RTC as system_clock_cls

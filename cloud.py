@@ -1,4 +1,4 @@
-from err import Err
+from err import ErrCls
 from json import loads, dumps
 from maintenance import maint
 

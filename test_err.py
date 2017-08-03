@@ -1,8 +1,8 @@
+import sys
 from err import ErrCls
 from test_suite import good
 errors = ErrCls(testing = True, debug = True)
-# FIXME Load the data_store and ensure the data got saved.
-# TODO Also somehow need to determine if deepsleep() was called. Maybe a
+# TODO Somehow need to determine if deepsleep() was called. Maybe a
 # wrapper?
 
 test_message = "Test message"
@@ -23,10 +23,10 @@ try:
 except RuntimeError:
     test_message = {'file': __file__, 'func': __name__,
                     'action': "Testing exception logging"}
+    test_message['exc_type'] = str(sys.exc_info()[0])
+    test_message['error'] = str(sys.exc_info()[1]).strip()
     errors.exc(test_message)
 
-# FIXME This probably will fail because exc() adds two more log parameters. Get
-# those manually and add here.
 assert test_message in errors.log, "errors.exc()"
 good("errors.exc()")
 

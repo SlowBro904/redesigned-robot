@@ -1,5 +1,5 @@
 class Testing(object):
-    from err import Err
+    from err import ErrCls
     
     err = Err()
 
@@ -15,7 +15,7 @@ class Testing(object):
         print("We shouldn't get here.")
 
 def testing():
-    from err import Err
+    from err import ErrCls
     
     err = Err()
 

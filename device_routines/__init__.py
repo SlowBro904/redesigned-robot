@@ -1,7 +1,7 @@
 class DeviceRoutine(object):
     def __init__(self, device):
         '''This sets up an object for the routines of a particular device'''
-        from err import Err
+        from err import ErrCls
         
         self.err = Err()
         self.device = device

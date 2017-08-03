@@ -17,15 +17,15 @@ class MQTT(object):
         serial = System().serial
         version = System().version
         
-        self.key = bytes(self.config.conf['ENCRYPTION_KEY'])
+        self.key = bytes(config.conf['ENCRYPTION_KEY'])
         
-        port = self.config.conf['MQTT_PORT']
-        server = self.config.conf['MQTT_SERVER']
-        retries = self.config.conf['MQTT_RETRIES']
-        timeout = self.config.conf['MQTT_TIMEOUT']
-        device_name = self.config.conf['DEVICE_NAME']
-        username = self.config.conf['SERVICE_ACCOUNT_EMAIL']
-        password = self.config.conf['SERVICE_ACCOUNT_PASSWORD']
+        port = config.conf['MQTT_PORT']
+        server = config.conf['MQTT_SERVER']
+        retries = config.conf['MQTT_RETRIES']
+        timeout = config.conf['MQTT_TIMEOUT']
+        device_name = config.conf['DEVICE_NAME']
+        username = config.conf['SERVICE_ACCOUNT_EMAIL']
+        password = config.conf['SERVICE_ACCOUNT_PASSWORD']
         
         clientID = device_name + ":" + serial
         
@@ -49,7 +49,13 @@ class MQTT(object):
     def connect(self):
         '''Connect to the MQTT broker'''
         maint()
-        self.client.connect()
+        self.client.set_callback(sub_cb)
+        # See the notes here on clean_session
+        # https://github.com/micropython/micropython-lib/blob/master/umqtt.robust/example_sub_robust.py
+        if not self.client.connect(clean_session = False):
+            # We don't have any pre-existing sessions
+            # FIXME Subscribe to all our topics. But what if I don't know of
+            # any? See the note in the link above.
         self.client_nl.connect()
     
     
@@ -60,7 +66,7 @@ class MQTT(object):
         self.client_nl.disconnect()
     
     
-    def publish(self, topic, message, login = True, encrypt = True, 
+    def publish(self, topic, msg, login = True, encrypt = True, 
                 retries = retries):
         '''Publish a data update to an MQTT topic.
         
@@ -78,16 +84,17 @@ class MQTT(object):
             myclient = self.client_nl
         
         if encrypt:
+            # iv = Initialization Vector
             iv = self.getrandbits(128)
-            cipher = self.AES(self.key, self.AES.MODE_CFB, iv)
-            message = iv + cipher.encrypt(bytes(message))
+            cipher = AES(self.key, AES.MODE_CFB, iv)
+            msg = iv + cipher.encrypt(bytes(msg))
         
         result = None
         
         for i in range(retries):
             root_path = bytes(self.root_path + '/' + topic)
-            message = bytes(message)
-            result = myclient.publish(root_path, message)
+            msg = bytes(msg)
+            result = myclient.publish(root_path, msg)
             
             if result:
                 break
@@ -106,17 +113,17 @@ class MQTT(object):
         
         self.sub(topic)
         
-        message = None
+        msg = None
         for i in range(retries):        
-            message = myclient.wait_msg(topic)[1]
-            if message:
+            msg = myclient.wait_msg(topic)[1]
+            if msg:
                 break
         
         if decrypt:
-            cipher = self.AES(self.key, self.AES.MODE_CFB, message[:16])
-            message = cipher.decrypt(message[16:])
+            cipher = self.AES(self.key, self.AES.MODE_CFB, msg[:16])
+            msg = cipher.decrypt(msg[16:])
         
-        return message
+        return msg
     
     
     def sub_cb(self, topic, msg):
@@ -125,7 +132,7 @@ class MQTT(object):
         # new data comes in overwrite what is in memory. Setup sub so it's non-
         # blocking and get so it just fetches what is in memory, if we even
         # need that. Maybe just login+decrypt right here, everything in get.
-        self.data
+        self.data[topic] = msg
     
     
     def sub(self, topic, login = True, retries = retries):
@@ -149,5 +156,5 @@ class MQTT(object):
                     self.topics.add(topic)
                 else:
                     self.topics_nl.add(topic)
-
+                
                 break

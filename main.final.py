@@ -13,7 +13,7 @@ import factory_reset
 from leds import leds
 from cloud import Cloud
 from config import config
-from err import Err
+from err import ErrCls
 from system import System
 from battery import Battery
 from wifi import sta, sta_ap

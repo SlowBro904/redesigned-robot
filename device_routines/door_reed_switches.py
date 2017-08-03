@@ -1,7 +1,7 @@
 def status():
     '''Tells whether the door is in the up or down position'''
     from machine import Pin
-    from err import Err
+    from err import ErrCls
     from config import config
     
     err = Err()

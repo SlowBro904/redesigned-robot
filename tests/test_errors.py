@@ -1,5 +1,5 @@
-from err import Err
-errors = Err(debug = True, testing = True)
+from err import ErrCls
+errors = ErrCls(debug = True, testing = True)
 # FIXME Load the data_store and ensure the data got saved.
 # TODO Also somehow need to determine if deepsleep() was called. Maybe a
 # wrapper?

@@ -1,6 +1,6 @@
 '''Sets up the i2c object for importing into other modules'''
 from config import config
-from err import Err
+from err import ErrCls
 from machine import I2C, Pin
 from maintenance import maint
 

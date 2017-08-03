@@ -1,4 +1,4 @@
-from err import Err
+from err import ErrCls
 from config import config
 from maintenance import maint
 

@@ -1,6 +1,6 @@
 # FIXME Self-healing, check md5sums every time
 import temp_file
-from err import Err
+from err import ErrCls
 from leds import leds
 from cloud import Cloud
 from reboot import reboot

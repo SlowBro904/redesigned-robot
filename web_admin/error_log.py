@@ -1,7 +1,7 @@
 def show(parameters):
     '''Error log'''
     from os import dupterm
-    from err import Err
+    from err import ErrCls
     from maintenance import maint
     
     maint()

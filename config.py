@@ -5,7 +5,7 @@ Improves performance by avoiding reloading the config file every time it's
 imported. For other devices, change the config file variable below.
 '''
 # FIXME Uncomment, and find everywhere it's commented out
-#from err import Err
+#from err import ErrCls
 from config_class import Config
 
 #err = Err()

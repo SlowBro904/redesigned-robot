@@ -1,6 +1,6 @@
 import debugging
 import temp_file
-#from err import Err
+#from err import ErrCls
 from os import remove
 from maintenance import maint
 from ujson import loads, dumps

@@ -8,7 +8,7 @@ from time import sleep
 from machine import Pin
 from reboot import reboot
 from config import config
-from err import Err
+from err import ErrCls
 from os import listdir, remove
 from maintenance import maint
 
