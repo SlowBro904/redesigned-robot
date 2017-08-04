@@ -1,5 +1,6 @@
 import debugging
 from os import remove
+# FIXME Uncomment
 #from cloud import cloud
 from ujson import dumps, loads
 
@@ -20,7 +21,10 @@ class DataStore(object):
         self.dataset = dataset
         debugging.enabled = debug
         self.debug = debugging.printmsg
-        self.testing = testing
+
+        # FIXME Uncomment then remove the 2nd line
+        #self.testing = testing
+        self.testing = True
         
         # Add myself to the registry
         self.registry.append(self)

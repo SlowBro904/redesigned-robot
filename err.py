@@ -27,13 +27,13 @@ class ErrCls(object):
         self.data_store = DataStore('error_log', testing = testing)
     
     
-    def msg(self, mytype, message):
+    def msg(self, mytype, msg):
         '''Adds a message of a certain type to the ongoing in-memory log and
         saves it to the data_store
         '''
         # Add the error to the ongoing in-memory log and save to the data_store
-        self.debug("In Err.msg(), message: '" + str(message) + "'")
-        log_entry = (self.rtc.now(), mytype, {'message': message})
+        self.debug("In Err.msg(), msg: '" + str(msg) + "'")
+        log_entry = (self.rtc.now(), mytype, {'message': msg})
         self.log.append(log_entry)
         return self.data_store.update(log_entry)
     
@@ -63,13 +63,11 @@ class ErrCls(object):
         leds.LED('warn', default = True)
     
     
-    def err(self, message):
+    def err(self, msg):
         '''Things got real bad. Stop everything.'''
         from time import sleep
-        from main import (schedule, pin_deepsleep_wakeup, wake_pins,
-            WAKEUP_ANY_HIGH)
         
-        self.msg('error', message)
+        self.msg('error', msg)
         
         # FIXME Is that enough time? Maybe wait for a completion flag. But time
         # that out.
@@ -87,6 +85,7 @@ class ErrCls(object):
         
         # TODO How can I test this as part of a suite?
         if not self.testing:
+            from main import pin_deepsleep_wakeup, wake_pins, WAKEUP_ANY_HIGH
             wdt.stop()
             pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
             deepsleep()

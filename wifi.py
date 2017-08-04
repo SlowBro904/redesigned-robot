@@ -1,11 +1,12 @@
+import debugging
 from network import WLAN
 from config import config
-from system import System
+from system import SystemCls
 from maintenance import maint
     
 class WIFI(object):
-    def __init__(self, mode = 'STA', ant = config.conf['WIFI_ANTENNA'],
-                    power_save = config.conf['WIFI_POWER_SAVE']):
+    def __init__(self, mode = 'STA', ant = None, power_save = None, 
+                    debug = True, debug_level = 0):
         '''Sets up a Wi-Fi connection based on the mode.
         
         Mode may be one of 'STA', 'AP', or 'STA_AP'. Defaults to 'STA'.
@@ -15,6 +16,17 @@ class WIFI(object):
         Accepts a value for STA power save; Either 'True' or 'False'. Only
         applicable in STA mode.
         '''
+        if not ant:
+            ant = config.conf['WIFI_ANTENNA']
+        
+        if not power_save:
+            power_save = config.conf['WIFI_POWER_SAVE']
+        
+        # TODO Not working. I True here and it goes False elsewhere.
+        debugging.enabled = debug
+        debugging.default_level = debug_level
+        self.debug = debugging.printmsg
+        
         self._all_SSIDs = set()
         self.mode = self.mode2int(mode)
         self._all_APs = list()
@@ -33,7 +45,7 @@ class WIFI(object):
             # the serial number. There may be more than one of my devices in
             # the area.
             # (I HOPE there's more than one of my devices in the area. Grin)
-            ssid = device_name + '_' + System().serial[-6:]
+            ssid = device_name + '_' + SystemCls().serial[-6:]
 
             # AP or STA_AP mode
             password = config.conf['WEB_ADMIN_WIFI_PASSWORD']
@@ -46,7 +58,7 @@ class WIFI(object):
             # to the customer's router's ssid as well.
             self.wlan = WLAN(mode = self.mode, ssid = ssid, 
                                     auth = (sec_type, password),
-                                    channel = channel, ant = self.ant)
+                                    channel = channel, antenna = self.ant)
     
     
     @property
@@ -65,11 +77,11 @@ class WIFI(object):
         '''Convert sec_type integer constant to human readable string'''
         sec_type = 'None'
         if sec_type_int == WLAN.WPA2:
-            sec_type == 'WPA2'
+            sec_type = 'WPA2'
         elif sec_type_int == WLAN.WPA:
-            sec_type == 'WPA'
+            sec_type = 'WPA'
         elif sec_type_int == WLAN.WEP:
-            sec_type == 'WEP'
+            sec_type = 'WEP'
         
         return sec_type
     
@@ -89,7 +101,7 @@ class WIFI(object):
     
     
     def ant2int(self, ant):
-        '''Convert ant human readable string to integer constant'''
+        '''Convert antenna human readable string to integer constant'''
         # FIXME Look up a reasonable default, prefer one that does not exist
         ant_int = 0
         if ant == 'Internal':
@@ -121,7 +133,7 @@ class WIFI(object):
         
         from machine import idle
         
-        maint()       
+        maint()
         
         password = config.conf['WIFI_PASSWORD']
         timeout = config.conf['WIFI_TIMEOUT']
@@ -162,18 +174,18 @@ class WIFI(object):
             # TODO Do we even need subnet?
             self.wlan.ifconfig(id = id, config = (ip, subnet_mask, gateway,
                                 DNS_server))
-
-        try:
-            return self.wlan.ifconfig()
-        except:
-            # TODO Is this redundant? Try the output of the command above
-            return ('','','','')
+        
+        # FIXME Comment
+        print("self.wlan.ifconfig(" + str(id) + "): '" +
+            str(self.wlan.ifconfig(id)) + "'")
+        
+        return self.wlan.ifconfig(id)
     
     
     @property
-    def ip(self):
+    def ip(self, id = 0):
         '''The IP address'''
-        return self.ifconfig()[0]
+        return self.ifconfig(id)[0]
     
     
     @property
@@ -247,19 +259,18 @@ class WIFI(object):
 
 mywifi = None
 
-def sta():
+def sta(debug = False):
     '''Sets up a connection as a station only, not an access point as well.
     
     Uses DHCP to get an IP.
     '''
     # Use the default config
-    wifi = WIFI()
+    wifi = WIFI(debug = debug)
     return wifi
 
 
-def sta_ap():
+def sta_ap(debug = False):
     '''Sets up a connection that is both station and access point'''
-    # FIXME Set it to 1.1.1.1
     ip = config.conf['WEB_ADMIN_IP']
     subnet_mask = config.conf['WEB_ADMIN_SUBNET_MASK']
     gateway = config.conf['WEB_ADMIN_NETWORK_GATEWAY']
@@ -269,9 +280,9 @@ def sta_ap():
     # show in server web admin.
     # TODO Make it possible to change AP_PASSWORD.
     
-    wifi = WIFI(mode = 'STA_AP')
+    wifi = WIFI(mode = 'STA_AP', debug = debug)
     
-    # id = 1 is the access point interface
-    wifi.ifconfig(id = 1, config = (ip, subnet_mask, gateway, DNS_server))
+    # 1 is for id = 1, the access point interface
+    wifi.ifconfig(1, (ip, subnet_mask, gateway, DNS_server))
     
     return wifi

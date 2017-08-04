@@ -1,3 +1,4 @@
+from test_suite import good
 from data_store import DataStore
 
 data_store = DataStore('testing', testing = True, debug = True)
@@ -16,7 +17,7 @@ except NameError:
 assert test_value in data_store.value, (
     "data_store did not update the value correctly")
 
-print("[SUCCESS] Updating data_store.value")
+good("Updating data_store.value")
 
 # Test save/restore from flash
 data_store.save_to_flash()
@@ -31,6 +32,6 @@ except NameError:
 assert test_value in data_store.value, ("data_store could not retrieve the ",
                                         "value from flash")
 
-print("[SUCCESS] Saving and retrieving data_store.value")
+good("Saving and retrieving data_store.value")
 del(data_store.value)
 data_store.clear_save_file()

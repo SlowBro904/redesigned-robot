@@ -2,24 +2,13 @@ from err import ErrCls
 from config import config
 from maintenance import maint
 
-class System(object):
+class SystemCls(object):
     def __init__(self):
         '''Configures our system object which keeps track of certain items
         regarding the system such as the attached devices
         '''
-        from i2c import i2c
-        
-        self.err = Err()
-        
         maint()
-        
-        self.i2c = i2c
-        self.attached_devices = set()
-        
-        # We always have at least one door opener and reed switches, which do
-        # not use I2C (just GPIO) so add them here
-        self.attached_devices.add('door')
-        self.attached_devices.add('door_reed_switches')
+        self.err = ErrCls()
     
     
     @property
@@ -58,24 +47,30 @@ class System(object):
         
         Ignores any non-certified hardware.
         '''
+        from i2c import i2c
         maint()
         
-        # TODO Does this work?
-        if self.attached_devices:
-            return True
-        
-        attached_devices = set()
-        certified_addresses = self.config.conf['CERTIFIED_DEVICE_I2C_ADDRESSES']
-        
-        # TODO See where else I should use iteritems()
-        for name, address in certified_addresses.iteritems():
-            maint()
+        try:
+            return self._attached_devices
+        except NameError:
+            self._attached_devices = set()
             
-            try:
-                if self.i2c.readfrom(address, 1):
-                    attached_devices.add(name)
-            except: # TODO Get exact exception type
-                # Ignore failures, these devices are not attached
-                pass
-        
-        return attached_devices
+            # We always have at least one door opener and reed switches, which 
+            # do not use I2C (just GPIO) so add them here
+            self._attached_devices.add('door')
+            self._attached_devices.add('door_reed_switches')
+            
+            cert_addresses = config.conf['CERTIFIED_DEVICE_I2C_ADDRESSES']
+            
+            # TODO See where else I should use iteritems()
+            for name, addr in cert_addresses.iteritems():
+                maint()
+                
+                #try:
+                if i2c.readfrom(addr, 1):
+                    self._attached_devices.add(name)
+                #except: # FIXME Get exact exception type
+                #    # Ignore failures, these devices are not attached
+                #    pass
+            
+            return self._attached_devices
