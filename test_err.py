@@ -8,16 +8,31 @@ errors = ErrCls(testing = True, debug = True)
 test_message = "Test message"
 
 errors.warn(test_message)
-print("errors.log: '" + str(errors.log) + "'")
-# FIXME Actually it's '[(146, 'warning', {'message': 'Test message'})]'
-assert test_message in errors.log, "errors.warn()"
+found = False
+if len(errors.log) > 0:
+    for entry in errors.log:
+        if len(entry) > 0:
+            if entry[1] == 'warning':
+                if 'message' in entry[2]:
+                    if entry[2]['message'] == test_message:
+                        found = True
+                        break
+
+assert found is True, "errors.warn()"
 good("errors.warn()")
 
-# Clear the log
-errors.log = list()
-
 errors.err(test_message)
-assert test_message in errors.log, "errors.err()"
+found = False
+if len(errors.log) > 0:
+    for entry in errors.log:
+        if len(entry) > 0:
+            if entry[1] == 'error':
+                if 'message' in entry[2]:
+                    if entry[2]['message'] == test_message:
+                        found = True
+                        break
+
+assert found is True, "errors.err()"
 good("errors.err()")
 
 try:
@@ -29,7 +44,16 @@ except RuntimeError:
     test_message['error'] = str(sys.exc_info()[1]).strip()
     errors.exc(test_message)
 
-assert test_message in errors.log, "errors.exc()"
-good("errors.exc()")
+# TODO Ensure I use a consistent name everywhere. Should be errors, not err.
+found = False
+if len(errors.log) > 0:
+    for entry in errors.log:
+        if len(entry) > 0:
+            if entry[1] == 'exception':
+                if 'message' in entry[2]:
+                    if entry[2]['message'] == test_message:
+                        found = True
+                        break
 
-errors.log = list()
+assert found is True, "errors.exc()"
+good("errors.exc()")

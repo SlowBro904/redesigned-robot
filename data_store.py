@@ -21,16 +21,16 @@ class DataStore(object):
         self.dataset = dataset
         debugging.enabled = debug
         self.debug = debugging.printmsg
-
+        
         # FIXME Uncomment then remove the 2nd line
         # TODO How can I do this globally? Maybe a global variable.
         #self.testing = testing
         self.testing = True
         
         # Add myself to the registry
-        self.registry.append(self)
+        DataStore.registry.append(self)
         
-        self.load_to_memory()
+        self._to_memory()
         self.save()
     
     
@@ -42,7 +42,7 @@ class DataStore(object):
         try:
             self.debug("Updating value")
             self.value.append(update)
-        except NameError:
+        except AttributeError:
             self.debug("Initializing value")
             self.value = [update]
         
@@ -58,40 +58,31 @@ class DataStore(object):
                 # FIXME Retry sends, and what if that fails
                 self.cloud.send(self.dataset, self.value)
                 del(self.value)
-                self.clear_save_file()
+                self._clear_save_file()
         except RuntimeError:
             # Stay in memory for now to save to flash later
             self.debug("Didn't send the value to the cloud")
     
     
-    def save_to_flash(self):
+    def _to_flash(self):
         with open(self.dataset_file, 'w') as f:
             try:
                 self.debug("Saving to flash")
                 f.write(dumps(self.value))
                 del(self.value)
-            except NameError:
+            except AttributeError:
                 # We must have been able to save the value to the cloud
                 pass
     
     
-    def clear_save_file(self):
-        self.debug("Clearing the save file")
-        try:
-            return remove(self.dataset_file)
-        except:
-            # Ignore if missing
-            pass
-    
-    
-    def load_to_memory(self):
+    def _to_memory(self):
         '''Loads the saved file (if any) to memory'''
         try:
             self.debug("Loading to memory")
             with open(self.dataset_file) as f:
                 self.value = loads(f.read())
             self.debug("Loaded")
-            self.clear_save_file()
+            self._clear_save_file()
         except (OSError, ValueError):
             # FIXME Look for exact OSError and 'syntax error in JSON'
             
@@ -100,7 +91,17 @@ class DataStore(object):
             self.value = list()
     
     
+    def _clear_save_file(self):
+        self.debug("Clearing the save file")
+        try:
+            return remove(self.dataset_file)
+        except:
+            # Ignore if missing
+            pass
+    
+    
+    @classmethod
     def save_all(cls):
         '''Saves all objects in the registry to flash'''
         for obj in cls.registry:
-            obj.save_to_flash()
+            obj._to_flash()

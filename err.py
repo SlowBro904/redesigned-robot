@@ -75,7 +75,7 @@ class ErrCls(object):
         sleep(3)
         
         # Whatever hasn't been sent, save it to flash
-        DataStore().save_all()
+        DataStore.save_all()
         
         # Steady red LED
         # TODO Not working
@@ -118,4 +118,5 @@ class ErrCls(object):
         # to this module.
         
         self.msg('exception', content)
-        sys.exit(1)
+        if not self.testing:
+            sys.exit(1)
