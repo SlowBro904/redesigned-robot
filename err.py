@@ -15,11 +15,12 @@ class ErrCls(object):
         debugging.default_level = debug_level
         self.debug = debugging.printmsg
         
-        # FIXME Remove
-        print("debugging.enabled: '" + str(debugging.enabled) + "'")
-        print("debugging.default_level: '" + str(debugging.default_level) + "'")
-        print("type(self.debug): '" + str(type(self.debug)) + "'")
-        print("self.debug: '" + str(self.debug) + "'")
+        # TODO Debugging can be True here and False in warn(). Not sure why.
+        #print("debugging.enabled: '" + str(debugging.enabled) + "'")
+        #print("debugging.default_level: '" + str(debugging.default_level) + 
+        #        "'")
+        #print("type(self.debug): '" + str(type(self.debug)) + "'")
+        #print("self.debug: '" + str(self.debug) + "'")
         
         self.testing = testing
         self.rtc = RTC()
@@ -45,11 +46,11 @@ class ErrCls(object):
         # FIXME Do a code review, ensure I do maint() everywhere
         maint()
         
-        # FIXME Remove
-        print("debugging.enabled: '" + str(debugging.enabled) + "'")
-        print("debugging.default_level: '" + str(debugging.default_level) + "'")
-        print("type(self.debug): '" + str(type(self.debug)) + "'")
-        print("self.debug: '" + str(self.debug) + "'")
+        #print("debugging.enabled: '" + str(debugging.enabled) + "'")
+        #print("debugging.default_level: '" + str(debugging.default_level) + 
+        #        "'")
+        #print("type(self.debug): '" + str(type(self.debug)) + "'")
+        #print("self.debug: '" + str(self.debug) + "'")
         
         self.debug("self.msg(msg): '" + str(msg) + "'")
         self.msg('warning', msg)

@@ -23,6 +23,7 @@ class DataStore(object):
         self.debug = debugging.printmsg
 
         # FIXME Uncomment then remove the 2nd line
+        # TODO How can I do this globally? Maybe a global variable.
         #self.testing = testing
         self.testing = True
         

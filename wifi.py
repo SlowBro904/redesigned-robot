@@ -29,9 +29,10 @@ class WIFI(object):
         
         self._all_SSIDs = set()
         self.mode = self.mode2int(mode)
-        self._all_APs = list()
         self.ant = self.ant2int(ant)
         self._conn_strength = None
+        
+        self.all_APs = self.get_all_APs()
         
         if self.mode is WLAN.STA:
             self.power_save = power_save
@@ -144,6 +145,7 @@ class WIFI(object):
         # Save power while waiting
         while not self.wlan.isconnected():
             maint()
+            # TODO Anywhere else I can idle()?
             idle()
         
         return self.wlan.isconnected()
@@ -169,41 +171,39 @@ class WIFI(object):
         '''
         maint()
         
-        # We don't always need gateway and DNS server
+        # We don't always need gateway and DNS
         if ip and subnet_mask:
-            # TODO Do we even need subnet?
             self.wlan.ifconfig(id = id, config = (ip, subnet_mask, gateway,
                                 DNS_server))
         
-        # FIXME Comment
-        print("self.wlan.ifconfig(" + str(id) + "): '" +
-            str(self.wlan.ifconfig(id)) + "'")
+        #print("self.wlan.ifconfig(" + str(id) + "): '" +
+        #    str(self.wlan.ifconfig(id)) + "'")
         
         return self.wlan.ifconfig(id)
     
     
     @property
-    def ip(self, id = 0):
-        '''The IP address'''
-        return self.ifconfig(id)[0]
+    def ip(self):
+        '''Returns the IP of the STA interface'''
+        return self.ifconfig(id = 0)[0]
     
     
-    @property
-    def all_APs(self):
-        '''A list of all visible access points.
+    def get_all_APs(self):
+        '''Returns list of all visible access points.
         
         It's sorted by signal strength with the strongest access points
         appearing first. Includes all values. (ssid, bssid, sec, channel, rssi)
         '''
-        if not self._all_APs:
-            # Sort on the RSSI (signal strength) which is in position [4] in 
-            # the results from self.wlan.scan(), reversed so the largest 
-            # strength comes first, since that's the strongest
-            self._all_APs = sorted(self.wlan.scan(),
-                                                key = lambda AP: AP[4],
-                                                reverse=True)
-        
-        return self._all_APs
+        # Temporary dummy network config just to fetch data
+        wlan = WLAN(mode=WLAN.STA)
+        wlan.ifconfig(config=('dhcp'))
+        results = wlan.scan()
+        del(wlan)
+
+        # Sort on the RSSI (signal strength) which is in position [4] in 
+        # the results from self.wlan.scan(), reversed so the largest 
+        # strength comes first, since that's the strongest
+        return sorted(results, key = lambda AP: AP[4], reverse=True)
     
     
     def get_AP_sec_type(self, ssid):
@@ -215,7 +215,7 @@ class WIFI(object):
             sec_type = AP[2]
             
             if this_ssid == ssid:
-                return sec_type2str(sec_type)
+                return self.sec_type2str(sec_type)
     
     
     @property
@@ -242,16 +242,22 @@ class WIFI(object):
     @property
     def conn_strength(self):
         '''The strength of our own connection'''
-        # FIXME Does this work on hidden SSIDs?
+        # FIXME Does not work on hidden SSIDs. Don't require in the web iface.
         # Sets the variable when it matches self.ssid. If there are multiple
         # ssids in the area with the same name (xfinitywifi for example) we are
         # assuming that we are connected to the one with the greatest strength,
         # since that is most likely.
         if not self._conn_strength:
+            #print("self.all_APs: '" + str(self.all_APs) + "'")
+            #print("self.ssid: '" + str(self.ssid) + "'")
+            
             for AP in self.all_APs:
                 if AP[0] == self.ssid:
-                    self.conn_strength = AP[4]
+                    self._conn_strength = AP[4]
                     break
+        
+        #print("self._conn_strength: '" + str(self._conn_strength) + "'")
+        
         return self._conn_strength
 
 # End of class WIFI(object)
@@ -282,7 +288,8 @@ def sta_ap(debug = False):
     
     wifi = WIFI(mode = 'STA_AP', debug = debug)
     
-    # 1 is for id = 1, the access point interface
-    wifi.ifconfig(1, (ip, subnet_mask, gateway, DNS_server))
+    # id = 1 is the access point interface
+    wifi.ifconfig(id = 1, ip = ip, subnet_mask = subnet_mask, 
+                    gateway = gateway, DNS_server = DNS_server)
     
     return wifi

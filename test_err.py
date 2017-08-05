@@ -8,6 +8,8 @@ errors = ErrCls(testing = True, debug = True)
 test_message = "Test message"
 
 errors.warn(test_message)
+print("errors.log: '" + str(errors.log) + "'")
+# FIXME Actually it's '[(146, 'warning', {'message': 'Test message'})]'
 assert test_message in errors.log, "errors.warn()"
 good("errors.warn()")
 
