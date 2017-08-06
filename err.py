@@ -1,6 +1,5 @@
 import sys
 import debugging
-from rtc import RTC
 from os import remove
 from leds import leds
 from machine import deepsleep
@@ -8,33 +7,29 @@ from maintenance import maint
 from data_store import DataStore
 
 class ErrCls(object):
-    def __init__(self, testing = False, debug = False, debug_level = 0):
+    def __init__(self):
         '''A class for dealing with different error messages'''
         maint()
-        debugging.enabled = debug
-        debugging.default_level = debug_level
         self.debug = debugging.printmsg
+        self.testing = False
+        debugging.enabled = False
+        self.debug_level = 0
         
-        # TODO Debugging can be True here and False in warn(). Not sure why.
-        #print("debugging.enabled: '" + str(debugging.enabled) + "'")
-        #print("debugging.default_level: '" + str(debugging.default_level) + 
-        #        "'")
-        #print("type(self.debug): '" + str(type(self.debug)) + "'")
-        #print("self.debug: '" + str(self.debug) + "'")
-        
-        self.testing = testing
-        self.rtc = RTC()
         self.log = list()
-        self.data_store = DataStore('error_log', testing = testing)
+        self.data_store = DataStore('error_log')
+        self.data_store.testing = self.testing
     
     
     def msg(self, mytype, msg):
         '''Adds a message of a certain type to the ongoing in-memory log and
         saves it to the data_store
         '''
+        from rtc import RTC
+        rtc = RTC()
         # Add the error to the ongoing in-memory log and save to the data_store
+        # FIXME Not showing, not sure why
         self.debug("In Err.msg(), msg: '" + str(msg) + "'")
-        log_entry = (self.rtc.now(), mytype, {'message': msg})
+        log_entry = (rtc.now(), mytype, {'message': msg})
         self.log.append(log_entry)
         return self.data_store.update(log_entry)
     

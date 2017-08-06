@@ -12,15 +12,17 @@ class DataStore(object):
     # Keep a list of all objects created
     registry = list()
     
-    def __init__(self, dataset, debug = False, testing = False):
+    def __init__(self, dataset):
         '''Takes the name of a dataset. When save(update) is issued, save the
         value either to the cloud or if we cannot connect, on the flash for
         uploading later.
         '''
         self.dataset_file = '/flash/my_data_store/' + dataset + '.json'
-        self.dataset = dataset
-        debugging.enabled = debug
+        # FIXME Ensure this works
         self.debug = debugging.printmsg
+        self.testing = False
+        debugging.enabled = False
+        self.debug_level = 0
         
         # FIXME Uncomment then remove the 2nd line
         # TODO How can I do this globally? Maybe a global variable.
