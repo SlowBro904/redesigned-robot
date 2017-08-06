@@ -11,8 +11,9 @@ class ErrCls(object):
         '''A class for dealing with different error messages'''
         maint()
         self.debug = debugging.printmsg
-        self.testing = False
-        debugging.enabled = False
+        # FIXME Unset everywhere for production
+        self.testing = True
+        debugging.enabled = True
         self.debug_level = 0
         
         self.log = list()
@@ -26,8 +27,9 @@ class ErrCls(object):
         '''
         from rtc import RTC
         rtc = RTC()
-        # Add the error to the ongoing in-memory log and save to the data_store
-        # FIXME Not showing, not sure why
+        
+        #print("debugging.enabled in msg(): '" + str(debugging.enabled) + "'")
+        
         self.debug("In Err.msg(), msg: '" + str(msg) + "'")
         log_entry = (rtc.now(), mytype, {'message': msg})
         self.log.append(log_entry)
@@ -40,12 +42,8 @@ class ErrCls(object):
         '''
         # FIXME Do a code review, ensure I do maint() everywhere
         maint()
-        
-        #print("debugging.enabled: '" + str(debugging.enabled) + "'")
-        #print("debugging.default_level: '" + str(debugging.default_level) + 
-        #        "'")
-        #print("type(self.debug): '" + str(type(self.debug)) + "'")
-        #print("self.debug: '" + str(self.debug) + "'")
+
+        #print("debugging.enabled in warn(): '" + str(debugging.enabled) + "'")
         
         self.debug("self.msg(msg): '" + str(msg) + "'")
         self.msg('warning', msg)
@@ -73,7 +71,7 @@ class ErrCls(object):
         DataStore.save_all()
         
         # Steady red LED
-        # TODO Not working
+        # TODO blink() not working. Using LED() instead.
         # TODO The pattern is awkward. See if we can pass only a single pattern
         # by doing some kind of detection.
         #leds.blink(run = True, pattern = ((leds.err, True, None)))

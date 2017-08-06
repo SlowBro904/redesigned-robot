@@ -18,16 +18,15 @@ class DataStore(object):
         uploading later.
         '''
         self.dataset_file = '/flash/my_data_store/' + dataset + '.json'
-        # FIXME Ensure this works
+        # TODO I'd love to set one variable in one file and have it flow down
+        # into all modules everywhere for testing and debugging.
         self.debug = debugging.printmsg
-        self.testing = False
-        debugging.enabled = False
+        self.testing = True
+        debugging.enabled = True
         self.debug_level = 0
         
         # FIXME Uncomment then remove the 2nd line
         # TODO How can I do this globally? Maybe a global variable.
-        #self.testing = testing
-        self.testing = True
         
         # Add myself to the registry
         DataStore.registry.append(self)

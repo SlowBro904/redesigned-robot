@@ -15,8 +15,6 @@ def find_msg(msg_type, test_msg):
                             return True
 
 errors = ErrCls()
-errors.testing = True
-debugging.enabled = True
 
 # TODO Somehow need to determine if deepsleep() was called. Maybe a wrapper?
 
