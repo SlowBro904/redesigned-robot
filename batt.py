@@ -6,7 +6,6 @@ from maintenance import maint
 class BattCls(object):
     def __init__(self):
         '''Configures our battery class'''
-        pass
         maint()
         self.errors = ErrCls()
         self.batt_pin = config.conf['BATTERY_VOLT_SENSE_PIN']
@@ -16,14 +15,14 @@ class BattCls(object):
     def check_charge(self):
         '''Checks if the battery charge is less than CRITICAL_BATTERY_LEVEL in
         the config file and if so, throws a hard error.
-       
+        
         The ADC runs at ATTN_11DB which allows measuring up to 3.3V.
-       
+        
         To get the value for CRITICAL_BATTERY_LEVEL divide 3.3 by 4096, which
         is the default ADC bit resolution of 12 bits. Then divide your target 
         value (1.8) by the number you got in the last step. Round to no decimal
         places.
-      
+        
         Example:
         3.3 / 4096 = 0.0008056640625
         1.8 / 0.0008056640625 = 2,234.181818181818
@@ -39,7 +38,7 @@ class BattCls(object):
     @property
     def charge(self):
         '''Returns the value of the battery charge.
-       
+        
         Note that this does not return the actual voltage. See the note in
         check_charge().
         '''

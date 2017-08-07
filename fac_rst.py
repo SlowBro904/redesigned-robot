@@ -21,7 +21,7 @@ testing = debugging.testing
 def _fac_rst_handler(pin):
     ''' Triggered when the reset button is pressed '''
     maint()
-    debug("_fac_rst_handler callback called")
+    debug("_fac_rst_handler callback called", level = 1)
     
     # TODO blink() not working, using LED() instead
     ## Blink our yellow/red LEDs to let the user know the button is held
@@ -36,10 +36,12 @@ def _fac_rst_handler(pin):
     
     maint()
     
-    if pin() == True:
+    if pin():
         # The logic is inverted. If True the button is not pressed.
-        debug("Didn't hold fac_rst_pin for five seconds")
+        debug("Didn't hold fac_rst_pin for five seconds", level = 1)
         return
+    
+    debug("Proceeding to factory reset")
     
     # TODO Not working
     ## We're still holding it after 5 seconds. Now steady red until rebooted.
@@ -68,13 +70,13 @@ def _fac_rst_handler(pin):
     # Create a flag file to notify cloud.get_data_updates to fetch all data
     # files
     get_all_data_files_flag = '/flash/get_all_data_files.json'
-    try:
-        with open(get_all_data_files_flag, 'w') as f:
-            f.write(dumps(True))
-    except:
-        # Ignore errors
-        pass
-
+    #try:
+    with open(get_all_data_files_flag, 'w') as f:
+        f.write(dumps(True))
+    #except:
+    #    # Ignore errors
+    #    pass
+    
     if testing:
         debug("Pretending to reboot")
     else:
@@ -88,9 +90,7 @@ debug("fac_rst_pin: '" + str(fac_rst_pin) + "'")
 
 #try:
 fac_rst_pin_lsnr = Pin(fac_rst_pin, mode = Pin.IN, pull = Pin.PULL_UP)
-# FIXME Called repeatedly no matter what I choose. Maybe debounce? Maybe rising
-# and falling as before?
-fac_rst_pin_lsnr.callback(Pin.IRQ_HIG_LEVEL, _fac_rst_handler)
+fac_rst_pin_lsnr.callback(Pin.IRQ_FALLING, _fac_rst_handler)
 #except:
 #    errors.err("Cannot listen for factory reset button presses.",
 #                    "('factory_reset.py', 'main')")

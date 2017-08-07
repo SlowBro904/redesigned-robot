@@ -8,7 +8,7 @@ from uos import rename, remove
 good = test_suite.good
 
 rename('/flash/config.json', '/flash/config.good.json')
-with open('/flash/defaults.json') as d:
+with open('/flash/config.good.json') as d:
     with open('/flash/config.json', 'w') as c:
         c.write(d.read())
 

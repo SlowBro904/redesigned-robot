@@ -1,5 +1,5 @@
-from test_suite import good
 from batt import BattCls
+from test_suite import good
 print("Starting test_battery")
 
 batt = BattCls()
