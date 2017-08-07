@@ -1,3 +1,4 @@
+from json import loads
 from err import ErrCls
 from config import config
 from maintenance import maint
@@ -16,18 +17,16 @@ class SystemCls(object):
         '''Sets the version number variable based on the version number file'''
         # TODO Also get the sys.* version numbers
         # https://docs.pycom.io/pycom_esp32/library/sys.html
-        from json import load
-        
         maint()
         
         # FIXME Change the version number file to JSON format, it's currently
         # plain text
-        try:
-            with open(self.config.conf['VERSION_NUMBER_FILE']) as versionH:
-                return load(versionH)
-        except:
-            error = "Cannot get our version number. ('system.py', 'version')"
-            self.err.error(error)
+        #try:
+        with open(config.conf['VERSION_NUMBER_FILE']) as f:
+            return loads(f.read())
+        #except:
+        #    error = "Cannot get our version number. ('system.py', 'version')"
+        #    self.err.error(error)
     
     
     @property
@@ -52,7 +51,7 @@ class SystemCls(object):
         
         try:
             return self._attached_devices
-        except NameError:
+        except AttributeError:
             self._attached_devices = set()
             
             # We always have at least one door opener and reed switches, which 
@@ -62,15 +61,15 @@ class SystemCls(object):
             
             cert_addresses = config.conf['CERTIFIED_DEVICE_I2C_ADDRESSES']
             
-            # TODO See where else I should use iteritems()
-            for name, addr in cert_addresses.iteritems():
+            for name, addr in cert_addresses.items():
                 maint()
                 
-                #try:
-                if i2c.readfrom(addr, 1):
-                    self._attached_devices.add(name)
-                #except: # FIXME Get exact exception type
-                #    # Ignore failures, these devices are not attached
-                #    pass
+                try:
+                    if i2c.readfrom(addr, 1):
+                        self._attached_devices.add(name)
+                except OSError:
+                    # FIXME And also look for string 'I2C bus error'
+                    # Ignore failures, these devices are not attached
+                    pass
             
             return self._attached_devices

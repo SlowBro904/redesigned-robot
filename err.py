@@ -11,7 +11,8 @@ class ErrCls(object):
         '''A class for dealing with different error messages'''
         maint()
         self.debug = debugging.printmsg
-        # FIXME Unset everywhere for production
+        # FIXME Unset everywhere for production. Ideally we set this in one
+        # file but I couldn't work out how to do that efficiently.
         self.testing = True
         debugging.enabled = True
         self.debug_level = 0
