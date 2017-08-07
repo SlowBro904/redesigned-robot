@@ -4,6 +4,9 @@ from os import remove
 #from cloud import cloud
 from ujson import dumps, loads
 
+debug = debugging.printmsg
+testing = debugging.testing
+
 class DataStore(object):
     # FIXME Everywhere I self.remove() and self.load() get the exact exception 
     # for not found
@@ -17,16 +20,7 @@ class DataStore(object):
         value either to the cloud or if we cannot connect, on the flash for
         uploading later.
         '''
-        self.dataset_file = '/flash/my_data_store/' + dataset + '.json'
-        # TODO I'd love to set one variable in one file and have it flow down
-        # into all modules everywhere for testing and debugging.
-        self.debug = debugging.printmsg
-        self.testing = True
-        debugging.enabled = True
-        self.debug_level = 0
-        
-        # FIXME Uncomment then remove the 2nd line
-        # TODO How can I do this globally? Maybe a global variable.
+        self.dataset_file = '/flash/datastores/' + dataset + '.json'
         
         # Add myself to the registry
         DataStore.registry.append(self)
@@ -39,12 +33,12 @@ class DataStore(object):
         '''Add the new value and either upload to the cloud or if we cannot
         connect, save to the flash
         '''
-        self.debug("Going to update the value with: " + str(update))
+        debug("Going to update the value with: " + str(update))
         try:
-            self.debug("Updating value")
+            debug("Updating value")
             self.value.append(update)
         except AttributeError:
-            self.debug("Initializing value")
+            debug("Initializing value")
             self.value = [update]
         
         return self.save()
@@ -54,21 +48,21 @@ class DataStore(object):
         '''If it can be saved to the cloud delete the value in memory'''
         # We need to be able to test this and save to disk
         try:
-            if not self.testing:
-                self.debug("Sending to the cloud")
+            if not testing:
+                debug("Sending to the cloud")
                 # FIXME Retry sends, and what if that fails
                 self.cloud.send(self.dataset, self.value)
                 del(self.value)
                 self._clear_save_file()
         except RuntimeError:
             # Stay in memory for now to save to flash later
-            self.debug("Didn't send the value to the cloud")
+            debug("Didn't send the value to the cloud")
     
     
     def _to_flash(self):
         with open(self.dataset_file, 'w') as f:
             try:
-                self.debug("Saving to flash")
+                debug("Saving to flash")
                 f.write(dumps(self.value))
                 del(self.value)
             except AttributeError:
@@ -79,21 +73,21 @@ class DataStore(object):
     def _to_memory(self):
         '''Loads the saved file (if any) to memory'''
         try:
-            self.debug("Loading to memory")
+            debug("Loading data store to memory")
             with open(self.dataset_file) as f:
                 self.value = loads(f.read())
-            self.debug("Loaded")
+            debug("Loaded")
             self._clear_save_file()
         except (OSError, ValueError):
             # FIXME Look for exact OSError and 'syntax error in JSON'
             
             # Doesn't exist yet. Initialize.
-            self.debug("Cannot load from flash, initializing")
+            debug("Cannot load data store from flash, initializing")
             self.value = list()
     
     
     def _clear_save_file(self):
-        self.debug("Clearing the save file")
+        debug("Clearing the save file")
         try:
             return remove(self.dataset_file)
         except:

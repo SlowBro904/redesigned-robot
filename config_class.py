@@ -1,15 +1,14 @@
 import debugging
 import temp_file
-#from err import ErrCls
 from os import remove
 from maintenance import maint
 from ujson import loads, dumps
 
+debug = debugging.printmsg
+testing = debugging.testing
+
 class Config(object):
-    # TODO How do I handle debugging and testing variables without adding to
-    # the constructor?
-    def __init__(self, config_file, defaults_file, debug = False, 
-                    debug_level = 0):
+    def __init__(self, config_file, defaults_file):
         '''Provides a dictionary with keys and values coming from the config
         file's options and values.
         
@@ -17,12 +16,12 @@ class Config(object):
         the defaults file.
         '''
         maint()
-        debugging.enabled = debug
-        debugging.default_level = debug_level
-        self.debug = debugging.printmsg
         self.config_file = config_file
         self.defaults_file = defaults_file
         self.conf = self.load_config()
+        
+        print("debugging.enabled: '" + str(debugging.enabled) + "'")
+        print("testing: '" + str(testing) + "'")
     
     
     def load_config(self):
@@ -34,49 +33,53 @@ class Config(object):
         maint()
         try:
             open(self.config_file)
-            self.debug("Successfully opened our config file")
+            debug("Successfully opened our config file")
         except OSError:
-            self.debug("Resetting to defaults")
+            debug("Resetting to defaults")
             # TODO What if even this fails
             self.reset_to_defaults()
         
         maint()
         with open(self.config_file) as f:
-            self.debug("Reading our config file...")
+            debug("Reading our config file...")
             if debugging.default_level > 0:
-                self.debug("type(f): '" + str(type(f)) + "'")
-                self.debug("f: '" + str(f) + "'")
-                self.debug("f.read(): '" + str(f.read()) + "'")
+                debug("type(f): '" + str(type(f)) + "'")
+                debug("f: '" + str(f) + "'")
+                debug("f.read(): '" + str(f.read()) + "'")
                 f.seek(0)
-                self.debug("Contents: " + str(loads(f.read())))
+                debug("Contents: " + str(loads(f.read())))
                 f.seek(0)
             
-            try:
-                return loads(f.read())
-            except ValueError:
-                # FIXME What? Means we have a corrupt config. I think reset to
-                # default and error.
-                pass
+            #try:
+            return loads(f.read())
+            #except ValueError:
+            #    # FIXME What? Means we have a corrupt config. I think reset to
+            #    # default and error.
+            #    pass
     
     
     def reset_to_defaults(self):
         '''Resets the config file to defaults'''
         maint()
         with open(self.defaults_file) as f:
+            debug("Loading defaults into memory")
             defaults = loads(f.read())
         
         maint()
         try:
+            debug("Removing existing config")
             remove(self.config_file)
-        except OSError: # TODO Get the precise exception
+        except OSError: # FIXME Get the precise exception
             # Ignore if it does not exist
             pass
         
         maint()
         with open(self.config_file, 'w') as f:
+            debug("Writing a new config file from defaults")
             # Write the new config file from the defaults
             f.write(dumps(defaults))
         
+        debug("Loading the new config file to memory")
         self.conf = self.load_config()
     
     
@@ -86,25 +89,25 @@ class Config(object):
         parameters and values, and also updates the values in memory
         '''
         maint()
-        self.debug("Attempting to update our config file")
+        debug("Attempting to update our config file")
         
         if not isinstance(updates, dict):
-            self.debug("Did not pass a dict()")
+            debug("Did not pass a dict()")
             return False
         
         found = False
         for parameter in updates.keys():
             if parameter not in self.conf:
                 # Next parameter
-                self.debug("Attempted to update the config file with")
-                self.debug("a nonexistant parameter '" + str(parameter) + "'")
+                debug("Attempted to update the config file with")
+                debug("a nonexistant parameter '" + str(parameter) + "'")
                 continue
         
             # TODO There's an anti-pattern for this...    
             found = True
         
         if not found:
-            self.debug("No existing config parameters found in update")
+            debug("No existing config parameters found in update")
             return False
         
         for parameter, value in updates.items():
@@ -114,7 +117,7 @@ class Config(object):
         # Update the config file
         #try:
         with open(self.config_file, 'w') as f:
-            self.debug("Updating our config file on flash")
+            debug("Updating our config file on flash")
             # FIXME Also backup the config file and/or get temp file working,
             # I don't want some error leaving us without a config
             f.write(dumps(self.conf))
@@ -132,4 +135,4 @@ class Config(object):
         
         # Update the values in memory from flash
         self.conf = self.load_config()
-        self.debug("New config: " + str(self.conf), level = 1)
+        debug("New config: " + str(self.conf), level = 1)

@@ -19,8 +19,6 @@ class SystemCls(object):
         # https://docs.pycom.io/pycom_esp32/library/sys.html
         maint()
         
-        # FIXME Change the version number file to JSON format, it's currently
-        # plain text
         #try:
         with open(config.conf['VERSION_NUMBER_FILE']) as f:
             return loads(f.read())

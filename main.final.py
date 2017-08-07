@@ -7,9 +7,9 @@ import updates
 install_updates()
 
 # The rest of our modules
+import fac_rst
 import web_admin
 from rtc import RTC
-import factory_reset
 from leds import leds
 from cloud import Cloud
 from config import config

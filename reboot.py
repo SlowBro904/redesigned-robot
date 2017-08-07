@@ -1,3 +1,9 @@
+from json import dumps
+from time import sleep
+from machine import reset
+from maintenance import maint
+from _thread import start_new_thread
+
 def reboot(delay = 0, boot_cause = None):
     '''Reboots the device.
     
@@ -14,33 +20,28 @@ def reboot(delay = 0, boot_cause = None):
     The boot cause can be overridden by placing the value in JSON format in
     /flash/boot_cause.json.
     '''
-    from json import dump
-    from maintenance import maint
-    from _thread import start_new_thread
     
     maint()
     
     # Override boot cause detection using this text file
     if boot_cause:
-        try:
-            with open('/flash/boot_cause.json', 'w') as boot_causeH:
-                dump(boot_cause, boot_causeH)
-        except OSError:
-            # Ignore if it does not exist
-            pass
+        #try:
+        with open('/flash/boot_cause.json', 'w') as f:
+            f.write(dumps(boot_cause))
+        #except OSError:
+        #    # FIXME Anywhere I do OSError test the exact phrasing of the error
+        #    # FIXME Um I don't think I want to ignore this.
+        #    # Ignore if it does not exist
+        #    pass
     
-    # TODO Do I need the id variable?
-    start_new_thread(_reboot, (delay, id = 0))
+    start_new_thread(_reboot, (delay))
 
-def _reboot(delay, id):
+def _reboot(delay):
     '''This is the actual reboot command.
     
     Not recommended you call this directly. Use reboot() instead.
-    '''
-    from time import sleep
-    from machine import reset
-    from maintenance import maint
-    
+    '''    
     maint()
+    # TODO Do I need to loop on delay count and sleep(1) and maint() inside?
     sleep(delay)
     reset()

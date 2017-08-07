@@ -2,9 +2,10 @@
 specific to this device.
 
 Improves performance by avoiding reloading the config file every time it's
-imported. For other devices, change the config file variable below.
+imported.
 '''
-import debugging
+# TODO I think I can just integrate the Config() class here since the file 
+# names won't change
 from config_class import Config
 
 # FIXME Move exception testing for this situation into err
