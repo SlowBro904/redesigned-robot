@@ -59,10 +59,10 @@ def _fac_rst_handler(pin):
     #    errors.err(error)
     
     # Also delete local data files
-    for data_path in ['/flash/device_data/', '/flash/datastores/']:
+    for data_path in ['/flash/device_data', '/flash/datastores']:
         for file in listdir(data_path):
             #try:
-            remove(data_path + file)
+            remove(data_path + '/' + file)
             #except OSError:
             #    # Ignore if any issue at all
             #    pass

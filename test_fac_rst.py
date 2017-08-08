@@ -18,15 +18,16 @@ try:
     assert config.conf["XYZ"] == test_str, "config.update()"
     good("config.update()")
     fac_rst.fac_rst_pin_lsnr(True)
-    print("Sleeping four seconds...")
-    sleep(4)
-    fac_rst.fac_rst_pin_lsnr(False)
-    assert config.conf["XYZ"] == test_str, "Did fac_rst before five seconds"
-    good("Didn't reset at four seconds")
-    fac_rst.fac_rst_pin_lsnr(True)
-    print("Sleeping six seconds...")
-    sleep(6)
-    fac_rst.fac_rst_pin_lsnr(False)
+    # TODO Automate
+    #print("Sleeping four seconds...")
+    #sleep(4)
+    #fac_rst.fac_rst_pin_lsnr(False)
+    #assert config.conf["XYZ"] == test_str, "Did fac_rst before five seconds"
+    #good("Didn't reset at four seconds")
+    #fac_rst.fac_rst_pin_lsnr(True)
+    print("Sleeping twenty seconds. Hold the reset button for five seconds.")
+    sleep(20)
+    #fac_rst.fac_rst_pin_lsnr(False)
     assert config.conf["XYZ"] == None, "fac_rst failed"
     good("fac_rst")
 finally:

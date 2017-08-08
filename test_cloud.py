@@ -1,12 +1,14 @@
 from cloud import cloud
-assert cloud.ping() is True, "cloud.ping() failed"
-print("[SUCCESS] cloud.ping() succeeded"
+from test_suite import good
 
-assert cloud.can_login() is True, "cloud.can_login() failed"
-print("[SUCCESS] cloud.can_login() succeeded"
+assert cloud.ping() is True, "cloud.ping()"
+good("cloud.ping()")
 
-assert cloud.encryption_working() is True, "cloud.encryption_working() failed"
-print("[SUCCESS] cloud.encryption_working() succeeded"
+assert cloud.can_login() is True, "cloud.can_login()"
+good("cloud.can_login()")
 
-assert cloud.isconnected() is True, "cloud.isconnected() failed"
-print("[SUCCESS] cloud.isconnected() succeeded"
+assert cloud.encryption_working() is True, "cloud.encryption_working()"
+good("cloud.encryption_working()")
+
+assert cloud.isconnected() is True, "cloud.isconnected()"
+good("cloud.isconnected()")

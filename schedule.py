@@ -1,7 +1,12 @@
+import debugging
 from os import remove
+from err import ErrCls
 from json import dumps, loads
 from maintenance import maint
 from datastore import DataStore
+
+debug = debugging.printmsg
+testing = debugging.testing
 
 class Schedule(object):
     def __init__(self, devices):
@@ -11,12 +16,12 @@ class Schedule(object):
         self.datastore = DataStore('status')
         
         for device in devices:
-            self.maint()
+            maint()
             
             try:
                 device_file = '/flash/device_data/' + device + '.json'
                 with open(device_file) as f:
-                    self.schedules[device] = self.load(f.read())
+                    self.schedules[device] = loads(f.read())
             except:
                 # Ignore errors. If we have zero schedules nothing will run.
                 pass
@@ -28,7 +33,7 @@ class Schedule(object):
         the next scheduled event for any device'''
         from time import mktime
         
-        self.maint()
+        maint()
         
         next_event = None
         
@@ -49,22 +54,23 @@ class Schedule(object):
         return next_event
     
     
-    def save_schedule(self, device):
+    def save(self, device):
         '''Takes the current schedule in self.schedules[device] and writes it 
         back to disk
         '''
+        maint()
+        errors = ErrCls()
+        
         device_file = '/flash/device_data/' + device + '.json'
         
-        self.maint()
-        
-        try:
-            with open(device_file, 'w') as f:
-                return f.write(dumps(self.schedule[device]))
-        except:
-            warning = ("Cannot save to flash the schedule for " + device,
-                        "('schedule.py','save_schedule')")
-            self.err.warning(warning)
-            return False
+        #try:
+        with open(device_file, 'w') as f:
+            return f.write(dumps(self.schedule[device]))
+        #except:
+        #    warning = ("Cannot save to flash the schedule for " + device,
+        #                "('schedule.py','save')")
+        #    errors.warn(warning)
+        #    return False
     
     
     def run(self):
@@ -134,13 +140,12 @@ class Schedule(object):
                     this_event_index = self.schedules[device].index(this_event)
                     self.schedules[device].pop(this_event_index)
                 
-                self.save_schedule(device)
+                self.save(device)
             
             
             # Logic to know when to stop executing the outer while loop. If
             # this never gets set in this for loop we know we have no items
             # scheduled under any device, and so we can exit the while loop
             # as well.
-            # TODO There's an anti-pattern for this. Should be an else.
             if not items_scheduled:
                 break
