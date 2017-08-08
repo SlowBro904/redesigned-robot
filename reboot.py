@@ -1,5 +1,5 @@
-from json import dumps
 from time import sleep
+from ujson import dumps
 from machine import reset
 from maintenance import maint
 from _thread import start_new_thread

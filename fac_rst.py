@@ -5,8 +5,8 @@ If it's held down more than five seconds do a reset back to factory settings.
 import debugging
 from leds import leds
 from err import ErrCls
-from json import dumps
 from time import sleep
+from ujson import dumps
 from machine import Pin
 from reboot import reboot
 from config import config

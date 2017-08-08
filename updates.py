@@ -1,10 +1,10 @@
-# FIXME Self-healing, check md5sums every time
+# FIXME Self-healing, check md5sums every boot
 import temp_file
 from err import ErrCls
 from leds import leds
 from cloud import Cloud
 from reboot import reboot
-from json import load, dump
+from ujson import load, dump
 from os import remove, rename
 from maintenance import maint
 

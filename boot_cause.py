@@ -7,7 +7,7 @@ Can be overridden by placing the boot cause in /flash/boot_cause.json in JSON
 format.
 '''
 from os import remove
-from json import load
+from ujson import loads
 from maintenance import maint
 from machine import BROWN_OUT_RESET, WDT_RESET, DEEPSLEEP_RESET
 from machine import reset_cause, PWRON_RESET, HARD_RESET, SOFT_RESET
@@ -39,8 +39,8 @@ maint()
 # If this file is present it overrides what was discovered above
 try:
     boot_cause_file = '/flash/boot_cause.json'
-    with open(boot_cause_file) as boot_causeH:
-        boot_cause = load(boot_causeH)
+    with open(boot_cause_file) as f:
+        boot_cause = loads(f.read())
     
     remove(boot_cause_file)
 except:

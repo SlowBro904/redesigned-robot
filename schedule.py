@@ -1,8 +1,8 @@
 import debugging
 from os import remove
 from err import ErrCls
-from json import dumps, loads
 from maintenance import maint
+from ujson import dumps, loads
 from datastore import DataStore
 
 debug = debugging.printmsg

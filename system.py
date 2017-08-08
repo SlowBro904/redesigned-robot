@@ -1,5 +1,5 @@
-from json import loads
 from err import ErrCls
+from ujson import loads
 from config import config
 from maintenance import maint
 
