@@ -1,5 +1,7 @@
 #!/usr/bin/python3
+
 # FIXME
+# https://stackoverflow.com/questions/41480256/import-error-paho-mqtt-client-not-found
 # pip install paho-mqtt
 #Mint-VM ~ # ./process_mqtt.py
 #Traceback (most recent call last):
@@ -22,6 +24,10 @@ def on_message(client, userdata, message):
 def _encrypt(msg):
         # iv = Initialization Vector
         iv = getrandbits(128)
+        # FIXME What's the diff between AES.SEGMENT_8 and AES.SEGMENT_128
+        # FIXME What about message authentication codes
+        # FIXME Keys always 16 bytes long
+        # FIXME Maybe uhashlib.sha512(data) for MAC?
         return iv + AES(key, AES.MODE_CFB, iv).encrypt(bytes(msg))
 
 client = mqtt.Client(client_id = 'better_automations')

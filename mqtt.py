@@ -1,3 +1,4 @@
+# TODO Failover
 import debugging
 from config import config
 from system import SystemCls
@@ -37,17 +38,6 @@ class MQTTCls(object):
         # multiple devices and a newer version does not break the interface for 
         # clients not upgraded yet
         self.root_path = clientID + '/' + version
-        
-        # Commented out. Not now. Pings will just use logins. Trying to have
-        # two separate data sets and callbacks and such was just too
-        # complicated.
-        #
-        # A no-username/pass for pings
-        # FIXME Look out for security implications especially a DoS. I think we
-        # can limit the rate of the client's connections. Best to use an MQTT
-        # service.
-        #self.client_nl = MQTTClient(clientID, server, port)
-        #self.client_nl.settimeout = timeout
         
         # A normal client
         self.client = MQTTClient(clientID, username, password, server, port)
@@ -94,11 +84,6 @@ class MQTTCls(object):
         if not retries:
             retries = self.retries
         
-        #if login:
-        #    myclient = self.client
-        #else:
-        #    myclient = self.client_nl
-        
         if encrypt:
             msg = self._encrypt(msg)
         
@@ -121,11 +106,6 @@ class MQTTCls(object):
         
         if not retries:
             retries = self.retries
-        
-        #if login:
-        #    myclient = self.client
-        #else:
-        #    myclient = self.client_nl
         
         self.sub(topic)
         
@@ -157,15 +137,17 @@ class MQTTCls(object):
         if not retries:
             retries = self.retries
         
-        # TODO If I use this ensure non-login topics don't overlap login topics
-        #if login:
-        #    myclient = self.client
-        #else:
-        #    myclient = self.client_nl
-        
         topic = bytes(self.root_path + '/' + topic)
         
         for i in range(retries):
             if self.client.subscribe(topic, qos = 1):
+                # FIXME Don't set resub to false because we probably have other
+                # topics. But if true resub everything in self.data and/or
+                # maybe clear data and force a refetch. I think msg persistence
+                # may be required except in cases like ping? But if we ping we
+                # at least know our connection to the broker is good. We don't
+                # care all that much to test from client through broker to
+                # processing modules. We can test broker to processing modules
+                # elsewhere.
                 self.resub = False
                 break

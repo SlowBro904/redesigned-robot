@@ -2,9 +2,6 @@ print("Starting test_cloud")
 from cloud import cloud
 from test_suite import good
 
-#assert cloud.ping() is True, "cloud.ping()"
-#good("cloud.ping()")
-
 assert cloud.can_login() is True, "cloud.can_login()"
 good("cloud.can_login()")
 

@@ -12,15 +12,6 @@ class CloudCls(object):
         '''Sets up communications with the cloud servers'''
         maint()
         #self.err = ErrCls()
-        # FIXME Gives a TypeError??? Reduce these two classes to very simple
-        # versions of themselves and try again
-        #Traceback (most recent call last):
-        #  File "<stdin>", line 1, in <module>
-        #  File "test_cloud.py", line 2, in <module>
-        #  File "cloud.py", line 98, in <module>
-        #  File "cloud.py", line 16, in __init__
-        #  File "mqtt.py", line 23, in __init__
-        #TypeError: wrong number of arguments
         self.mqtt = MQTTCls()
     
     
@@ -33,16 +24,6 @@ class CloudCls(object):
         #                "('cloud.py', 'connect')")
         #    self.err.warning(warning)
         #    return False
-    
-    
-    # Not using. See note about client_nl in mqtt.py.
-    #def ping(self):
-    #    '''Ping the cloud servers, but don't test login or encryption'''
-    #    self.maint()
-    #    try:
-    #        return self.send('ping', login = False, encrypt = False) == 'ack'
-    #    except:
-    #        return False
     
     
     def can_login(self):
@@ -69,8 +50,6 @@ class CloudCls(object):
         try:
             status = self._status
         except AttributeError:
-            #status = (self.ping() and self.can_login() 
-            #                and self.encryption_working())
             status = (self.can_login() and self.encryption_working())
         
         self._status = status
@@ -91,7 +70,7 @@ class CloudCls(object):
         # FIXME Get the exact exception type on failure so we 
         # can raise a RuntimeError
         #try:
-        self.mqtt.publish(dumps(topic, message, encrypt))
+        self.mqtt.publish(topic, dumps(message), encrypt)
         #except:
         #    # TODO If we get multiple send warnings only record one
         #    warning = ("Unable to send to the cloud. Topic: '",
