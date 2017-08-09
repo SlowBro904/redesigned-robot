@@ -1,51 +1,54 @@
 #!/usr/bin/python3
-
-# FIXME
-# https://stackoverflow.com/questions/41480256/import-error-paho-mqtt-client-not-found
-# pip install paho-mqtt
-#Mint-VM ~ # ./process_mqtt.py
-#Traceback (most recent call last):
-#  File "./process_mqtt.py", line 2, in <module>
-#    import paho.mqtt.client as mqtt
-#ImportError: No module named 'paho'
-#Mint-VM ~ #
-
+from time import sleep
+from re import sub as re_sub
 import paho.mqtt.client as mqtt
-from crypto import AES, getrandbits
+#from crypto import AES, getrandbits
 
-def on_message(client, userdata, message):
-        '''Callback for when we get messages'''
-        # Don't encrypt ping/ack
-        if message.topic is 'ping':
-                msg = 'ack'
+debug_enabled = False
+def debug(msg, level = 0):
+    '''Prints a debug message'''
+    if not debug_enabled:
+        return
+
+    print("[DEBUG]", str(msg))
+
+
+def on_message(client, userdata, in_msg):
+    '''Callback for when we get messages'''
+    debug("[DEBUG] in_msg: '" + str(in_msg) + "'")
+
+    # Don't encrypt ping/ack
+    if in_msg.topic.endswith('/ping'):
+        out_msg = 'ack'
         
-        client.publish(message.topic, msg)
+    out_topic = re_sub('/in/', '/out/', in_msg.topic)
+    client.publish(out_topic, out_msg)
+
 
 def _encrypt(msg):
-        # iv = Initialization Vector
-        iv = getrandbits(128)
-        # FIXME What's the diff between AES.SEGMENT_8 and AES.SEGMENT_128
-        # FIXME What about message authentication codes
-        # FIXME Keys always 16 bytes long
-        # FIXME Maybe uhashlib.sha512(data) for MAC?
-        return iv + AES(key, AES.MODE_CFB, iv).encrypt(bytes(msg))
+    # iv = Initialization Vector
+    iv = getrandbits(128)
+    return iv + AES(key, AES.MODE_CFB, iv).encrypt(bytes(msg))
 
 client = mqtt.Client(client_id = 'better_automations')
-client.connect()
+client.connect('localhost')
 
 # Client name and version they are at
 authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
 device_kys = {'SB': {'240ac400b1b6': 'abcd1234'}}
 topics = {'SB': ['ping']}
 
-# Subscribe to all of our authorized device topics
-for device_type in authorized_devices:
-        for device in authorized_devices[device_type]:
-                root_path = device + '/' + version
-                for topic in topics[device_type]:
-                        mytopic = root_path + '/' + topic
-                        client.subscribe(mytopic, qos = 1)
-
 # Setup our callback
 client.on_message = on_message
 client.loop_start()
+
+# Subscribe to all of our authorized device topics
+for device_type in authorized_devices:
+    for device, version in authorized_devices[device_type].items():
+        root_path = device + '/' + version + '/in/'
+        for topic in topics[device_type]:
+            mytopic = root_path + topic
+            client.subscribe(mytopic, qos = 1)
+
+while True:
+    sleep(1)

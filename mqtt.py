@@ -64,6 +64,10 @@ class MQTTCls(object):
     
     
     def _encrypt(self, msg):
+        # FIXME What's the diff between AES.SEGMENT_8 and AES.SEGMENT_128
+        # FIXME What about message authentication codes, SHA-512
+        # FIXME Keys always 16 bytes long
+        # FIXME Maybe uhashlib.sha512(data) for MAC?
         # iv = Initialization Vector
         iv = getrandbits(128)
         return iv + AES(self.key, AES.MODE_CFB, iv).encrypt(bytes(msg))
@@ -89,6 +93,7 @@ class MQTTCls(object):
         
         result = None
         
+        # FIXME Add in and out topic trees
         root_path = bytes(self.root_path + '/' + topic)
         
         for i in range(retries):
