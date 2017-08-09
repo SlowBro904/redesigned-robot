@@ -73,7 +73,7 @@ class DataStore(object):
     def _to_memory(self):
         '''Loads the saved file (if any) to memory'''
         try:
-            debug("Loading data store to memory")
+            debug("Loading data store to memory", level = 1)
             with open(self.dataset_file) as f:
                 self.value = loads(f.read())
             debug("Loaded")
@@ -82,7 +82,7 @@ class DataStore(object):
             # FIXME Look for exact OSError and 'syntax error in JSON'
             
             # Doesn't exist yet. Initialize.
-            debug("Cannot load data store from flash, initializing")
+            debug("Cannot load data store from flash, initializing", level = 1)
             self.value = list()
     
     

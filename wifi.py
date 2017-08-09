@@ -3,10 +3,12 @@ from network import WLAN
 from config import config
 from system import SystemCls
 from maintenance import maint
-    
+
+debug = debugging.printmsg
+testing = debugging.testing
+
 class WIFI(object):
-    def __init__(self, mode = 'STA', ant = None, power_save = None, 
-                    debug = True, debug_level = 0):
+    def __init__(self, mode = 'STA', ant = None, power_save = None):
         '''Sets up a Wi-Fi connection based on the mode.
         
         Mode may be one of 'STA', 'AP', or 'STA_AP'. Defaults to 'STA'.

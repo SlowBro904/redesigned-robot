@@ -13,6 +13,7 @@ class CloudCls(object):
         maint()
         #self.err = ErrCls()
         self.mqtt = MQTTCls()
+        debug("__init__() complete")
     
     
     def connect(self):

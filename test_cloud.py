@@ -1,5 +1,8 @@
 print("Starting test_cloud")
+from wifi import mywifi, sta_ap
+mywifi = sta_ap()
 from cloud import cloud
+print("Here")
 from test_suite import good
 
 assert cloud.can_login() is True, "cloud.can_login()"

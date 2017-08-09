@@ -4,7 +4,7 @@ from test_suite import good
 from wifi import mywifi, sta_ap
 print("Starting test_wifi")
 
-mywifi = sta_ap(debug = True)
+mywifi = sta_ap()
 assert mywifi.ssid == config.conf['WIFI_SSID'], "WIFI_SSID"
 good("WIFI_SSID")
 ip = config.conf['WEB_ADMIN_IP']

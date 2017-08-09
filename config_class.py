@@ -19,9 +19,6 @@ class Config(object):
         self.config_file = config_file
         self.defaults_file = defaults_file
         self.conf = self.load_config()
-        
-        print("debugging.enabled: '" + str(debugging.enabled) + "'")
-        print("testing: '" + str(testing) + "'")
     
     
     def load_config(self):
@@ -33,7 +30,7 @@ class Config(object):
         maint()
         try:
             open(self.config_file)
-            debug("Successfully opened our config file")
+            debug("Successfully opened our config file", level = 1)
         except OSError:
             debug("Resetting to defaults")
             # TODO What if even this fails
@@ -41,7 +38,7 @@ class Config(object):
         
         maint()
         with open(self.config_file) as f:
-            debug("Reading our config file...")
+            debug("Reading our config file...", level = 1)
             if debugging.default_level > 0:
                 debug("type(f): '" + str(type(f)) + "'")
                 debug("f: '" + str(f) + "'")

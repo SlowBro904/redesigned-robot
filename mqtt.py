@@ -21,7 +21,7 @@ class MQTTCls(object):
         serial = SystemCls().serial
         version = SystemCls().version
         
-        self.key = bytes(config.conf['ENCRYPTION_KEY'])
+        self.key = bytes(config.conf['ENCRYPTION_KEY'], 'utf-8')
         
         port = config.conf['MQTT_PORT']
         server = config.conf['MQTT_SERVER']
@@ -31,16 +31,14 @@ class MQTTCls(object):
         username = config.conf['SERVICE_ACCOUNT_EMAIL']
         password = config.conf['SERVICE_ACCOUNT_PASSWORD']
         
-        clientID = device_name + ":" + serial
-        
-        # Use the device name, the version, and the serial number for the root 
+        # Use the device name, the serial, then the version, for the root 
         # path. I'm including the device name and version so that we can have 
         # multiple devices and a newer version does not break the interface for 
         # clients not upgraded yet
-        self.root_path = clientID + '/' + version
+        self.root_path = device_name + '/' + serial + '/' + version
         
         # A normal client
-        self.client = MQTTClient(clientID, username, password, server, port)
+        self.client = MQTTClient(serial, username, password, server, port)
         self.client.settimeout = timeout
     
     
@@ -70,7 +68,8 @@ class MQTTCls(object):
         # FIXME Maybe uhashlib.sha512(data) for MAC?
         # iv = Initialization Vector
         iv = getrandbits(128)
-        return iv + AES(self.key, AES.MODE_CFB, iv).encrypt(bytes(msg))
+        cipher = iv + AES(self.key, AES.MODE_CFB, iv)
+        return cipher.encrypt(bytes(msg, 'utf-8'))
     
     
     def _decrypt(self, msg):
@@ -93,11 +92,10 @@ class MQTTCls(object):
         
         result = None
         
-        # FIXME Add in and out topic trees
-        root_path = bytes(self.root_path + '/' + topic)
+        in_topic = bytes(self.root_path + '/in/' + topic, 'utf-8')
         
         for i in range(retries):
-            result = self.client.publish(root_path, msg)
+            result = self.client.publish(in_topic, msg)
             
             if result:
                 break
@@ -130,6 +128,9 @@ class MQTTCls(object):
     
     def _sub_cb(self, topic, msg):
         '''Callback to collect messages as they come in'''
+        # The full topic would be device and serial and all that. Remove all
+        # but the end topic name.
+        basename_topic = topic.split('/')[-1]
         self.data[topic] = msg
     
     
@@ -142,10 +143,10 @@ class MQTTCls(object):
         if not retries:
             retries = self.retries
         
-        topic = bytes(self.root_path + '/' + topic)
+        out_topic = bytes(self.root_path + '/out/' + topic, 'utf-8')
         
         for i in range(retries):
-            if self.client.subscribe(topic, qos = 1):
+            if self.client.subscribe(out_topic, qos = 1):
                 # FIXME Don't set resub to false because we probably have other
                 # topics. But if true resub everything in self.data and/or
                 # maybe clear data and force a refetch. I think msg persistence
