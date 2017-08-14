@@ -52,9 +52,6 @@ class MQTTCls(object):
         # FIXME On connection failure we get OSError: -1
         if not self.client.connect(clean_session = False):
             self.resub = True
-
-        # FIMXE Remove
-        sleep(10)
     
     
     def disconnect(self):
@@ -76,8 +73,10 @@ class MQTTCls(object):
         # FIXME Maybe uhashlib.sha512(data) for MAC?
         # iv = Initialization Vector
         iv = getrandbits(128)
-        cipher = iv + AES(self.key, AES.MODE_CFB, iv)
-        return cipher.encrypt(bytes(msg, 'utf-8'))
+        # FIXME Generates this error:
+        # TypeError: unsupported types for __add__: 'bytes', 'AESCipher'
+        #cipher = iv + AES(self.key, AES.MODE_CFB, iv)
+        #return cipher.encrypt(bytes(msg, 'utf-8'))
     
     
     def _decrypt(self, msg):
@@ -90,7 +89,7 @@ class MQTTCls(object):
         Optionally don't require a login to the MQTT server or encryption.
         These are ideal for things such as ping.
         '''        
-        debug("encrypt: '" + str(encrypt) + "'", level = 1)
+        debug("encrypt: '" + str(encrypt) + "'")
         
         maint()
         
@@ -122,15 +121,21 @@ class MQTTCls(object):
         
         self.sub(topic)
         
-        # FIXME How do I do retries? Don't want it to wait forever.
-        #for i in range(retries):
-        while 1:
+        for i in range(retries):
+            #while 1:
             # Upon success it will break
             # FIXME Test
             # FIXME I think I want check_msg() and sleep(1) but let me try this
             # FIXME Newp. Just hangs on wait_msg(). Try the example code next.
             # https://github.com/micropython/micropython-lib/blob/master/umqtt.simple/example_sub.py
-            self.client.wait_msg()
+            # FIXME Might just need a longer retry?
+            # TODO Should I idle and/or maint()? Should maint() also idle()?
+            self.client.check_msg()
+            sleep(1)
+        
+        # The full topic would be device and serial and all that. Remove all
+        # but the end topic name.
+        topic = topic.split('/')[-1]
         
         try:
             msg = self.data[topic]
@@ -147,9 +152,9 @@ class MQTTCls(object):
         '''Callback to collect messages as they come in'''
         # The full topic would be device and serial and all that. Remove all
         # but the end topic name.
-        debug("topic: '" + str(topic) + "'")
-        debug("msg: '" + str(msg) + "'")
-        basename_topic = topic.decode("utf-8").split('/')[-1]
+        debug("topic: '" + str(topic) + "'", level = 1)
+        debug("msg: '" + str(msg) + "'", level = 1)
+        topic = topic.decode("utf-8").split('/')[-1]
         # FIXME I don't think I want to always decode?
         self.data[topic] = msg.decode("utf-8")
     
@@ -157,8 +162,10 @@ class MQTTCls(object):
     def sub(self, topic, login = True, retries = None):
         '''Subscribes to an MQTT topic'''
         maint()
-        if not self.resub and topic in self.data:
-            return
+        
+        # FIXME Uncomment
+        #if not self.resub and topic in self.data:
+        #    return
         
         if not retries:
             retries = self.retries

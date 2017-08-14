@@ -37,10 +37,6 @@ class CloudCls(object):
         '''Ensure login is functioning'''
         maint()
         result = self.send('ping', encrypt = False)
-        # FIXME Remove
-        from time import sleep
-        sleep(10)
-        
         debug("result: '" + str(result) + "'")
         debug("type(result): '" + str(type(result)) + "'")
         #try:
@@ -94,10 +90,6 @@ class CloudCls(object):
         #    warning = ("Unable to send to the cloud. Topic: '",
         #                str(topic) + "', message: '" + str(message) + "'")
         #    raise RuntimeError(warning)
-
-        # FIXME Remove
-        from time import sleep
-        sleep(10)
         
         if not encrypt:
             # Then we also have nothing to decrypt
@@ -105,6 +97,9 @@ class CloudCls(object):
         
         # FIXME be aware that mqtt.get() returns a byte object
         result = self.mqtt.get(topic, decrypt = decrypt)
+        
+        debug("result: '" + str(result) + "'")
+        
         # TODO This may be a bit cleaner if we try/except on the error
         #   TypeError: can't convert 'NoneType' object to str implicitly
         if result is not None:

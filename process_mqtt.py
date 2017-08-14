@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # From http://www.steves-internet-guide.com/into-mqtt-python-client/
+from json import dumps
 from time import sleep
 from re import sub as re_sub
 import paho.mqtt.client as mqtt
@@ -24,7 +25,7 @@ def on_message(client, userdata, in_msg):
 
     # Don't encrypt ping/ack
     if in_msg.topic.endswith('/ping'):
-        out_msg = 'ack'
+        out_msg = dumps('ack')
         
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
     client.publish(out_topic, out_msg)
