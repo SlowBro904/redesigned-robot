@@ -1,5 +1,6 @@
 # TODO Failover
 import debugging
+from time import sleep
 from config import config
 from system import SystemCls
 from maintenance import maint
@@ -23,11 +24,11 @@ class MQTTCls(object):
         
         self.key = bytes(config.conf['ENCRYPTION_KEY'], 'utf-8')
         
-        port = config.conf['MQTT_PORT']
         server = config.conf['MQTT_SERVER']
-        retries = config.conf['MQTT_RETRIES']
+        port = int(config.conf['MQTT_PORT'])
         timeout = config.conf['MQTT_TIMEOUT']
         device_name = config.conf['DEVICE_NAME']
+        self.retries = config.conf['MQTT_RETRIES']
         username = config.conf['SERVICE_ACCOUNT_EMAIL']
         password = config.conf['SERVICE_ACCOUNT_PASSWORD']
         
@@ -38,27 +39,34 @@ class MQTTCls(object):
         self.root_path = device_name + '/' + serial + '/' + version
         
         # A normal client
-        self.client = MQTTClient(serial, username, password, server, port)
+        self.client = MQTTClient(serial, server, port, username, password)
         self.client.settimeout = timeout
     
     
     def connect(self):
         '''Connect to the MQTT broker'''
         maint()
-        self.client.set_callback(_sub_cb)
+        self.client.set_callback(self._sub_cb)
         # See the notes here on clean_session
         # https://github.com/micropython/micropython-lib/blob/master/umqtt.robust/example_sub_robust.py
+        # FIXME On connection failure we get OSError: -1
         if not self.client.connect(clean_session = False):
             self.resub = True
-        #self.client_nl.connect(clean_session = False):
-        #    self.resub = True
+
+        # FIMXE Remove
+        sleep(10)
     
     
     def disconnect(self):
         '''Disconnect from the MQTT broker'''
         maint()
         self.client.disconnect()
-        #self.client_nl.disconnect()
+    
+    
+    def ping(self):
+        '''Pings the MQTT broker'''
+        maint()
+        return self.client.ping()
     
     
     def _encrypt(self, msg):
@@ -81,7 +89,9 @@ class MQTTCls(object):
         
         Optionally don't require a login to the MQTT server or encryption.
         These are ideal for things such as ping.
-        '''
+        '''        
+        debug("encrypt: '" + str(encrypt) + "'", level = 1)
+        
         maint()
         
         if not retries:
@@ -112,13 +122,20 @@ class MQTTCls(object):
         
         self.sub(topic)
         
-        for i in range(retries):    
+        # FIXME How do I do retries? Don't want it to wait forever.
+        #for i in range(retries):
+        while 1:
             # Upon success it will break
             # FIXME Test
-            self.client.check_msg()
-            sleep(1)
+            # FIXME I think I want check_msg() and sleep(1) but let me try this
+            # FIXME Newp. Just hangs on wait_msg(). Try the example code next.
+            # https://github.com/micropython/micropython-lib/blob/master/umqtt.simple/example_sub.py
+            self.client.wait_msg()
         
-        msg = self.data[topic]
+        try:
+            msg = self.data[topic]
+        except KeyError:
+            msg = None
         
         if decrypt:
             msg = self._decrypt(msg)
@@ -130,8 +147,11 @@ class MQTTCls(object):
         '''Callback to collect messages as they come in'''
         # The full topic would be device and serial and all that. Remove all
         # but the end topic name.
-        basename_topic = topic.split('/')[-1]
-        self.data[topic] = msg
+        debug("topic: '" + str(topic) + "'")
+        debug("msg: '" + str(msg) + "'")
+        basename_topic = topic.decode("utf-8").split('/')[-1]
+        # FIXME I don't think I want to always decode?
+        self.data[topic] = msg.decode("utf-8")
     
     
     def sub(self, topic, login = True, retries = None):

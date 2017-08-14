@@ -24,11 +24,6 @@ class WIFI(object):
         if not power_save:
             power_save = config.conf['WIFI_POWER_SAVE']
         
-        # TODO Not working. I True here and it goes False elsewhere.
-        debugging.enabled = debug
-        debugging.default_level = debug_level
-        self.debug = debugging.printmsg
-        
         self._all_SSIDs = set()
         self.mode = self.mode2int(mode)
         self.ant = self.ant2int(ant)
@@ -38,7 +33,7 @@ class WIFI(object):
         
         if self.mode is WLAN.STA:
             self.power_save = power_save
-            self.wlan = WLAN(mode = self.mode, ant = self.ant, 
+            self.wlan = WLAN(mode = self.mode, antenna = self.ant, 
                                     power_save = power_save)
         else:
             # Either AP or STA_AP mode
@@ -273,7 +268,7 @@ def sta(debug = False):
     Uses DHCP to get an IP.
     '''
     # Use the default config
-    wifi = WIFI(debug = debug)
+    wifi = WIFI()
     return wifi
 
 
@@ -288,7 +283,7 @@ def sta_ap(debug = False):
     # show in server web admin.
     # TODO Make it possible to change AP_PASSWORD.
     
-    wifi = WIFI(mode = 'STA_AP', debug = debug)
+    wifi = WIFI(mode = 'STA_AP')
     
     # id = 1 is the access point interface
     wifi.ifconfig(id = 1, ip = ip, subnet_mask = subnet_mask, 

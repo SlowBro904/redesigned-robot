@@ -1,9 +1,15 @@
 print("Starting test_cloud")
-from wifi import mywifi, sta_ap
-mywifi = sta_ap()
+from wifi import mywifi, sta
+mywifi = sta()
+mywifi.connect()
+
 from cloud import cloud
-print("Here")
 from test_suite import good
+
+# FIXME Incorporate ping() into main.py. But wait, does this actually do
+# anything?
+assert cloud.ping() is None, "cloud.ping()"
+good("cloud.ping()")
 
 assert cloud.can_login() is True, "cloud.can_login()"
 good("cloud.can_login()")
