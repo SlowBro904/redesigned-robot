@@ -14,8 +14,5 @@ good("cloud.ping()")
 assert cloud.can_login() is True, "cloud.can_login()"
 good("cloud.can_login()")
 
-assert cloud.encryption_working() is True, "cloud.encryption_working()"
-good("cloud.encryption_working()")
-
 assert cloud.isconnected() is True, "cloud.isconnected()"
 good("cloud.isconnected()")

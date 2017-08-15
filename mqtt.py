@@ -4,6 +4,7 @@ from time import sleep
 from config import config
 from system import SystemCls
 from maintenance import maint
+from ujson import dumps, loads
 from crypto import AES, getrandbits
 # TODO Add exception AdafruitIOError but under what conditions
 from umqtt.robust import MQTTClient
@@ -80,7 +81,10 @@ class MQTTCls(object):
     
     
     def _decrypt(self, msg):
-        return AES(self.key, AES.MODE_CFB, msg[:16]).decrypt(msg[16:])
+        # FIXME Not using encryption for now. Going to see what AWS requires.
+        # Maybe they have a better scheme than I could craft. Libraries, etc.
+        pass
+        #return AES(self.key, AES.MODE_CFB, msg[:16]).decrypt(msg[16:])
     
     
     def publish(self, topic, msg, encrypt = True, retries = None):
@@ -88,23 +92,29 @@ class MQTTCls(object):
         
         Optionally don't require a login to the MQTT server or encryption.
         These are ideal for things such as ping.
-        '''        
-        debug("encrypt: '" + str(encrypt) + "'")
+        '''
+        debug("encrypt: '" + str(encrypt) + "'", level = 1)
         
         maint()
         
         if not retries:
             retries = self.retries
         
-        if encrypt:
-            msg = self._encrypt(msg)
+        # FIXME Not using encryption for now. See note in _decrypt().
+        #if encrypt:
+        #    msg = self._encrypt(msg)
         
         result = None
         
         in_topic = bytes(self.root_path + '/in/' + topic, 'utf-8')
         
+        debug("in_topic: '" + str(in_topic) + "'", level = 1)
+        debug("type(in_topic): '" + str(type(in_topic)) + "'", level = 1)
+        debug("msg: '" + str(msg) + "'", level = 1)
+        debug("type(msg): '" + str(type(msg)) + "'", level = 1)
+        
         for i in range(retries):
-            result = self.client.publish(in_topic, msg)
+            result = self.client.publish(in_topic, dumps(msg))
             
             if result:
                 break
@@ -142,8 +152,9 @@ class MQTTCls(object):
         except KeyError:
             msg = None
         
-        if decrypt:
-            msg = self._decrypt(msg)
+        # FIXME Not using encryption for now. See note in _decrypt().
+        #if decrypt:
+        #    msg = self._decrypt(msg)
         
         return msg
     
@@ -156,7 +167,7 @@ class MQTTCls(object):
         debug("msg: '" + str(msg) + "'", level = 1)
         topic = topic.decode("utf-8").split('/')[-1]
         # FIXME I don't think I want to always decode?
-        self.data[topic] = msg.decode("utf-8")
+        self.data[topic] = loads(msg.decode("utf-8"))
     
     
     def sub(self, topic, login = True, retries = None):

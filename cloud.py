@@ -2,7 +2,6 @@ import debugging
 #from err import ErrCls
 from mqtt import MQTTCls
 from maintenance import maint
-from ujson import loads, dumps
 
 debug = debugging.printmsg
 testing = debugging.testing
@@ -37,8 +36,8 @@ class CloudCls(object):
         '''Ensure login is functioning'''
         maint()
         result = self.send('ping', encrypt = False)
-        debug("result: '" + str(result) + "'")
-        debug("type(result): '" + str(type(result)) + "'")
+        debug("result: '" + str(result) + "'", level = 1)
+        debug("type(result): '" + str(type(result)) + "'", level = 1)
         #try:
         return result is 'ack'
         #except:
@@ -49,9 +48,12 @@ class CloudCls(object):
         '''Ensure encryption is functioning'''
         maint()
         #try:
-        return self.send('ping', encrypt = True) == 'ack'
+        result = self.send('ping', encrypt = True)
+        debug("result: '" + str(result) + "'")
+        debug("type(result): '" + str(type(result)) + "'")
         #except:
         #    return False
+        return result is 'ack'
     
     
     def isconnected(self):
@@ -60,13 +62,15 @@ class CloudCls(object):
         try:
             status = self._status
         except AttributeError:
-            status = (self.can_login() and self.encryption_working())
+            # FIXME Not using encryption. See note in mqtt.py _decrypt().
+            #status = (self.can_login() and self.encryption_working())
+            status = self.can_login()
         
         self._status = status
         return self._status
     
     
-    def send(self, topic, message = None, encrypt = True):
+    def send(self, topic, msg = None, encrypt = True):
         '''Send a message to a topic and gets the reply.
         
         For example, topic = 'door_status', message = 'up'
@@ -84,13 +88,14 @@ class CloudCls(object):
         # can raise a RuntimeError
         #try:
         # FIXME Remove
-        self.mqtt.publish(topic, dumps(message), encrypt)
+        self.mqtt.publish(topic, msg, encrypt)
         #except:
         #    # TODO If we get multiple send warnings only record one
         #    warning = ("Unable to send to the cloud. Topic: '",
         #                str(topic) + "', message: '" + str(message) + "'")
         #    raise RuntimeError(warning)
         
+        decrypt = True
         if not encrypt:
             # Then we also have nothing to decrypt
             decrypt = False
@@ -98,12 +103,12 @@ class CloudCls(object):
         # FIXME be aware that mqtt.get() returns a byte object
         result = self.mqtt.get(topic, decrypt = decrypt)
         
-        debug("result: '" + str(result) + "'")
+        debug("result: '" + str(result) + "'", level = 1)
         
         # TODO This may be a bit cleaner if we try/except on the error
         #   TypeError: can't convert 'NoneType' object to str implicitly
         if result is not None:
-            return loads(result)
+            return result
 
 # end of class CloudCls(object)
 
