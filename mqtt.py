@@ -64,6 +64,8 @@ class MQTTCls(object):
     def ping(self):
         '''Pings the MQTT broker'''
         maint()
+        # FIXME Test ping fail to wrong IP. If ping is not None return True
+        # else False.
         return self.client.ping()
     
     
@@ -166,12 +168,13 @@ class MQTTCls(object):
     def _sub_cb(self, topic, msg):
         '''Callback to collect messages as they come in'''
         # The full topic would be device and serial and all that. Remove all
-        # but the end topic name.
+        # but the end topic name. Also decode from bytes() format to string,
+        # then from string to native Python object using loads().
+        topic = topic.decode("utf-8").split('/')[-1]
+        msg = loads(msg.decode("utf-8"))
         debug("_sub_cb() topic: '" + str(topic) + "'", level = 0)
         debug("_sub_cb() msg: '" + str(msg) + "'", level = 0)
-        topic = topic.decode("utf-8").split('/')[-1]
-        # FIXME I don't think I want to always decode?
-        self.data[topic] = loads(msg.decode("utf-8"))
+        self.data[topic] = msg
     
     
     def sub(self, topic, login = True, retries = None):
