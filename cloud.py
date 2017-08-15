@@ -1,5 +1,5 @@
 import debugging
-#from err import ErrCls
+from err import ErrCls
 from mqtt import MQTTCls
 from maintenance import maint
 
@@ -10,7 +10,7 @@ class CloudCls(object):
     def __init__(self):
         '''Sets up communications with the cloud servers'''
         maint()
-        #self.err = ErrCls()
+        self.err = ErrCls()
         self.mqtt = MQTTCls()
         debug("__init__() complete", level = 1)
     
@@ -76,6 +76,8 @@ class CloudCls(object):
         For example, topic = 'door_status', message = 'up'
         '''
         maint()
+        debug("topic: '" + str(topic) + "'", level = 0)
+        debug("msg: '" + str(msg) + "'", level = 0)
         
         # FIXME What if we only had a temporary burp at startup?
         # FIXME Some way, some how, check if we are connected and if not, raise
@@ -87,7 +89,6 @@ class CloudCls(object):
         # FIXME Get the exact exception type on failure so we 
         # can raise a RuntimeError
         #try:
-        # FIXME Remove
         self.mqtt.publish(topic, msg, encrypt)
         #except:
         #    # TODO If we get multiple send warnings only record one
@@ -103,7 +104,7 @@ class CloudCls(object):
         # FIXME be aware that mqtt.get() returns a byte object
         result = self.mqtt.get(topic, decrypt = decrypt)
         
-        debug("result: '" + str(result) + "'", level = 1)
+        debug("result: '" + str(result) + "'", level = 0)
         
         # TODO This may be a bit cleaner if we try/except on the error
         #   TypeError: can't convert 'NoneType' object to str implicitly

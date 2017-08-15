@@ -108,10 +108,14 @@ class MQTTCls(object):
         
         in_topic = bytes(self.root_path + '/in/' + topic, 'utf-8')
         
-        debug("in_topic: '" + str(in_topic) + "'", level = 1)
-        debug("type(in_topic): '" + str(type(in_topic)) + "'", level = 1)
-        debug("msg: '" + str(msg) + "'", level = 1)
-        debug("type(msg): '" + str(type(msg)) + "'", level = 1)
+        if not msg:
+            msg = 'null'
+        
+        debug("publish() in_topic: '" + str(in_topic) + "'", level = 0)
+        debug("publish() type(in_topic): '" + str(type(in_topic)) + "'",
+                level = 0)
+        debug("publish() msg: '" + str(msg) + "'", level = 0)
+        debug("publish() type(msg): '" + str(type(msg)) + "'", level = 0)
         
         for i in range(retries):
             result = self.client.publish(in_topic, dumps(msg))
@@ -163,8 +167,8 @@ class MQTTCls(object):
         '''Callback to collect messages as they come in'''
         # The full topic would be device and serial and all that. Remove all
         # but the end topic name.
-        debug("topic: '" + str(topic) + "'", level = 1)
-        debug("msg: '" + str(msg) + "'", level = 1)
+        debug("_sub_cb() topic: '" + str(topic) + "'", level = 0)
+        debug("_sub_cb() msg: '" + str(msg) + "'", level = 0)
         topic = topic.decode("utf-8").split('/')[-1]
         # FIXME I don't think I want to always decode?
         self.data[topic] = loads(msg.decode("utf-8"))

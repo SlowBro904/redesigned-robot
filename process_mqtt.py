@@ -22,13 +22,20 @@ def debug(msg, level = 0):
 def on_message(client, userdata, in_msg):
     '''Callback for when we get messages'''
     debug("in_msg: '" + str(in_msg) + "'", level = 1)
+    debug("in_msg.topic: '" + str(in_msg.topic) + "'", level = 0)
+    debug("type(in_msg.topic): '" + str(type(in_msg.topic)) + "'", level = 0)
+    
+    # Just the end subtopic, the rest is meta
+    topic = in_msg.topic.split('/')[-1]
 
-    # Don't encrypt ping/ack
-    if in_msg.topic.endswith('/ping'):
-        out_msg = dumps('ack')
+    if topic == 'ping':
+        # Don't encrypt ping/ack
+        out_msg = 'ack'
+    elif topic == 'get_new_dirs':
+        out_msg = ['deleteme']
         
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
-    client.publish(out_topic, out_msg)
+    client.publish(out_topic, dumps(out_msg))
 
 
 def on_log(client, userdata, level, buf):
@@ -46,7 +53,7 @@ client.connect('localhost')
 # Client name and version they are at
 authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
 device_kys = {'SB': {'240ac400b1b6': 'abcd1234'}}
-topics = {'SB': ['ping']}
+topics = {'SB': ['ping', 'get_new_directories']}
 
 # Setup our callback
 client.on_message = on_message

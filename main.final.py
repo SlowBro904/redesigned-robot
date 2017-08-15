@@ -7,21 +7,32 @@ import updates
 install_updates()
 
 # The rest of our modules
+# Tested
 import fac_rst
 import web_admin
 from rtc import RTC
+# Tested
 from leds import leds
+# Tested
 from cloud import Cloud
+# Tested
 from config import config
+# Tested
 from err import ErrCls
+# Tested
 from system import System
+# Tested
 from battery import Battery
+# Tested
 from wifi import sta, sta_ap
 from schedule import Schedule
+# Tested
+from maintenance import maint
+# Tested
 from datastore import DataStore
 from boot_cause import boot_cause
-from updates import install_updates
-from maintenance import maint
+from updates import install_updates, get_new_dirs, get_sys_updates
+# Tested
 from machine import sleep, WAKEUP_ANY_HIGH, deepsleep, pin_deepsleep_wakeup
 
 err = Err()
@@ -63,12 +74,13 @@ rtc.start()
 cloud.connect()
     
 try:
-    updates.get_system_updates()
+    get_new_dirs()
+    get_sys_updates()
     cloud.send('version', system.version)
     cloud.send('battery_charge', battery.charge)
     cloud.send('attached_devices', system.attached_devices)
     cloud.send('ntp_status', rtc.ntp_status)
-    updates.get_data_updates()
+    get_data_updates()
 except RuntimeError:
     # Ignore if not connected
     pass

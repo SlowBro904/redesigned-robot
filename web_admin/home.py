@@ -64,8 +64,6 @@ def show(parameters):
     <br />
     <a href='/error_log'>Error log</a><br />
     <br />
-    <a href='/advanced/setup'>Advanced</a><br />
-    <br />
     ''' + device_name + " software version " + version + " | " +
     " Serial number " + serial
     

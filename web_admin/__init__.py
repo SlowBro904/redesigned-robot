@@ -1,6 +1,6 @@
 from err import ErrCls
 
-err = Err()
+err = ErrCls()
 
 def status():
     '''Returns True if running'''
