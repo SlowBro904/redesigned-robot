@@ -52,8 +52,8 @@ client.connect('localhost')
 
 # Client name and version they are at
 authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
-device_kys = {'SB': {'240ac400b1b6': 'abcd1234'}}
-topics = {'SB': ['ping', 'get_new_directories']}
+device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
+topics = {'SB': ['ping', 'get_new_dirs']}
 
 # Setup our callback
 client.on_message = on_message

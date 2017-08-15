@@ -134,6 +134,7 @@ def get_new_dirs():
     '''Create any new directories on our system'''
     try:
         # Create any new directories
+        # FIXME Returns 'b'["deleteme"]''
         new_dirs = cloud.send('get_new_dirs')
     except RuntimeError as warning:
         err.warning(warning + " ('updates.py', 'get_new_dirs')")
