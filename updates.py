@@ -134,15 +134,12 @@ def get_new_dirs():
     '''Create any new directories on our system'''
     try:
         # Create any new directories
-        # FIXME Returns b'["deleteme"]'
+        # FIXME Returns 'b'["deleteme"]''
         new_dirs = cloud.send('get_new_dirs')
     except RuntimeError as warning:
         err.warning(warning + " ('updates.py', 'get_new_dirs')")
     
     maint()
-    
-    debug("new_dirs: '" + str(new_dirs) + "'")
-    debug("type(new_dirs): '" + str(type(new_dirs)) + "'")
     
     if new_dirs:
         for new_dir in new_dirs:
@@ -191,10 +188,10 @@ def get_sys_updates():
     successfully_updated_files = list()
     
     for update in updates:
-        file = update[0]
+        script_file = update[0]
         expected_sha_sum = update[1]
-        contents = update[2]
-        new_file = file + '.new'
+        script_contents = update[2]
+        new_file = script_file + '.new'
         
         maint()
         
@@ -202,7 +199,7 @@ def get_sys_updates():
             # Create the file as .new and upon reboot our system will see the
             # .new file and delete the existing version, install the new.
             with open('/flash/' + new_file, 'w') as f:
-                for row in contents:
+                for row in script_contents:
                     f.write(row)
         except: # FIXME except what?
             _clean_failed_sys_updates(updates, successfully_updated_files,
@@ -220,7 +217,7 @@ def get_sys_updates():
         stored_sha_sum = stored_sha_sum.digest()
         
         if stored_sha_sum == expected_sha_sum:
-            successfully_updated_files.append(file)
+            successfully_updated_files.append(script_file)
         else:
             _clean_failed_sys_updates(updates, successfully_updated_files,
                                         web_admin_started, new_file)

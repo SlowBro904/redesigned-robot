@@ -3,7 +3,7 @@
 import os
 from glob import glob
 from time import sleep
-from haslib import sha512
+from hashlib import sha512
 from itertools import chain
 from re import sub as re_sub
 import paho.mqtt.client as mqtt
@@ -12,6 +12,8 @@ from json import dumps, load, dump
 
 debug_enabled = True
 default_level = 0
+client_code_base = '/clients'
+
 def debug(msg, level = 0):
     '''Prints a debug message'''
     if not debug_enabled:
@@ -50,23 +52,23 @@ def get_sha_sums(dir):
     tuple of two lists: The first list is a list of directories and the second 
     is a list of tuples which are file names with their SHA-512 hash.
     '''
-    directories = list()
+    dirs = list()
     files = list()
     # TODO There's probably a way to combine these statements but I'm not that
     # advanced yet.
     for file in (chain.from_iterable(glob(os.path.join(x[0], '*')) for x in os.walk(dir))):
-        if os.isdir(file):
+        if os.path.isdir(file):
             # It's actually a directory. Don't attempt SHA-512.
-            directories.append(file)
+            dirs.append(file)
             continue
         
         sha = sha512()
-        with open(file) as f:
+        with open(file, 'rb') as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 sha.update(chunk)
-            sha = sha.digest()
+            sha = sha.hexdigest()
             files.append((file, sha))
-    return (directories, files)
+    return (dirs, files)
 
 
 def check_file_list(dir):
@@ -78,20 +80,42 @@ def check_file_list(dir):
     version.json and all other files in the directory, and this will
     automatically update the file list.
     '''
-    # FIXME And if it doesn't exist?
+    debug("check_file_list()", level = 1)
+    dir = client_code_base + '/' + dir
+    
+    try:
+        debug("trying to open version.json", level = 1)
+        open(dir + '/version.json')
+        open(dir + '/file_list.json')
+    except FileNotFoundError:
+        # TODO Also [Errno 2]
+        # Initialize
+        debug("could not open version.json", level = 1)
+        code_ver = '0.0.0'
+        debug("About to create version.json", level = 1)
+        with open(dir + '/version.json', 'w') as f:
+            dump(code_ver, f)
+        
+        debug("Just created version.json, now to create file_list.json", level = 1)
+        
+        file_list_ver = code_ver
+        dirs, files = get_sha_sums(dir)
+        with open(dir + '/file_list.json', 'w') as f:
+            dump((file_list_ver, dirs, files), f)
+    
     with open(dir + '/version.json') as f:
         code_ver = load(f)
-
+    
     with open(dir + '/file_list.json') as f:
         file_list_ver = load(f)[0]
-
+    
     if file_list_ver != code_ver:
-        directories, files = get_sha_sums(dir)
-
-    # FIXME Exclude file_list.json from SHA checking on the client since it
-    # will differ from the line above to now
-    with open(dir + '/file_list.json', 'w') as f:
-        dump((code_ver, directories, files), f)
+        dirs, files = get_sha_sums(dir)
+        
+        # FIXME Exclude file_list.json from SHA checking on the client since it
+        # will differ from the line above to now
+        with open(dir + '/file_list.json', 'w') as f:
+            dump((code_ver, dirs, files), f)
 
 
 def on_log(client, userdata, level, buf):
@@ -103,26 +127,28 @@ def _encrypt(msg):
     iv = getrandbits(128)
     return iv + AES(key, AES.MODE_CFB, iv).encrypt(bytes(msg))
 
-client = mqtt.Client(client_id = 'better_automations')
-client.connect('localhost')
-
-# Client name and version they are at
-authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
-device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
-topics = {'SB': ['ping', 'get_new_dirs']}
-
-# Setup our callback
-client.on_message = on_message
-client.on_log = on_log
-client.loop_start()
-
-# Subscribe to all of our authorized device topics
-for device_type in authorized_devices:
-    for serial, version in authorized_devices[device_type].items():
-        root_path = device_type + '/' + serial + '/' + version + '/in/'
-        for topic in topics[device_type]:
-            mytopic = root_path + topic
-            client.subscribe(mytopic, qos = 1)
-
-while True:
-    sleep(1)
+# FIXME Uncomment all, move to another script
+#client = mqtt.Client(client_id = 'better_automations')
+#client.connect('localhost')
+#
+## Client name and version they are at
+#authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
+#device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
+#topics = {'SB': ['ping', 'get_new_dirs']}
+#
+## Setup our callback
+#client.on_message = on_message
+#client.on_log = on_log
+#client.loop_start()
+#
+## Subscribe to all of our authorized device topics
+#for device_type in authorized_devices:
+#    for serial, version in authorized_devices[device_type].items():
+#        root_path = device_type + '/' + serial + '/' + version + '/in/'
+#        for topic in topics[device_type]:
+#            mytopic = root_path + topic
+#            client.subscribe(mytopic, qos = 1)
+#
+#
+#while True:
+#    sleep(1)
