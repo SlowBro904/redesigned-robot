@@ -28,23 +28,37 @@ def debug(msg, level = 0):
 def on_message(client, userdata, in_msg):
     '''Callback for when we get messages'''
     debug("in_msg: '" + str(in_msg) + "'", level = 1)
-    debug("in_msg.topic: '" + str(in_msg.topic) + "'", level = 0)
-    debug("type(in_msg.topic): '" + str(type(in_msg.topic)) + "'", level = 0)
+    debug("in_msg.topic: '" + str(in_msg.topic) + "'", level = 1)
+    debug("type(in_msg.topic): '" + str(type(in_msg.topic)) + "'", level = 1)
     
-    # Just the end subtopic, the rest is meta
-    topic = in_msg.topic.split('/')[-1]
-
+    dev_type, serial, ver, __, topic = in_msg.topic.split('/')
+    msg = in_msg.value
+    code_base = client_code_base + '/' + dev_type
+    
     if topic == 'ping':
         # Don't encrypt ping/ack
         out_msg = 'ack'
+    
     # FIXME Need a list of directories or maybe a protection file
     # (do_not_purge.json?) that don't get purged when we do an update. Data
     # directories, config files, and the like.
+    elif topic == 'curr_client_ver':
+        with open(code_base + '/version.json') as f:
+            out_msg = load(f)
+    
     elif topic == 'get_file_list':
-        out_msg = ['deleteme']
-        
+        check_file_list()
+        with open(code_base + '/file_list.json') as f:
+            out_msg = f.readlines()
+
+    elif topic == 'get_file':
+        file = msg
+        with open(code_base + '/' + file) as f:
+            out_msg = f.readlines()
+    
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
-    client.publish(out_topic, dumps(out_msg))
+    sha = sha512(out_msg).hexdigest()
+    client.publish(out_topic, (dumps(out_msg), sha))
 
 
 def get_sha_sums(dir):
@@ -56,18 +70,19 @@ def get_sha_sums(dir):
     files = list()
     # TODO There's probably a way to combine these statements but I'm not that
     # advanced yet.
-    for file in (chain.from_iterable(glob(os.path.join(x[0], '*')) for x in os.walk(dir))):
-        if os.path.isdir(file):
-            # It's actually a directory. Don't attempt SHA-512.
-            dirs.append(file)
-            continue
-        
-        sha = sha512()
-        with open(file, 'rb') as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                sha.update(chunk)
-            sha = sha.hexdigest()
-            files.append((file, sha))
+    for x in os.walk(dir):
+        for file in (chain.from_iterable(glob(os.path.join(x[0], '*')))):
+            if os.path.isdir(file):
+                # It's actually a directory. Don't attempt SHA-512.
+                dirs.append(file)
+                continue
+            
+            sha = sha512()
+            with open(file, 'rb') as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    sha.update(chunk)
+                sha = sha.hexdigest()
+                files.append((file, sha))
     return (dirs, files)
 
 
@@ -96,7 +111,8 @@ def check_file_list(dir):
         with open(dir + '/version.json', 'w') as f:
             dump(code_ver, f)
         
-        debug("Just created version.json, now to create file_list.json", level = 1)
+        debug("Just created version.json, now to create file_list.json",
+                level = 1)
         
         file_list_ver = code_ver
         dirs, files = get_sha_sums(dir)

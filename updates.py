@@ -8,15 +8,18 @@ from err import ErrCls
 from cloud import cloud
 from reboot import reboot
 from uhashlib import sha512
+from system import SystemCls
 from os import remove, rename
 from maintenance import maint
 from ujson import loads, dumps
 
 err = ErrCls()
+system = SystemCls()
 debug = debugging.printmsg
 testing = debugging.testing
 
-updated_files_listing = '/flash/updated_files.json'
+file_list = '/flash/file_list.json'
+updated_files_list = '/flash/updated_files.json'
 
 debug("updates.py cloud.isconnected(): '" + str(cloud.isconnected()) + "'")
 
@@ -43,7 +46,7 @@ def get_data_updates(get_all = False):
     except OSError:
         # Does not exist, ignore
         pass
-
+    
     try:
         if get_all:
             updates = cloud.send('get_all_data_files')
@@ -130,53 +133,82 @@ def _clean_failed_sys_updates(updates, successfully_updated_files,
         leds.LED()
 
 
-def get_new_dirs():
-    '''Create any new directories on our system'''
-    try:
-        # Create any new directories
-        # FIXME Returns 'b'["deleteme"]''
-        new_dirs = cloud.send('get_new_dirs')
-    except RuntimeError as warning:
-        err.warning(warning + " ('updates.py', 'get_new_dirs')")
+def curr_client_ver():
+    '''Get the current client version on the server and compare to our version.
     
-    maint()
+    If we are current return True, else return False.
+    '''
+    system_ver = system.version()
+    # FIXME Wrap wiith except RuntimeError
+    curr_client_ver = cloud.send('curr_client_ver')
+    return system_ver == curr_client_ver
+
+
+def new_dirs(server_dirs)
+    '''Gets any directories we don't have which need to be created'''
+    new_dirs = list()
+    for dir in server_dirs:
+        try:
+            open('/flash/' + dir)
+        except: # FIXME Except what
+            new_dirs.append(dir)
     
-    if new_dirs:
-        for new_dir in new_dirs:
-            maint()
-            #try:
-            # exist_ok = True is a counter-intuitively-named flag. If the 
-            # parent directory does not exist we will create it first.
-            mkdir('/flash/' + new_dir, exist_ok = True)
-            #except:
-            #    warning = ("Unable to create new directory ", new_dir,
-            #                " ('updates.py', 'get_new_dirs')")
-            #    err.warning(warning)
+    return new_dirs
+
+
+def check_files():
+    '''Checks the file list to see if anything needs to be updated/repaired'''
+    with open(file_list) as f:
+        files = loads(f.read())
+    
+    update_files = list()
+    for file, expected_sha in files:
+        file = '/flash/' + file
+        try:
+            open(file)
+        except: # FIXME Except what
+            update_files.append(file)
+            # Don't need to check anything else, go to the next file
+            continue
+        
+        stored_sha = sha512()
+        with open('/flash/' + file) as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                stored_sha.update(chunk)
+            stored_sha.digest()
+
+        if stored_sha != expected_sha:
+            update_files.append(file)
+
+    return update_files
 
 
 def get_sys_updates():
     '''Update the scripts on our system'''    
     maint()
     
-    try:
-        updates = cloud.send('get_sys_updates')
-    except RuntimeError as warning:
-        err.warning(warning + " ('updates.py', 'get_sys_updates')")
-        return False
+    file_list_contents = cloud.send('get_file_list')
     
-    if not updates:
+    with open(file_list, 'w') as f:
+        f.write(file_list_contents)
+    
+    server_dirs = file_list_contents[1]
+    
+    new_dirs = new_dirs(server_dirs)
+    for new_dir in new_dirs:
+        maint()
+        #try:
+        # exist_ok = True is a counter-intuitively-named flag. If the 
+        # parent directory does not exist we will create it first.
+        mkdir('/flash/' + new_dir, exist_ok = True)
+        #except:
+        #    warning = ("Unable to create new directory ", new_dir,
+        #                " ('updates.py', 'get_new_dirs')")
+        #    err.warning(warning)
+    
+    update_files = check_files()
+    if not update_files:
         return None
-    
-    # TODO Not working
-    ##Signal that we are doing stuff. Warn/err every 500 ms.
-    # leds.blink(run = True, pattern = (
-                    # (leds.warn, True, 500),
-                    # (leds.warn, False, 0),
-                    # (leds.err, True, 500),
-                    # (leds.err, False, 0)))
-    leds.LED('warn')
-    
-    # FIXME Ensure we always update /flash/version.json via the server
     
     # Stop the web admin daemon
     #try:
@@ -187,39 +219,37 @@ def get_sys_updates():
     
     successfully_updated_files = list()
     
-    for update in updates:
-        script_file = update[0]
-        expected_sha_sum = update[1]
-        script_contents = update[2]
-        new_file = script_file + '.new'
-        
+    for file in update_files:
         maint()
+        
+        contents, expected_sha = cloud.send('get_file', file)
+        new_file = file + '.new'
         
         try:
             # Create the file as .new and upon reboot our system will see the
             # .new file and delete the existing version, install the new.
             with open('/flash/' + new_file, 'w') as f:
-                for row in script_contents:
+                for row in contents:
                     f.write(row)
         except: # FIXME except what?
-            _clean_failed_sys_updates(updates, successfully_updated_files,
+            _clean_failed_sys_updates(update_files, successfully_updated_files,
                                         web_admin_started)
             
             # Empty the list
             successfully_updated_files = list()
             return False
         
-        stored_sha_sum = sha512()
+        stored_sha = sha512()
         with open('/flash/' + new_file) as f:
             for chunk in iter(lambda: f.read(4096), b""):
-                stored_sha_sum.update(chunk)
+                stored_sha.update(chunk)
         
-        stored_sha_sum = stored_sha_sum.digest()
+        stored_sha = stored_sha.hexdigest()
         
-        if stored_sha_sum == expected_sha_sum:
-            successfully_updated_files.append(script_file)
+        if stored_sha == expected_sha:
+            successfully_updated_files.append(file)
         else:
-            _clean_failed_sys_updates(updates, successfully_updated_files,
+            _clean_failed_sys_updates(update_files, successfully_updated_files,
                                         web_admin_started, new_file)
             
             # Empty the list
@@ -233,30 +263,30 @@ def get_sys_updates():
     
     if successfully_updated_files:
         try:
-            with open(updated_files_listing) as f:
+            with open(updated_files_list) as f:
                 f.write(dumps(successfully_updated_files))
         except: # FIXME except what?
-            _clean_failed_sys_updates(updates, successfully_updated_files,
+            _clean_failed_sys_updates(update_files, successfully_updated_files,
                                         web_admin_started)
         
-        # Reboot and the system will install any .new files
-        # FIXME Test to ensure that boot.py is run on reboot()
+        # Reboot and the system will install any .new files. At boot we'll run
+        # install_updates().
         reboot()
 
 
 def install_updates():
-    '''Install any recent updates'''
+    '''Install any recent updates. Typically runs at boot.'''
     # FIXME Test upgrading this file (updates.py) as well
     maint()
     reboot = False
     
     try:
-        open(updated_files_listing)
+        open(updated_files_list)
     except OSError:
         return
     
     # Install any new versions of scripts
-    with open(updated_files_listing) as f:
+    with open(updated_files_list) as f:
         for file in loads(f.read()):
             # Set the flag to reboot after installing new files
             # TODO I think there is an anti-pattern for this...
@@ -275,7 +305,7 @@ def install_updates():
     if do_reboot:
         try:
             maint()
-            remove(updated_files_listing)
+            remove(updated_files_list)
         except OSError: # FIXME Get the exact exception type
             # Ignore if it does not exist
             pass
