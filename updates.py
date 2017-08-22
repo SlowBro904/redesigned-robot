@@ -138,10 +138,8 @@ def curr_client_ver():
     
     If we are current return True, else return False.
     '''
-    system_ver = system.version()
     # FIXME Wrap wiith except RuntimeError
-    curr_client_ver = cloud.send('curr_client_ver')
-    return system_ver == curr_client_ver
+    return system.version() == cloud.send('curr_client_ver')
 
 
 def new_dirs(server_dirs)

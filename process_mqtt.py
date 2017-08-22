@@ -99,20 +99,19 @@ def check_file_list(dir):
     dir = client_code_base + '/' + dir
     
     try:
-        debug("trying to open version.json", level = 1)
+        debug("Trying to open version.json", level = 1)
         open(dir + '/version.json')
         open(dir + '/file_list.json')
     except FileNotFoundError:
         # TODO Also [Errno 2]
         # Initialize
-        debug("could not open version.json", level = 1)
+        debug("Could not open version.json", level = 1)
         code_ver = '0.0.0'
         debug("About to create version.json", level = 1)
         with open(dir + '/version.json', 'w') as f:
             dump(code_ver, f)
         
-        debug("Just created version.json, now to create file_list.json",
-                level = 1)
+        debug("Created version.json, now to create file_list.json", level = 1)
         
         file_list_ver = code_ver
         dirs, files = get_sha_sums(dir)
