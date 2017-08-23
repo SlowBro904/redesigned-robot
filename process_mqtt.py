@@ -1,18 +1,26 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.4
 # From http://www.steves-internet-guide.com/into-mqtt-python-client/
 import os
-from glob import glob
 from time import sleep
+from glob import glob
 from hashlib import sha512
 from itertools import chain
 from re import sub as re_sub
 import paho.mqtt.client as mqtt
 from json import dumps, load, dump
+from multiprocessing import Process
 #from crypto import AES, getrandbits
 
 debug_enabled = True
 default_level = 0
 client_code_base = '/clients'
+
+mqtt_client = mqtt.Client(client_id = 'better_automations')
+
+# Client name and version they are at
+authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
+device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
+topics = {'SB': ['ping', 'get_new_dirs']}
 
 def debug(msg, level = 0):
     '''Prints a debug message'''
@@ -50,7 +58,7 @@ def on_message(client, userdata, in_msg):
         check_file_list()
         with open(code_base + '/file_list.json') as f:
             out_msg = f.readlines()
-
+    
     elif topic == 'get_file':
         file = msg
         # TODO Paranoid. Can they get files from anywhere else?
@@ -64,26 +72,26 @@ def on_message(client, userdata, in_msg):
 
 def get_sha_sums(dir):
     '''Recursively searches a directory for all folders and files and returns a
-    tuple of two lists: The first list is a list of directories and the second 
-    is a list of tuples which are file names with their SHA-512 hash.
+    tuple of a list and a dict: The list holds directory names and the dict's
+    keys are file names and the values are their SHA-512 hash.
     '''
     dirs = list()
-    files = list()
-    # TODO There's probably a way to combine these statements but I'm not that
-    # advanced yet.
-    for x in os.walk(dir):
-        for file in (chain.from_iterable(glob(os.path.join(x[0], '*')))):
-            if os.path.isdir(file):
-                # It's actually a directory. Don't attempt SHA-512.
-                dirs.append(file)
-                continue
-            
-            sha = sha512()
-            with open(file, 'rb') as f:
-                for chunk in iter(lambda: f.read(4096), b""):
-                    sha.update(chunk)
-                sha = sha.hexdigest()
-                files.append((file, sha))
+    files = dict()
+    # TODO Reduce this to less than 80 chars. I have a feeling for file is
+    # redundant. Found it here:
+    # https://stackoverflow.com/questions/18394147/recursive-sub-folder-search-and-return-files-in-a-list-python
+    for file in [y for x in os.walk(dir) for y in glob(os.path.join(x[0], '*'))]:
+        if os.path.isdir(file):
+            # It's actually a directory. Don't attempt SHA-512.
+            dirs.append(file)
+            continue
+        
+        sha = sha512()
+        with open(file, 'rb') as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                sha.update(chunk)
+            sha = sha.hexdigest()
+            files[file] = sha
     return (dirs, files)
 
 
@@ -143,28 +151,27 @@ def _encrypt(msg):
     iv = getrandbits(128)
     return iv + AES(key, AES.MODE_CFB, iv).encrypt(bytes(msg))
 
-# FIXME Uncomment all, move to another script
-#client = mqtt.Client(client_id = 'better_automations')
-#client.connect('localhost')
-#
-## Client name and version they are at
-#authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
-#device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
-#topics = {'SB': ['ping', 'get_new_dirs']}
-#
-## Setup our callback
-#client.on_message = on_message
-#client.on_log = on_log
-#client.loop_start()
-#
-## Subscribe to all of our authorized device topics
-#for device_type in authorized_devices:
-#    for serial, version in authorized_devices[device_type].items():
-#        root_path = device_type + '/' + serial + '/' + version + '/in/'
-#        for topic in topics[device_type]:
-#            mytopic = root_path + topic
-#            client.subscribe(mytopic, qos = 1)
-#
-#
-#while True:
-#    sleep(1)
+
+def sleepme():
+    while True:
+        sleep(1)
+
+if __name__ == '__main__':
+    mqtt_client.connect('localhost')
+    mqtt_client.loop_forever()
+    
+    # Setup our callbacks
+    mqtt_client.on_message = on_message
+    mqtt_client.on_log = on_log
+    
+    # Subscribe to all of our authorized device topics
+    for device_type in authorized_devices:
+        for serial, version in authorized_devices[device_type].items():
+            root_path = device_type + '/' + serial + '/' + version + '/in/'
+            for topic in topics[device_type]:
+                mytopic = root_path + topic
+                mqtt_client.subscribe(mytopic, qos = 1)
+    
+    # FIXME Remove import Process and sleepme()
+    #p = Process(target=sleepme)
+    #p.start()
