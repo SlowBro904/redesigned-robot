@@ -53,6 +53,7 @@ def on_message(client, userdata, in_msg):
 
     elif topic == 'get_file':
         file = msg
+        # TODO Paranoid. Can they get files from anywhere else?
         with open(code_base + '/' + file) as f:
             out_msg = f.readlines()
     

@@ -154,18 +154,15 @@ def new_dirs(server_dirs)
     return new_dirs
 
 
-def check_files():
+def new_files(server_files):
     '''Checks the file list to see if anything needs to be updated/repaired'''
-    with open(file_list) as f:
-        files = loads(f.read())
-    
-    update_files = list()
-    for file, expected_sha in files:
+    new_files = list()
+    for file, expected_sha in server_files:
         file = '/flash/' + file
         try:
             open(file)
         except: # FIXME Except what
-            update_files.append(file)
+            new_files.append(file)
             # Don't need to check anything else, go to the next file
             continue
         
@@ -176,19 +173,23 @@ def check_files():
             stored_sha.digest()
 
         if stored_sha != expected_sha:
-            update_files.append(file)
+            new_files.append(file)
 
-    return update_files
+    return new_files
 
 
 def get_sys_updates():
     '''Update the scripts on our system'''    
     maint()
     
-    file_list_contents = cloud.send('get_file_list')
-    
-    with open(file_list, 'w') as f:
-        f.write(file_list_contents)
+    if curr_client_ver():
+        with open(file_list) as f:
+            file_list_contents = f.read()
+    else:
+        file_list_contents = cloud.send('get_file_list')
+        
+        with open(file_list, 'w') as f:
+            f.write(file_list_contents)
     
     server_dirs = file_list_contents[1]
     
@@ -204,8 +205,8 @@ def get_sys_updates():
         #                " ('updates.py', 'get_new_dirs')")
         #    err.warning(warning)
     
-    update_files = check_files()
-    if not update_files:
+    new_files = check_files(file_list_contents[2])
+    if not new_files:
         return None
     
     # Stop the web admin daemon
@@ -217,7 +218,7 @@ def get_sys_updates():
     
     successfully_updated_files = list()
     
-    for file in update_files:
+    for file in new_files:
         maint()
         
         contents, expected_sha = cloud.send('get_file', file)
@@ -230,7 +231,7 @@ def get_sys_updates():
                 for row in contents:
                     f.write(row)
         except: # FIXME except what?
-            _clean_failed_sys_updates(update_files, successfully_updated_files,
+            _clean_failed_sys_updates(new_files, successfully_updated_files,
                                         web_admin_started)
             
             # Empty the list
@@ -247,7 +248,7 @@ def get_sys_updates():
         if stored_sha == expected_sha:
             successfully_updated_files.append(file)
         else:
-            _clean_failed_sys_updates(update_files, successfully_updated_files,
+            _clean_failed_sys_updates(new_files, successfully_updated_files,
                                         web_admin_started, new_file)
             
             # Empty the list
@@ -264,7 +265,7 @@ def get_sys_updates():
             with open(updated_files_list) as f:
                 f.write(dumps(successfully_updated_files))
         except: # FIXME except what?
-            _clean_failed_sys_updates(update_files, successfully_updated_files,
+            _clean_failed_sys_updates(new_files, successfully_updated_files,
                                         web_admin_started)
         
         # Reboot and the system will install any .new files. At boot we'll run
