@@ -3,7 +3,8 @@ import gc
 gc.enable()
 
 # Did we download any new updates? Install them now before anything runs.
-import updates
+# Test written
+from updates import install_updates, get_sys_updates
 install_updates()
 
 # The rest of our modules
@@ -31,7 +32,6 @@ from maintenance import maint
 # Tested
 from datastore import DataStore
 from boot_cause import boot_cause
-from updates import install_updates, get_new_dirs, get_sys_updates
 # Tested
 from machine import sleep, WAKEUP_ANY_HIGH, deepsleep, pin_deepsleep_wakeup
 
@@ -74,7 +74,6 @@ rtc.start()
 cloud.connect()
     
 try:
-    get_new_dirs()
     get_sys_updates()
     cloud.send('version', system.version)
     cloud.send('battery_charge', battery.charge)
