@@ -21,3 +21,17 @@ files = 2
 file_list_sha = file_list[files]['/clients/SB/version.json']
 assert file_list_sha == expected_sha, check
 good(check)
+
+check = "check_file_list() version"
+with open('/clients/SB/version.json') as f:
+    client_ver = load(f)
+version = 0
+file_list_ver = file_list[version]
+assert client_ver == file_list_ver, check
+good(check)
+
+check = "check_file_list() dirs"
+dirs = 1
+file_list_dirs = file_list[dirs]
+assert '/flash/testing.dir' in file_list_dirs, check
+good(check)
