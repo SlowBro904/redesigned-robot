@@ -5,10 +5,47 @@ mywifi.connect()
 
 from test_suite import good
 from os import listdir, remove
-from updates import get_new_dirs
+from updates import get_sys_updates
 
-# FIXME Wrong return in updates.py get_new_dirs() cloud.send()
-get_new_dirs()
-assert 'deleteme' in listdir(), "get_new_dirs()"
-good("get_new_dirs()")
-remove('deleteme')
+# Clean before starting
+updates = ['/flash/testing.dir', '/flash/testing.file']
+for file in updates:
+    try:
+        remove(file)
+    except: # TODO except what?
+        pass
+
+get_sys_updates()
+install_updates()
+files = listdir('/flash')
+
+check = "Update directories"
+assert 'testing.dir' in files, check
+good(check)
+
+check = "Update files"
+assert 'testing.file' in files, check
+good(check)
+
+_clean_failed_sys_updates(updates)
+files = listdir('/flash')
+
+check = "_clean_failed_sys_updates()"
+assert 'testing.dir' not in files, check
+good(check)
+
+test_data = '/flash/device_data/testing.json'
+remove(test_data)
+get_data_updates(get_all = True)
+files = listdir('/flash/device_data/')
+
+check = "get_data_updates() download"
+assert 'testing.data' in files, check
+good(check)
+
+with open() as f:
+    contents = loads(f.read())
+
+check = "get_data_updates() contents"
+assert contents['testing'] == '123', check
+good(check)

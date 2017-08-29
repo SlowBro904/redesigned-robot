@@ -43,7 +43,7 @@ class LEDs(object):
         state when that is done. Calling default = True will set the last
         called LED as the default.
         '''
-        if not LED_name:
+        if not LED_name or LED_name is 'default':
             if default:
                 self.default = {'good': False, 'warn': False, 'err': False}
             

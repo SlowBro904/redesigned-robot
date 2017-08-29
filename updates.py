@@ -1,4 +1,3 @@
-# FIXME Self-healing, check sha512sums every boot
 import debugging
 import temp_file
 import web_admin
@@ -49,9 +48,9 @@ def get_data_updates(get_all = False):
     
     try:
         if get_all:
-            updates = cloud.send('get_all_data_files')
+            updates = cloud.send('get_data_updates', 'all')
         else:
-            updates = cloud.send('get_latest_data_updates')
+            updates = cloud.send('get_data_updates', 'latest')
     except RuntimeError as warning:
         err.warning(warning + " ('updates.py', 'get_data_updates')")
         return False
@@ -61,17 +60,15 @@ def get_data_updates(get_all = False):
     
     existing_data = dict()
     for update in updates:
-        data_file = update[0]
-        parameter = update[1]
-        # This might be a list
-        values = update[2]
+        data_file, parameter, value = update
         
         maint()
         
-        data_file_full_path = '/flash/device_data/' + data_file
+        # FIXME Actually how about just data? Simpler. Do recursive search.
+        full_path = '/flash/device_data/' + data_file
         try:
             # Read the original file
-            with open(data_file_full_path) as f:
+            with open(full_path) as f:
                 existing_data[data_file] = loads(f.read())
         except OSError:
             # File doesn't exist yet. We'll create it in memory first.
@@ -93,44 +90,20 @@ def get_data_updates(get_all = False):
             err.warning(warning)
 
 
-def _clean_failed_sys_updates(updates, successfully_updated_files, 
-                                web_admin_started, new_file = None):
+def _clean_failed_sys_updates(new_files):
     '''Cleans up failed system updates. All or nothing.'''
-    # TODO This feels kludgy and tightly coupled.
-    import web_admin
-    
     # Even though we are in the _clean_failed_sys_updates() function, this
     # would only be called from the get_sys_updates() function.
     warning = ("Update failure. Reverting.",
                 "('updates.py', 'get_sys_updates'")
     err.warning(warning)
     
-    for update in updates:
+    for new_file in new_files:
         try:
-            if new_file:
-                remove(new_file)
+            remove(new_file)
         except OSError:
             # Ignore if not able to
             pass
-        
-        for new_file in successfully_updated_files:
-            try:
-                remove(new_file)
-            except OSError:
-                # Ignore if not able to
-                pass
-        
-        if web_admin_started:
-            try:
-                web_admin.start()
-            except:
-                # Ignore errors
-                pass
-        
-        # TODO Not working
-        #leds.blink(run = False)
-        # Return to LED default
-        leds.LED()
 
 
 def curr_client_ver():
@@ -186,6 +159,7 @@ def get_sys_updates():
         with open(file_list) as f:
             file_list_contents = f.read()
     else:
+        # We are out of date
         file_list_contents = cloud.send('get_file_list')
         
         with open(file_list, 'w') as f:
@@ -197,8 +171,9 @@ def get_sys_updates():
     for new_dir in new_dirs:
         maint()
         #try:
-        # exist_ok = True is a counter-intuitively-named flag. If the 
-        # parent directory does not exist we will create it first.
+        # The exist_ok = True flag is counter-intuitively named. If the parent
+        # directory does not exist we will create it first, similar to the -p
+        # flag in Unix mkdir.
         mkdir('/flash/' + new_dir, exist_ok = True)
         #except:
         #    warning = ("Unable to create new directory ", new_dir,
@@ -231,12 +206,11 @@ def get_sys_updates():
                 for row in contents:
                     f.write(row)
         except: # FIXME except what?
-            _clean_failed_sys_updates(new_files, successfully_updated_files,
-                                        web_admin_started)
+            _clean_failed_sys_updates(new_files)
             
             # Empty the list
             successfully_updated_files = list()
-            return False
+            break
         
         stored_sha = sha512()
         with open('/flash/' + new_file) as f:
@@ -248,34 +222,40 @@ def get_sys_updates():
         if stored_sha == expected_sha:
             successfully_updated_files.append(file)
         else:
-            _clean_failed_sys_updates(new_files, successfully_updated_files,
-                                        web_admin_started, new_file)
+            _clean_failed_sys_updates(new_files)
             
             # Empty the list
             successfully_updated_files = list()
-            return False
+            break
+    
+    if web_admin_started:
+        web_admin.start()
     
     # TODO Not working
     #leds.blink(run = False)
-    # Return to LED default
-    leds.LED()
+    leds.LED('default')
     
     if successfully_updated_files:
         try:
             with open(updated_files_list) as f:
                 f.write(dumps(successfully_updated_files))
         except: # FIXME except what?
-            _clean_failed_sys_updates(new_files, successfully_updated_files,
-                                        web_admin_started)
+            _clean_failed_sys_updates(new_files)
         
         # Reboot and the system will install any .new files. At boot we'll run
         # install_updates().
+        # FIXME Ensure I set the boot cause same as this boot. If I booted to
+        # the web admin I want to ensure the web admin comes up again.
         reboot()
 
 
 def install_updates():
     '''Install any recent updates. Typically runs at boot.'''
     # FIXME Test upgrading this file (updates.py) as well
+    # FIXME This probably isn't necessary. I'll bet we can update files without
+    # first rebooting. Update on the fly then reboot then proceed. Yeah I think
+    # I want to remove this because LED() goes back to black on reboot. Maybe
+    # one day retain that setting at boot but now now. Simpler.
     maint()
     reboot = False
     
@@ -301,12 +281,16 @@ def install_updates():
             
             rename('/flash/' + file + '.new', '/flash/' + file)
     
-    if do_reboot:
-        try:
-            maint()
-            remove(updated_files_list)
-        except OSError: # FIXME Get the exact exception type
-            # Ignore if it does not exist
-            pass
-        
+    maint()
+    
+    try:
+        remove(updated_files_list)
+    except OSError: # FIXME Get the exact exception type
+        # Ignore if it does not exist
+        pass
+    
+    if testing:
+        do_reboot = False
+    
+    if do_reboot:    
         reboot()

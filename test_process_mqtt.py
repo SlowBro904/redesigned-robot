@@ -17,6 +17,7 @@ good(check)
 check = "check_file_list() SHA-512"
 with open('/clients/SB/version.json', 'rb') as f:
     expected_sha = sha512(f.read()).hexdigest()
-file_list_sha = file_list[2]['/clients/SB/version.json']
+files = 2
+file_list_sha = file_list[files]['/clients/SB/version.json']
 assert file_list_sha == expected_sha, check
 good(check)

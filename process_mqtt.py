@@ -64,6 +64,17 @@ def on_message(client, userdata, in_msg):
         # TODO Paranoid. Can they get files from anywhere else?
         with open(code_base + '/' + file) as f:
             out_msg = f.readlines()
+
+    elif topic == 'get_data_updates':
+        test_update = ['testing.json', 'testing', '123']
+        if msg == 'all':
+            # Send all data files. We probably did a factory reset.
+            # FIXME Finish
+            out_msg = test_update
+        else:
+            # Send only any new data updates since our last check.
+            # FIXME Finish
+            out_msg = test_update
     
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
     sha = sha512(out_msg).hexdigest()
@@ -152,10 +163,6 @@ def _encrypt(msg):
     return iv + AES(key, AES.MODE_CFB, iv).encrypt(bytes(msg))
 
 
-def sleepme():
-    while True:
-        sleep(1)
-
 if __name__ == '__main__':
     mqtt_client.connect('localhost')
     mqtt_client.loop_forever()
@@ -171,7 +178,3 @@ if __name__ == '__main__':
             for topic in topics[device_type]:
                 mytopic = root_path + topic
                 mqtt_client.subscribe(mytopic, qos = 1)
-    
-    # FIXME Remove import Process and sleepme()
-    #p = Process(target=sleepme)
-    #p.start()
