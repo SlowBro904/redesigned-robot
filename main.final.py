@@ -21,11 +21,11 @@ from config import config
 # Tested
 from err import ErrCls
 # Tested
-from system import System
-# Tested
 from battery import Battery
 # Tested
 from wifi import sta, sta_ap
+# Tested
+from system import SystemCls
 from schedule import Schedule
 # Tested
 from maintenance import maint
