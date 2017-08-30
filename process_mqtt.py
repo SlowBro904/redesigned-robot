@@ -26,10 +26,10 @@ def debug(msg, level = 0):
     '''Prints a debug message'''
     if not debug_enabled:
         return
-
+    
     if level > default_level:
         return
-
+    
     print("[DEBUG]", str(msg))
 
 
@@ -64,7 +64,7 @@ def on_message(client, userdata, in_msg):
         # TODO Paranoid. Can they get files from anywhere else?
         with open(code_base + '/' + file) as f:
             out_msg = f.readlines()
-
+    
     elif topic == 'get_data_updates':
         test_update = ['testing.json', 'testing', '123']
         if msg == 'all':
