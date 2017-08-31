@@ -1,10 +1,10 @@
+from config import config
+import door_reed_switches
+from time import sleep, sleep_ms
+from machine import Pin, Timer, ADC
+from maintenance import maint
+
 class Motor(object):
-    from config import config
-    import door_reed_switches
-    from time import sleep, sleep_ms
-    from machine import Pin, Timer, ADC
-    from maintenance import maint
-    
     up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
     dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
     volt_pin = Pin(config.conf['MOTOR_VOLT_PIN'], mode = Pin.IN,
@@ -15,7 +15,7 @@ class Motor(object):
     def __init__(self, timeout = self.config.conf['MOTOR_TIMEOUT'],
                     check_interval = self.config.conf['MOTOR_CHECK_INTERVAL']):
         '''Sets up the motor object'''
-        self.maint()
+        maint()
         self.timeout = timeout
         self.check_interval = check_interval
         self.stop()
@@ -25,7 +25,7 @@ class Motor(object):
         
         It will stop on its own based on the door reed switces.
         '''
-        self.maint()
+        maint()
         
         if direction == 'up':
             self.up(True)
@@ -54,9 +54,11 @@ class Motor(object):
                     reverse = 'up'
                 
                 timer.reset()
+                # TODO What if we're jammed in both directions? Stop infinite
+                # recursion
                 self.run(direction = reverse, timeout = 3)
             
-            self.maint()
+            maint()
             self.sleep_ms(self.check_interval)
             
             if timer.read() >= timeout:

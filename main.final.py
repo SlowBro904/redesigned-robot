@@ -15,13 +15,13 @@ from rtc import RTC
 # Tested
 from leds import leds
 # Tested
-from cloud import Cloud
-# Tested
-from config import config
-# Tested
 from err import ErrCls
 # Tested
-from battery import Battery
+from cloud import Cloud
+# Tested
+from batt import BattCls
+# Tested
+from config import config
 # Tested
 from wifi import sta, sta_ap
 # Tested
@@ -31,9 +31,12 @@ from schedule import Schedule
 from maintenance import maint
 # Tested
 from datastore import DataStore
+# Test written
 from boot_cause import boot_cause
 # Tested
 from machine import sleep, WAKEUP_ANY_HIGH, deepsleep, pin_deepsleep_wakeup
+
+# FIXME Also test motor, device_routines/*, reboot, and finally this file ^_^
 
 err = Err()
 

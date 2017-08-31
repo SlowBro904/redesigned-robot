@@ -5,7 +5,12 @@ want timeouts.
 # Profile how many times we run feed() and compare to the time taken not 
 # running feed.
 from machine import WDT
+from debugging import testing
+
+timeout = 10
+if testing:
+    timeout = 360000000
+
 # Hard coded because config sources this file and setting it there causes a
 # loop
-# FIXME Change to correct value for actual use
-wdt = WDT(timeout = 360000000)
+wdt = WDT(timeout = timeout)

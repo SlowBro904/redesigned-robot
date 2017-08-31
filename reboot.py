@@ -34,7 +34,7 @@ def reboot(delay = 0, boot_cause = None):
         #    # Ignore if it does not exist
         #    pass
     
-    start_new_thread(_reboot, (delay))
+    start_new_thread(_reboot, (delay,))
 
 def _reboot(delay):
     '''This is the actual reboot command.
