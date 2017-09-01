@@ -1,45 +1,54 @@
-from config import config
 import door_reed_switches
+from config import config
+from maintenance import maint
 from time import sleep, sleep_ms
 from machine import Pin, Timer, ADC
-from maintenance import maint
 
 class Motor(object):
+    timeout = config.conf['MOTOR_TIMEOUT']
+    low_voltage = config.conf['MOTOR_LOW_VOLTAGE']
+    high_voltage = config.conf['MOTOR_HIGH_VOLTAGE']
+    check_interval = config.conf['MOTOR_CHECK_INTERVAL']
     up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
     dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
     volt_pin = Pin(config.conf['MOTOR_VOLT_PIN'], mode = Pin.IN,
                     pull = PULL_DOWN)
-    low_voltage = config.conf['MOTOR_LOW_VOLTAGE']
-    high_voltage = config.conf['MOTOR_HIGH_VOLTAGE']
     
-    def __init__(self, timeout = self.config.conf['MOTOR_TIMEOUT'],
-                    check_interval = self.config.conf['MOTOR_CHECK_INTERVAL']):
+    def __init__(self, timeout = None, check_interval = None):
         '''Sets up the motor object'''
         maint()
-        self.timeout = timeout
-        self.check_interval = check_interval
+
+        if timeout:
+            self.timeout = timeout
+        
+        if check_interval:
+            self.check_interval = check_interval
+        
         self.stop()
     
-    def run(self, direction, timeout = self.timeout):
+    def run(self, direction, timeout = None):
         '''Starts the motor in the requested direction.
         
         It will stop on its own based on the door reed switces.
         '''
         maint()
         
+        if not timeout:
+            timeout = self.timeout
+        
         if direction == 'up':
             self.up(True)
         else:
             self.dn(True)
 
-        timer = self.Timer.Chrono()
+        timer = Timer.Chrono()
         timer.start()
     
         while True:
             timer.reset()
         
             # If the status shows we are completely in the direction requested
-            if self.door_reed_switches.status == direction:
+            if door_reed_switches.status == direction:
                 self.stop()
                 break
             
@@ -54,12 +63,12 @@ class Motor(object):
                     reverse = 'up'
                 
                 timer.reset()
-                # TODO What if we're jammed in both directions? Stop infinite
-                # recursion
+                # TODO What if we're jammed in both directions? Prevent
+                # infinite recursion
                 self.run(direction = reverse, timeout = 3)
             
             maint()
-            self.sleep_ms(self.check_interval)
+            sleep_ms(self.check_interval)
             
             if timer.read() >= timeout:
                 timer.stop()
@@ -77,4 +86,4 @@ class Motor(object):
         '''Gets our motor voltage'''
         # Read the value of the voltage on the battery volt sense pin using 
         # ADC.ATTN_11DB which allows a range of 0-3.3V.
-        return self.ADC().channel(pin = self.volt_pin, attn = ADC.ATTN_11DB)
+        return ADC().channel(pin = self.volt_pin, attn = ADC.ATTN_11DB)

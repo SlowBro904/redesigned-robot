@@ -1,6 +1,7 @@
 from time import sleep
 from ujson import dumps
 from machine import reset
+from debugging import testing
 from maintenance import maint
 from _thread import start_new_thread
 
@@ -44,4 +45,9 @@ def _reboot(delay):
     maint()
     # TODO Do I need to loop on delay count and sleep(1) and maint() inside?
     sleep(delay)
-    reset()
+    
+    if testing:
+        # TODO Return or set some value for testing
+        debug("Simulating reboot")
+    else:
+        reset()

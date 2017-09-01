@@ -36,7 +36,8 @@ from boot_cause import boot_cause
 # Tested
 from machine import sleep, WAKEUP_ANY_HIGH, deepsleep, pin_deepsleep_wakeup
 
-# FIXME Also test motor, device_routines/*, reboot, and finally this file ^_^
+# FIXME Also test motor, device_routines/*, and finally this file ^_^
+# FIXME Run test for reboot
 
 err = Err()
 
