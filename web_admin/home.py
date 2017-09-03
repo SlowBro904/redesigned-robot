@@ -15,7 +15,7 @@ def show(parameters):
     version = System().version
     
     maint()
-
+    
     if not wifi.ssid:
         body += '''Let's get started!
         <script>window.location.href = '/wifi/choose_network';</script>'''
@@ -48,10 +48,10 @@ def show(parameters):
         + ''' website.</li>
         <li>If you are still unable to connect, contact technical support.</li>
         </ul>'''
-    elif not cloud.encryption_working():
-        body += "I could not communicate with the " + device_name + ''' 
-        network. There is some problem with the encryption key. Please contact
-        technical support.'''
+    #elif not cloud.encryption_working():
+    #    body += "I could not communicate with the " + device_name + ''' 
+    #    network. There is some problem with the encryption key. Please contact
+    #    technical support.'''
     else:
         body += '''Connnected to the ''' + device_name + ''' network.<br />
         <br />

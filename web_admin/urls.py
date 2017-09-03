@@ -6,16 +6,16 @@ def get_web_page_content(path, parameters)
     from maintenance import maint
     
     maint()
-
+    
     if path == '/':
         from webadmin.home import show
     
     if path.startswith('/wifi/choose_network'):
         from webadmin.wifi.choose_network import show
-
+    
     if path.startswith('/wifi/setup'):
         from webadmin.wifi.setup import show
-
+    
     if path.startswith('/wifi/save'):
         from webadmin.wifi.save import show
     
@@ -33,7 +33,7 @@ def get_web_page_content(path, parameters)
     #
     #if path.startswith('/advanced/save'):
     #    from webadmin.advanced.save import show
-   
+    
     # Ignore anything else
     
     try:
