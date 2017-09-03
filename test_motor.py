@@ -1,0 +1,22 @@
+print("Starting test_motor")
+from config import config
+from motor import MotorCls
+from test_suite import good
+
+motor = MotorCls()
+up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
+dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
+
+check = 'motor.voltage'
+assert motor.voltage is not 0, check
+good(check)
+
+check = 'motor.run()'
+motor.run('up')
+assert up.value() is True and dn.value() is False, check
+good(check)
+
+check = 'motor.stop()'
+motor.stop()
+assert up.value() is False and dn.value() is False, check
+good(check)

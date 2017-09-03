@@ -4,7 +4,7 @@ from maintenance import maint
 from time import sleep, sleep_ms
 from machine import Pin, Timer, ADC
 
-class Motor(object):
+class MotorCls(object):
     timeout = config.conf['MOTOR_TIMEOUT']
     low_voltage = config.conf['MOTOR_LOW_VOLTAGE']
     high_voltage = config.conf['MOTOR_HIGH_VOLTAGE']
@@ -25,6 +25,7 @@ class Motor(object):
             self.check_interval = check_interval
         
         self.stop()
+    
     
     def run(self, direction, timeout = None):
         '''Starts the motor in the requested direction.
@@ -48,7 +49,7 @@ class Motor(object):
             timer.reset()
         
             # If the status shows we are completely in the direction requested
-            if door_reed_switches.status == direction:
+            if door_reed_switches.status() == direction:
                 self.stop()
                 break
             
@@ -86,4 +87,4 @@ class Motor(object):
         '''Gets our motor voltage'''
         # Read the value of the voltage on the battery volt sense pin using 
         # ADC.ATTN_11DB which allows a range of 0-3.3V.
-        return ADC().channel(pin = self.volt_pin, attn = ADC.ATTN_11DB)
+        return ADC().channel(pin = self.volt_pin, attn = ADC.ATTN_11DB).value()

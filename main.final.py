@@ -11,6 +11,7 @@ install_updates()
 # Tested
 import fac_rst
 import web_admin
+# Tested
 from rtc import RTC
 # Tested
 from leds import leds
@@ -29,15 +30,14 @@ from system import SystemCls
 from schedule import Schedule
 # Tested
 from maintenance import maint
+# Test written
+from deepsleep import deepsleep
 # Tested
 from datastore import DataStore
 # Test written
 from boot_cause import boot_cause
-# Tested
-from machine import sleep, WAKEUP_ANY_HIGH, deepsleep, pin_deepsleep_wakeup
 
-# FIXME Also test motor, device_routines/*, and finally this file ^_^
-# FIXME Run test for reboot
+# FIXME Run test for motor, reboot, and door_reed_switches
 
 err = Err()
 
@@ -97,12 +97,5 @@ DataStore.save_all()
 
 wdt.stop()
 
-# Ensure these are on P2, P3, P4, P6, P8 to P10 or P13 to P23 per the
-# documentation.
-wake_pins = [config.conf['DOOR_REED_UP_PIN'],
-                config.conf['DOOR_REED_DN_PIN'],
-                config.conf['AUX_WAKE_PIN']]
-
-pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
-sleep_microseconds = (schedule.next_event_time - rtc.now())*1000
-deepsleep(sleep_microseconds)
+secs = schedule.next_event_time - rtc.now()
+deepsleep(secs)

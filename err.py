@@ -2,8 +2,8 @@ import sys
 import debugging
 from os import remove
 from leds import leds
-from machine import deepsleep
 from maintenance import maint
+from deepsleep import deepsleep
 from data_store import DataStore
 
 class ErrCls(object):
@@ -11,11 +11,7 @@ class ErrCls(object):
         '''A class for dealing with different error messages'''
         maint()
         self.debug = debugging.printmsg
-        # FIXME Unset everywhere for production. Ideally we set this in one
-        # file but I couldn't work out how to do that efficiently.
-        self.testing = True
-        debugging.enabled = True
-        self.debug_level = 0
+        self.testing = debugging.testing
         
         self.log = list()
         self.data_store = DataStore('error_log')
@@ -78,12 +74,10 @@ class ErrCls(object):
         #leds.blink(run = True, pattern = ((leds.err, True, None)))
         leds.LED('err', default = True)
         
-        # TODO How can I test this as part of a suite?
         if not self.testing:
-            from main import pin_deepsleep_wakeup, wake_pins, WAKEUP_ANY_HIGH
             wdt.stop()
-            pin_deepsleep_wakeup(pins = wake_pins, mode = WAKEUP_ANY_HIGH)
-            deepsleep()
+        
+        deepsleep()
     
     
     def exc(self, args = None):
