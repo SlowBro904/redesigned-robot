@@ -1,9 +1,13 @@
 import debugging
+from rtc import RTC
 from os import remove
 from err import ErrCls
+from config import config
 from maintenance import maint
 from ujson import dumps, loads
+from time import mktime, gmtime
 from datastore import DataStore
+from device_routines import DeviceRoutine
 
 debug = debugging.printmsg
 testing = debugging.testing
@@ -11,6 +15,21 @@ testing = debugging.testing
 class Schedule(object):
     def __init__(self, devices):
         '''Sets up scheduled events for our devices'''
+        # The data structures in this class look like the following:
+        # device.json = {(weekday, hour, min): (cmd, args),
+        #                (weekday, hour, min): (cmd, args)}
+        # self.schedules = {device: {(weekday, hour, min): (cmd, args), 
+        #                            (weekday, hour, min): (cmd, args)}
+        #                   device: {(weekday, hour, min): (cmd, args), 
+        #                            (weekday, hour, min): (cmd, args)}}
+        # self.events = {device: [(event_secs, cmd, args),
+        #                         (event_secs, cmd, args)],
+        #                device: [(event_secs, cmd, args),
+        #                         (event_secs, cmd, args)]}
+        maint()
+        self.rtc = RTC()
+        self.err = ErrCls()
+        self.events = dict()
         self.status = dict()
         self.schedules = dict()
         self.datastore = DataStore('status')
@@ -18,48 +37,98 @@ class Schedule(object):
         for device in devices:
             maint()
             
-            try:
-                device_file = '/flash/device_data/' + device + '.json'
-                with open(device_file) as f:
-                    self.schedules[device] = loads(f.read())
-            except:
-                # Ignore errors. If we have zero schedules nothing will run.
-                pass
+            #try:
+            device_file = '/flash/device_data/' + device + '.json'
+            with open(device_file) as f:
+                self.schedules[device] = loads(f.read())
+            #except:
+            # Ignore errors. If we have zero schedules nothing will run.
+            #pass
+
+            self.events[device] = get_events(device)
+    
+    
+    def get_events(self, device):
+        '''Returns a list of tuples sorted by event time. Each tuple contains
+        the event time (in seconds since epoch), command, and arguments.
+        '''
+        now = self.rtc.now()
+        now_secs = mktime(now)
+        now_hour, now_min, now_sec, today = now[3], now[4], now[5], now[6]
+        # Number of seconds since epoch as of 00:00 this morning.
+        today_secs = now_secs - (now_hour*60*60) - (now_min*60) - now_sec
+        
+        events = list()
+        
+        for event_time in self.schedules[device]:
+            event_weekday, event_hour, event_min = event_time
+            
+            if event_weekday is not today:
+                # FIXME For deepsleep we may need to wake at midnight
+                continue
+            
+            event_secs = today_secs + (event_hour*60*60) + (event_min*60)
+            
+            if event_secs < now_secs:
+                # Skip events in the past FIXME Do I want to?
+                continue
+            
+            cmd, args = self.schedules[device][event_time]
+            
+            # FIXME How do I ensure they are sorted by time?
+            events.append((event_secs, cmd, args))
+        
+        return events
     
     
     @property
     def next_event_time(self):
         '''Look across all schedules for all devices and return the time for
-        the next scheduled event for any device'''
-        from time import mktime
-        
+        the next scheduled event for any device'''        
         maint()
+        if self._next_event_time:
+            return self._next_event_time
         
-        next_event = None
+        self._next_event_time = None
         
         for device in self.schedules:
             # Pull off the next scheduled event for this device
-            this_event = mktime(self.schedules[device][0]['time'])
+            this_event = self.events[device][0][0]
             
-            if not next_event:
-                next_event = this_event
+            if not self._next_event_time:
+                self._next_event_time = this_event
                 
                 # Next device
                 continue
             
             # If the event we're looking at is sooner than our next event
-            if this_event < next_event:
-                next_event = this_event
+            if this_event < self._next_event_time:
+                self._next_event_time = this_event
         
-        return next_event
+        return self._next_event_time
     
     
+    def get_due(self, device):
+        '''Returns a list of all events that are due now for a given device'''
+        # Get all items scheduled
+        all_event_times = [x[0] for x in self.events[device]]
+        
+        # Add a buffer to avoid a race condition if there is an event
+        # that occurs between now and when the system goes to sleep.
+        # This addresses a different situation than the while True
+        # above.
+        stop_time = self.rtc.now() + config.conf['SCHEDULE_BUFFER']
+        
+        # Get only the most recently scheduled item for this device
+        return [x for x in all_event_times if x <= stop_time]
+
+
+    # TODO Do I need this?
     def save(self, device):
         '''Takes the current schedule in self.schedules[device] and writes it 
         back to disk
         '''
         maint()
-        errors = ErrCls()
         
         device_file = '/flash/device_data/' + device + '.json'
         
@@ -75,45 +144,29 @@ class Schedule(object):
     
     def run(self):
         '''Run any events that are due now'''
-        from rtc import RTC
-        from config import config
-        from device_routines import DeviceRoutine
-        
-        rtc = RTC()
-        
-        self.maint()
+        # FIXME This only runs fixed scheduled events e.g. at 7am on September
+        # 4th 2017 operate the door in the up direction. Need it to be more
+        # intelligent as in every weekday operate the door in the up direction.
+        maint()
         
         # TODO I might want a per-device retry but quite difficult to implement
         # so let's wait 'til we need it
         device_retries = config.conf['DEVICE_RETRIES']
         
+        # FIXME Add some kind of expected time buffer on the server so we're
+        # not continuously running events and killing our battery. Want a long
+        # buffer between events, how about SCHEDULE_BUFFER x 5?
+        
         # Keep re-checking the schedule until we're all clear. What might 
         # happen is we finish an event and the schedule starts for the next 
         # event. We want to keep checking until there are no more items
         # scheduled.
-        
-        # FIXME Add some kind of expected time buffer on the server so we're
-        # not continuously running events and killing our battery. Want a long
-        # buffer between events, how about SCHEDULE_BUFFER x 5?
         items_scheduled = False
         while True:
-            for device in self.schedules:
-                # Add a buffer to avoid a race condition if there is an event
-                # that occurs between now and when the system goes to sleep.
-                # This addresses a different situation than the while True
-                # above.
-                stop_time = rtc.now() + config.conf['SCHEDULE_BUFFER']
+            for device in self.events:
+                due = self.get_due(device)
                 
-                # Get all items scheduled
-                all_scheduled_times = self.schedules[device].keys()
-                
-                # Get only the most recently scheduled item for this device
-                due = filter(lambda x: x <= stop_time, all_scheduled_times)[-1]
-                item_scheduled = None
-                if due:
-                    item_scheduled = due[-1]
-                
-                if item_scheduled:
+                if not due:
                     # No schedules, move on to the next device
                     continue
                 
@@ -121,26 +174,20 @@ class Schedule(object):
                 items_scheduled = True
                 
                 # Get our command and arguments
-                this_event = self.schedules[device][item_scheduled]
-                command = this_event['command']
-                arguments = this_event['arguments']
-                
-                device_routine = DeviceRoutine(device)
-                
-                self.maint()
-                
-                # FIXME Do retries in DataStore
-                # TODO Does MQTT have built-in retries?
-                status = device_routine.run(command, arguments)
-                self.datastore.update((device, status))
-            
-                # Remove everything due (including but not limited to the one
-                # we just executed) and write our modified schedule to disk
-                for this_event in due:
-                    this_event_index = self.schedules[device].index(this_event)
-                    self.schedules[device].pop(this_event_index)
-                
-                self.save(device)
+                for event_time in due:
+                    maint()
+                    event = self.schedules[device][event_time]
+                    cmd, args = event[1:]
+                    device_routine = DeviceRoutine(device)
+                    
+                    # FIXME Do retries in DataStore
+                    # TODO Does MQTT have built-in retries?
+                    status = device_routine.run(cmd, args)
+                    # FIXME I think this is expecting something like 'status'
+                    self.datastore.update((device, status))
+                    
+                    # Remove what we just executed
+                    self.events[device].remove(event)
             
             
             # Logic to know when to stop executing the outer while loop. If
