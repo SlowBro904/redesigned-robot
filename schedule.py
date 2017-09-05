@@ -32,6 +32,7 @@ class Schedule(object):
         self.events = dict()
         self.status = dict()
         self.schedules = dict()
+        self._next_event_time = None
         self.datastore = DataStore('status')
         
         for device in devices:
@@ -89,8 +90,6 @@ class Schedule(object):
         if self._next_event_time:
             return self._next_event_time
         
-        self._next_event_time = None
-        
         for device in self.schedules:
             # Pull off the next scheduled event for this device
             this_event = self.events[device][0][0]
@@ -121,8 +120,8 @@ class Schedule(object):
         
         # Get only the most recently scheduled item for this device
         return [x for x in all_event_times if x <= stop_time]
-
-
+    
+    
     # TODO Do I need this?
     def save(self, device):
         '''Takes the current schedule in self.schedules[device] and writes it 
@@ -144,9 +143,8 @@ class Schedule(object):
     
     def run(self):
         '''Run any events that are due now'''
-        # FIXME This only runs fixed scheduled events e.g. at 7am on September
-        # 4th 2017 operate the door in the up direction. Need it to be more
-        # intelligent as in every weekday operate the door in the up direction.
+        # TODO How do I test this module?
+        
         maint()
         
         # TODO I might want a per-device retry but quite difficult to implement
@@ -183,7 +181,6 @@ class Schedule(object):
                     # FIXME Do retries in DataStore
                     # TODO Does MQTT have built-in retries?
                     status = device_routine.run(cmd, args)
-                    # FIXME I think this is expecting something like 'status'
                     self.datastore.update((device, status))
                     
                     # Remove what we just executed
