@@ -1,7 +1,7 @@
 from test_suite import good
 from data_store import DataStore
 
-data_store = DataStore('testing', testing = True, debug = True)
+data_store = DataStore('testing')
 
 test_value = 'test'
 
@@ -23,7 +23,7 @@ good("Updating data_store.value")
 # Test save/restore from flash
 DataStore.save_all()
 del(data_store)
-data_store = DataStore('testing', testing = True, debug = True)
+data_store = DataStore('testing')
 
 try:
     data_store.value

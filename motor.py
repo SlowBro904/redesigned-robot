@@ -9,10 +9,10 @@ class MotorCls(object):
     low_voltage = config.conf['MOTOR_LOW_VOLTAGE']
     high_voltage = config.conf['MOTOR_HIGH_VOLTAGE']
     check_interval = config.conf['MOTOR_CHECK_INTERVAL']
-    up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
-    dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = PULL_DOWN)
+    up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = Pin.PULL_DOWN)
+    dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = Pin.PULL_DOWN)
     volt_pin = Pin(config.conf['MOTOR_VOLT_PIN'], mode = Pin.IN,
-                    pull = PULL_DOWN)
+                    pull = Pin.PULL_DOWN)
     
     def __init__(self, timeout = None, check_interval = None):
         '''Sets up the motor object'''

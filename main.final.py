@@ -32,14 +32,14 @@ from system import SystemCls
 from schedule import Schedule
 # Tested
 from maintenance import maint
-# Test written
+# Tested
 from deepsleep import deepsleep
 # Tested
 from datastore import DataStore
-# Test written
+# Tested
 from boot_cause import boot_cause
 
-# FIXME Run test for motor, reboot, and door_reed_switches
+# FIXME Run test for motor, reboot
 
 err = Err()
 
