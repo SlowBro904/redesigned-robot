@@ -39,7 +39,7 @@ from datastore import DataStore
 # Tested
 from boot_cause import boot_cause
 
-# FIXME Run test for motor, reboot
+# FIXME Run test for reboot
 
 err = Err()
 

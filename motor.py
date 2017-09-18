@@ -1,8 +1,11 @@
+import debugging
 import door_reed_switches
 from config import config
 from maintenance import maint
 from time import sleep, sleep_ms
 from machine import Pin, Timer, ADC
+
+debug = debugging.printmsg
 
 class MotorCls(object):
     timeout = config.conf['MOTOR_TIMEOUT']
@@ -37,24 +40,43 @@ class MotorCls(object):
             timeout = self.timeout
         
         if direction == 'up':
-            self.up(True)
+            debug("Direction is up.")
+            debug("Before setting:")
+            debug("self.up.value(): '" + str(self.up.value()) + "'")
+            debug("self.dn.value(): '" + str(self.dn.value()) + "'")
+            self.up.value(True)
+            self.dn.value(False)
+            debug("After setting:")
+            debug("self.up.value(): '" + str(self.up.value()) + "'")
+            debug("self.dn.value(): '" + str(self.dn.value()) + "'")
         else:
-            self.dn(True)
-
+            debug("Direction is dn.")
+            debug("Before setting:")
+            debug("self.up.value(): '" + str(self.up.value()) + "'")
+            debug("self.dn.value(): '" + str(self.dn.value()) + "'")
+            self.dn.value(True)
+            self.up.value(False)
+            debug("After setting:")
+            debug("self.up.value(): '" + str(self.up.value()) + "'")
+            debug("self.dn.value(): '" + str(self.dn.value()) + "'")
+        
         timer = Timer.Chrono()
         timer.start()
-    
-        while True:
-            timer.reset()
         
+        while True:
             # If the status shows we are completely in the direction requested
             if door_reed_switches.status() == direction:
+                debug("door_reed_switches.status() == direction. Stopping.")
+                debug("self.up.value(): '" + str(self.up.value()) + "'")
+                debug("self.dn.value(): '" + str(self.dn.value()) + "'")
+                timer.stop()
                 self.stop()
                 break
             
             # Constantly monitor the voltage and if it is out of range stop,
             # reverse for three seconds, then try again
             if not self.low_voltage < self.voltage < self.high_voltage:
+                debug("We are outside of voltage range, reversing.")
                 self.stop()
                 
                 if direction == 'up':
@@ -63,7 +85,7 @@ class MotorCls(object):
                     reverse = 'up'
                 
                 timer.reset()
-                # TODO What if we're jammed in both directions? Prevent
+                # FIXME What if we're jammed in both directions? Prevent
                 # infinite recursion
                 self.run(direction = reverse, timeout = 3)
             
@@ -71,14 +93,21 @@ class MotorCls(object):
             sleep_ms(self.check_interval)
             
             if timer.read() >= timeout:
+                debug("Motor timed out")
                 timer.stop()
                 return False
     
     
     def stop(self):
         '''Stops all motors'''
-        self.up(False)
-        self.dn(False)
+        debug("Before stopping:")
+        debug("self.up.value(): '" + str(self.up.value()) + "'")
+        debug("self.dn.value(): '" + str(self.dn.value()) + "'")
+        self.up.value(False)
+        self.dn.value(False)
+        debug("After stopping:")
+        debug("self.up.value(): '" + str(self.up.value()) + "'")
+        debug("self.dn.value(): '" + str(self.dn.value()) + "'")
     
     
     @property

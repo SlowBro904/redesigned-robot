@@ -1,5 +1,6 @@
 print("Starting test_motor")
 import debugging
+from time import sleep
 from machine import Pin
 from config import config
 from motor import MotorCls
@@ -8,19 +9,24 @@ from test_suite import good
 debug = debugging.printmsg
 
 motor = MotorCls()
-up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = Pin.PULL_DOWN)
-dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = Pin.PULL_DOWN)
+up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT,
+            pull = Pin.PULL_DOWN).value
+dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, 
+            pull = Pin.PULL_DOWN).value
 
 check = 'motor.voltage'
 assert motor.voltage is not 0, check
 good(check)
 
 check = 'motor.run()'
-motor.run('up')
-assert up.value() is True and dn.value() is False, check
+motor.run('dn')
+sleep(1)
+debug("up(): '" + str(up()) + "'")
+debug("dn(): '" + str(dn()) + "'")
+assert dn() and not up(), check
 good(check)
 
 check = 'motor.stop()'
 motor.stop()
-assert up.value() is False and dn.value() is False, check
+assert not up() and not dn(), check
 good(check)

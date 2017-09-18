@@ -1,13 +1,14 @@
 def status():
     '''Tells whether the door is in the up or down position'''
     import debugging
-    from err import ErrCls
+    # FIXME Uncomment err stuff below
+    #from err import ErrCls
     from machine import Pin
     from config import config
     
     debug = debugging.printmsg
     
-    err = ErrCls()
+    #err = ErrCls()
     
     up_pin_cfg = config.conf['DOOR_REED_UP_PIN']
     dn_pin_cfg = config.conf['DOOR_REED_DN_PIN']
@@ -26,7 +27,8 @@ def status():
     elif not dn() and up():
         status = 'dn'
     elif not up() and not dn():
-        err.err('Door reed switch malfunction.')
+        debug('Door reed switch malfunction.')
+        #err.err('Door reed switch malfunction.')
     
     debug("status: '" + str(status) + "'", level = 1)
     return status
