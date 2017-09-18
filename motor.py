@@ -11,8 +11,7 @@ class MotorCls(object):
     check_interval = config.conf['MOTOR_CHECK_INTERVAL']
     up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = Pin.PULL_DOWN)
     dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = Pin.PULL_DOWN)
-    volt_pin = Pin(config.conf['MOTOR_VOLT_PIN'], mode = Pin.IN,
-                    pull = Pin.PULL_DOWN)
+    volt_pin = config.conf['MOTOR_VOLT_PIN']
     
     def __init__(self, timeout = None, check_interval = None):
         '''Sets up the motor object'''

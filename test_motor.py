@@ -12,8 +12,6 @@ up = Pin(config.conf['MOTOR_UP_PIN'], mode = Pin.OUT, pull = Pin.PULL_DOWN)
 dn = Pin(config.conf['MOTOR_DN_PIN'], mode = Pin.OUT, pull = Pin.PULL_DOWN)
 
 check = 'motor.voltage'
-# FIXME Attach a voltage divider to config.conf['MOTOR_VOLT_PIN'] and try again
-debug("motor.voltage: '" + str(motor.voltage) + "'")
 assert motor.voltage is not 0, check
 good(check)
 
