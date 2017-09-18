@@ -1,9 +1,12 @@
+import debugging
 from time import sleep
 from ujson import dumps
 from machine import reset
-from debugging import testing
 from maintenance import maint
 from _thread import start_new_thread
+
+debug = debugging.printmsg
+testing = debugging.testing
 
 def reboot(delay = 0, boot_cause = None):
     '''Reboots the device.
