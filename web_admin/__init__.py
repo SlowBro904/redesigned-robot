@@ -1,6 +1,8 @@
 from err import ErrCls
 from config import config
 from maintenance import maint
+from urllib import unquote_plus
+from ure import search as re_search
 
 err = ErrCls()
 
@@ -9,7 +11,8 @@ def get_template():
     #try:
     template = list()
     with open(config.conf['WEB_ADMIN_TEMPLATE_FILE']) as f:
-        template.append(row) for row in f.read()
+        for row in f.read():
+            template.append(row)
     
     template = '\n'.join(template)
     #except OSError:
@@ -64,7 +67,10 @@ def get_params(request):
 def status():
     '''Returns True if running'''
     global _run
-    return _run
+    try:
+        return _run
+    except NameError:
+        return False
 
 
 def start():
@@ -99,8 +105,6 @@ def _daemon(run = True):
     Don't run this directly; use start() instead.
     '''
     from machine import Timer
-    from urllib import unquote_plus
-    from re import search as re_search
     from urls import get_web_page_content
     from socket import getaddrinfo, socket
     
