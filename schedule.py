@@ -6,7 +6,7 @@ from config import config
 from maintenance import maint
 from ujson import dumps, loads
 from time import mktime, gmtime
-from datastore import DataStore
+from data_store import DataStore
 from device_routines import DeviceRoutine
 
 debug = debugging.printmsg
@@ -38,23 +38,33 @@ class Schedule(object):
         for device in devices:
             maint()
             
-            #try:
-            device_file = '/flash/device_data/' + device + '.json'
-            with open(device_file) as f:
-                self.schedules[device] = loads(f.read())
-            #except:
-            # Ignore errors. If we have zero schedules nothing will run.
-            #pass
-
-            self.events[device] = get_events(device)
+            try:
+                device_file = '/flash/device_data/' + device + '.json'
+                with open(device_file) as f:
+                    temp_sched = loads(f.read())
+            # FIXME Should be OSError: [Errno 2] ENOENT
+            except OSError:
+                # Ignore errors. If we have zero schedules nothing will run.
+                pass
+            
+            for schedule, command in temp_sched.items():
+                # Keys are stored comma-delimited in the JSON. Split out.
+                schedule = tuple(schedule.split(','))
+                
+                if device not in self.schedules:
+                    self.schedules[device] = dict()
+                
+                self.schedules[device][schedule] = command
+            self.events[device] = self.get_events(device)
     
     
     def get_events(self, device):
         '''Returns a list of tuples sorted by event time. Each tuple contains
         the event time (in seconds since epoch), command, and arguments.
         '''
-        now = self.rtc.now()
-        now_secs = mktime(now)
+        # TODO Seems like I want to use gmtime inside rtc.now() more often
+        now = gmtime(self.rtc.now())
+        now_secs = self.rtc.now()
         now_hour, now_min, now_sec, today = now[3], now[4], now[5], now[6]
         # Number of seconds since epoch as of 00:00 this morning.
         today_secs = now_secs - (now_hour*60*60) - (now_min*60) - now_sec

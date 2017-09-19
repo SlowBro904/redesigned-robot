@@ -132,7 +132,7 @@ def unquote(s):
     return "".join(res)
 
 def unquote_plus(s):
-    '''unquote('%7e/abc+def') -> '~/abc def''''
+    '''unquote('%7e/abc+def') -> '~/abc def'''
     s = s.replace('+', ' ')
     return unquote(s)
 

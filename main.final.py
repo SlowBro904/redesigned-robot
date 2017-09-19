@@ -10,7 +10,7 @@ install_updates()
 # The rest of our modules
 # Tested
 import fac_rst
-# Test written
+# Tested
 import web_admin
 # Tested
 from rtc import RTC
@@ -52,7 +52,7 @@ leds.LED('good', default = True)
 rtc = RTC()
 battery = Battery()
 system = System()
-schedule = Schedule(system.attached_devices)
+schedule = ScheduleCls(system.attached_devices)
 cloud = Cloud()
 
 # Keep our watchdog fed or he'll bite

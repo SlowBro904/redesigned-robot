@@ -12,7 +12,8 @@ check = 'get_template()'
 # TODO This is kinda silly. Same code as in the function.
 template = list()
 with open(config.conf['WEB_ADMIN_TEMPLATE_FILE']) as f:
-    template.append(row) for row in f.read()
+    for row in f.read():
+        template.append(row)
 template = '\n'.join(template)
 assert template == web_admin.get_template(), check
 good(check)

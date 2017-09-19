@@ -29,7 +29,7 @@ class RTC(object):
         '''Start an NTP sync daemon in the background'''
         # TODO If not syncing try another server
         maint()
-
+        
         if not ntp_server:
             if self.ntp_server:
                 ntp_server = self.ntp_server
