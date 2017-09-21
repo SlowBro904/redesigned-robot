@@ -47,24 +47,36 @@ class Schedule(object):
                 # Ignore errors. If we have zero schedules nothing will run.
                 pass
             
+            # FIXME Comment out debug statements
+            # TODO Why can't I debug()?
+            #print("[DEBUG] temp_sched: '" + str(temp_sched) + "'")
+            
             for schedule, command in temp_sched.items():
                 # Keys are stored comma-delimited in the JSON. Split out.
-                schedule = tuple(schedule.split(','))
+                # And convert to int() in the process.
+                schedule = tuple(int(x) for x in schedule.split(','))
                 
                 if device not in self.schedules:
                     self.schedules[device] = dict()
                 
                 self.schedules[device][schedule] = command
-            self.events[device] = self.get_events(device)
+            #print("[DEBUG] self.schedules[device]: '" +
+            #        str(self.schedules[device]) + "'")
+            self.events[device] = self.get_todays_events(device)
+            print("[DEBUG] self.events: '" + str(self.events) + "'")
     
     
-    def get_events(self, device):
-        '''Returns a list of tuples sorted by event time. Each tuple contains
-        the event time (in seconds since epoch), command, and arguments.
+    def get_todays_events(self, device):
+        '''Gives us the events scheduled for today in the future.
+
+        Ignores events from earlier today. Returns a list of tuples sorted by
+        event time. Each tuple contains the event time (in seconds since
+        epoch), command, and arguments.
         '''
         # TODO Seems like I want to use gmtime inside rtc.now() more often
         now = gmtime(self.rtc.now())
         now_secs = self.rtc.now()
+        # The today variable is the weekday
         now_hour, now_min, now_sec, today = now[3], now[4], now[5], now[6]
         # Number of seconds since epoch as of 00:00 this morning.
         today_secs = now_secs - (now_hour*60*60) - (now_min*60) - now_sec
@@ -75,12 +87,15 @@ class Schedule(object):
             event_weekday, event_hour, event_min = event_time
             
             if event_weekday is not today:
+                #print("[DEBUG] event_weekday is not today")
                 # FIXME For deepsleep we may need to wake at midnight
                 continue
             
             event_secs = today_secs + (event_hour*60*60) + (event_min*60)
             
             if event_secs < now_secs:
+                #print("[DEBUG] event_secs (" + str(event_secs) +
+                #        ") < now_secs (" + str(now_secs) + ")")
                 # Skip events in the past FIXME Do I want to?
                 continue
             
@@ -121,15 +136,19 @@ class Schedule(object):
         '''Returns a list of all events that are due now for a given device'''
         # Get all items scheduled
         all_event_times = [x[0] for x in self.events[device]]
+        print("[DEBUG] all_event_times: '" + str(all_event_times) + "'")
         
-        # Add a buffer to avoid a race condition if there is an event
-        # that occurs between now and when the system goes to sleep.
-        # This addresses a different situation than the while True
-        # above.
+        # Add a buffer to avoid a race condition if there is an event that
+        # occurs between now and when the system goes to sleep.
+        # This addresses a different situation than the 'while True:' in run().
+        # FIXME Change all config items back to sane defaults. Right now this
+        # is 86400.
         stop_time = self.rtc.now() + config.conf['SCHEDULE_BUFFER']
+        print("[DEBUG] stop_time: '" + str(stop_time) + "'")
         
-        # Get only the most recently scheduled item for this device
-        return [x for x in all_event_times if x <= stop_time]
+        # Get only the most recently scheduled items for this device
+        due_times = [x for x in all_event_times if x <= stop_time]
+        return [x for x in self.events[device] if x[0] in due_times]
     
     
     # TODO Do I need this?
