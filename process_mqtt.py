@@ -1,8 +1,8 @@
 #!/usr/bin/python3.4
 # From http://www.steves-internet-guide.com/into-mqtt-python-client/
 import os
-from time import sleep
 from glob import glob
+from time import sleep
 from hashlib import sha512
 from itertools import chain
 from re import sub as re_sub
@@ -38,9 +38,9 @@ def on_message(client, userdata, in_msg):
     debug("in_msg: '" + str(in_msg) + "'", level = 1)
     debug("in_msg.topic: '" + str(in_msg.topic) + "'", level = 1)
     debug("type(in_msg.topic): '" + str(type(in_msg.topic)) + "'", level = 1)
-    
+
     dev_type, serial, ver, __, topic = in_msg.topic.split('/')
-    msg = in_msg.value
+    msg = in_msg.payload
     code_base = client_code_base + '/' + dev_type
     
     if topic == 'ping':
@@ -76,9 +76,14 @@ def on_message(client, userdata, in_msg):
             # FIXME Finish
             out_msg = test_update
     
+    # TODO This shouldn't be naive and just substitute anywhere but
+    # substitute exactly one level from the end
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
-    sha = sha512(out_msg).hexdigest()
-    client.publish(out_topic, (dumps(out_msg), sha))
+    # FIXME Uncomment
+    #sha = sha512(out_msg).hexdigest()
+    #client.publish(out_topic, (dumps(out_msg), sha))
+    # FIXME Remove
+    client.publish(out_topic, dumps(out_msg))
 
 
 def get_sha_sums(dir):
@@ -165,16 +170,25 @@ def _encrypt(msg):
 
 if __name__ == '__main__':
     mqtt_client.connect('localhost')
-    mqtt_client.loop_forever()
+    mqtt_client.loop_start()
     
     # Setup our callbacks
     mqtt_client.on_message = on_message
     mqtt_client.on_log = on_log
     
+    debug("authorized_devices: '" + str(authorized_devices) + "'")
     # Subscribe to all of our authorized device topics
     for device_type in authorized_devices:
+        debug("device_type: '" + str(device_type) + "'")
         for serial, version in authorized_devices[device_type].items():
+            debug("serial: '" + str(serial) + "'")
+            debug("version: '" + str(version) + "'")
             root_path = device_type + '/' + serial + '/' + version + '/in/'
+            debug("root_path: '" + str(root_path) + "'")
             for topic in topics[device_type]:
                 mytopic = root_path + topic
+                debug("Subscribing to '" + str(mytopic) + "'")
                 mqtt_client.subscribe(mytopic, qos = 1)
+
+    while True:
+        sleep(1)

@@ -28,7 +28,7 @@ from config import config
 from wifi import sta, sta_ap
 # Tested
 from system import SystemCls
-# Test written
+# Tested
 from schedule import Schedule
 # Tested
 from maintenance import maint

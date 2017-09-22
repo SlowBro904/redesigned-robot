@@ -16,16 +16,16 @@ class Schedule(object):
     def __init__(self, devices):
         '''Sets up scheduled events for our devices'''
         # The data structures in this class look like the following:
-        # device.json = {(weekday, hour, min): (cmd, args),
-        #                (weekday, hour, min): (cmd, args)}
-        # self.schedules = {device: {(weekday, hour, min): (cmd, args), 
-        #                            (weekday, hour, min): (cmd, args)}
-        #                   device: {(weekday, hour, min): (cmd, args), 
-        #                            (weekday, hour, min): (cmd, args)}}
-        # self.events = {device: [(event_secs, cmd, args),
-        #                         (event_secs, cmd, args)],
-        #                device: [(event_secs, cmd, args),
-        #                         (event_secs, cmd, args)]}
+        # device.json = {'weekday,hour,min': ('cmd', 'args'),
+        #                'weekday,hour,min': ('cmd', 'args')}
+        # self.schedules = {device: {(weekday, hour, min): ('cmd', 'args'), 
+        #                            (weekday, hour, min): ('cmd', 'args')}
+        #                   device: {(weekday, hour, min): ('cmd', 'args'), 
+        #                            (weekday, hour, min): ('cmd', 'args')}}
+        # self.events = {device: [(event_secs, 'cmd', 'args'),
+        #                         (event_secs, 'cmd', 'args')],
+        #                device: [(event_secs, 'cmd', 'args'),
+        #                         (event_secs, 'cmd', 'args')]}
         maint()
         self.rtc = RTC()
         self.err = ErrCls()
@@ -143,7 +143,7 @@ class Schedule(object):
         # This addresses a different situation than the 'while True:' in run().
         # FIXME Change all config items back to sane defaults. Right now this
         # is 86400.
-        stop_time = self.rtc.now() + config.conf['SCHEDULE_BUFFER']
+        stop_time = self.rtc.now() + int(config.conf['SCHEDULE_BUFFER'])
         print("[DEBUG] stop_time: '" + str(stop_time) + "'")
         
         # Get only the most recently scheduled items for this device
@@ -178,7 +178,7 @@ class Schedule(object):
         
         # TODO I might want a per-device retry but quite difficult to implement
         # so let's wait 'til we need it
-        device_retries = config.conf['DEVICE_RETRIES']
+        device_retries = int(config.conf['DEVICE_RETRIES'])
         
         # FIXME Add some kind of expected time buffer on the server so we're
         # not continuously running events and killing our battery. Want a long
