@@ -20,7 +20,7 @@ mqtt_client = mqtt.Client(client_id = 'better_automations')
 # Client name and version they are at
 authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
 device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
-topics = {'SB': ['ping', 'get_new_dirs']}
+topics = {'SB': ['ping', 'curr_client_ver', 'get_file_list']}
 
 def debug(msg, level = 0):
     '''Prints a debug message'''
@@ -38,7 +38,7 @@ def on_message(client, userdata, in_msg):
     debug("in_msg: '" + str(in_msg) + "'", level = 1)
     debug("in_msg.topic: '" + str(in_msg.topic) + "'", level = 1)
     debug("type(in_msg.topic): '" + str(type(in_msg.topic)) + "'", level = 1)
-
+    
     dev_type, serial, ver, __, topic = in_msg.topic.split('/')
     msg = in_msg.payload
     code_base = client_code_base + '/' + dev_type
@@ -55,9 +55,10 @@ def on_message(client, userdata, in_msg):
             out_msg = load(f)
     
     elif topic == 'get_file_list':
-        check_file_list()
+        check_file_list(dev_type)
         with open(code_base + '/file_list.json') as f:
             out_msg = f.readlines()
+        debug("out_msg: '" + str(out_msg) + "'")
     
     elif topic == 'get_file':
         file = msg
@@ -79,14 +80,14 @@ def on_message(client, userdata, in_msg):
     # TODO This shouldn't be naive and just substitute anywhere but
     # substitute exactly one level from the end
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
-    # FIXME Uncomment
-    #sha = sha512(out_msg).hexdigest()
-    #client.publish(out_topic, (dumps(out_msg), sha))
-    # FIXME Remove
-    client.publish(out_topic, dumps(out_msg))
+
+    # Turn our message into a JSON string encoded UTF-8 then hash
+    sha = sha512(dumps(out_msg).encode('utf-8')).hexdigest()
+
+    client.publish(out_topic, dumps([out_msg, sha]))
 
 
-def get_sha_sums(dir):
+def get_sha_sums(mydir):
     '''Recursively searches a directory for all folders and files and returns a
     tuple of a list and a dict: The list holds directory names and the dict's
     keys are file names and the values are their SHA-512 hash.
@@ -96,70 +97,72 @@ def get_sha_sums(dir):
     # TODO Reduce this to less than 80 chars. I have a feeling for file is
     # redundant. Found it here:
     # https://stackoverflow.com/questions/18394147/recursive-sub-folder-search-and-return-files-in-a-list-python
-    for file in [y for x in os.walk(dir) for y in glob(os.path.join(x[0], '*'))]:
-        if os.path.isdir(file):
+    for myfile in [y for x in os.walk(mydir) for y in glob(os.path.join(x[0], '*'))]:
+        if os.path.isdir(myfile):
             # It's actually a directory. Don't attempt SHA-512.
-            dirs.append(file)
+            dirs.append(myfile)
             continue
         
         sha = sha512()
-        with open(file, 'rb') as f:
+        with open(myfile, 'rb') as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 sha.update(chunk)
             sha = sha.hexdigest()
-            files[file] = sha
+            files[myfile] = sha
     return (dirs, files)
 
 
-def check_file_list(dir):
-    '''Checks dir + '/version.json' and compares it to dir + '/file_list.json'.
+def check_file_list(mydir):
+    '''Checks mydir + '/version.json' and compares it to mydir +
+    '/file_list.json'.
+    
     If the version stored in version.json is newer than what is in
     file_list.json then update the latter with a tuple that is the version
-    number, and the directories and file names with SHA-512 sums from
+    number, and the mydirectories and file names with SHA-512 sums from
     get_sha_sums(). To do an update to push out to clients, we update
-    version.json and all other files in the directory, and this will
+    version.json and all other files in the mydirectory, and this will
     automatically update the file list.
     '''
     debug("check_file_list()", level = 1)
-    dir = client_code_base + '/' + dir
+    mydir = client_code_base + '/' + mydir
     
     try:
         debug("Trying to open version.json", level = 1)
-        open(dir + '/version.json')
-        open(dir + '/file_list.json')
+        open(mydir + '/version.json')
+        open(mydir + '/file_list.json')
     except FileNotFoundError:
         # TODO Also [Errno 2]
         # Initialize
         debug("Could not open version.json", level = 1)
         code_ver = '0.0.0'
         debug("About to create version.json", level = 1)
-        with open(dir + '/version.json', 'w') as f:
+        with open(mydir + '/version.json', 'w') as f:
             dump(code_ver, f)
         
         debug("Created version.json, now to create file_list.json", level = 1)
         
         file_list_ver = code_ver
-        dirs, files = get_sha_sums(dir)
-        with open(dir + '/file_list.json', 'w') as f:
-            dump((file_list_ver, dirs, files), f)
+        mydirs, files = get_sha_sums(mydir)
+        with open(mydir + '/file_list.json', 'w') as f:
+            dump((file_list_ver, mydirs, files), f)
     
-    with open(dir + '/version.json') as f:
+    with open(mydir + '/version.json') as f:
         code_ver = load(f)
     
-    with open(dir + '/file_list.json') as f:
+    with open(mydir + '/file_list.json') as f:
         file_list_ver = load(f)[0]
     
     if file_list_ver != code_ver:
-        dirs, files = get_sha_sums(dir)
+        mydirs, files = get_sha_sums(mydir)
         
         # FIXME Exclude file_list.json from SHA checking on the client since it
         # will differ from the line above to now
-        with open(dir + '/file_list.json', 'w') as f:
-            dump((code_ver, dirs, files), f)
+        with open(mydir + '/file_list.json', 'w') as f:
+            dump((code_ver, mydirs, files), f)
 
 
 def on_log(client, userdata, level, buf):
-    debug("log: " + str(buf))
+    debug("log: " + str(buf), level = 1)
 
 
 def _encrypt(msg):
@@ -178,14 +181,14 @@ if __name__ == '__main__':
     
     debug("authorized_devices: '" + str(authorized_devices) + "'")
     # Subscribe to all of our authorized device topics
-    for device_type in authorized_devices:
-        debug("device_type: '" + str(device_type) + "'")
-        for serial, version in authorized_devices[device_type].items():
+    for dev_type in authorized_devices:
+        debug("dev_type: '" + str(dev_type) + "'")
+        for serial, version in authorized_devices[dev_type].items():
             debug("serial: '" + str(serial) + "'")
             debug("version: '" + str(version) + "'")
-            root_path = device_type + '/' + serial + '/' + version + '/in/'
+            root_path = dev_type + '/' + serial + '/' + version + '/in/'
             debug("root_path: '" + str(root_path) + "'")
-            for topic in topics[device_type]:
+            for topic in topics[dev_type]:
                 mytopic = root_path + topic
                 debug("Subscribing to '" + str(mytopic) + "'")
                 mqtt_client.subscribe(mytopic, qos = 1)
