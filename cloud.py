@@ -79,6 +79,9 @@ class CloudCls(object):
         maint()
         debug("topic: '" + str(topic) + "'", level = 0)
         debug("msg: '" + str(msg) + "'", level = 0)
+        # FIXME Comment
+        print("[DEBUG] topic: '" + str(topic) + "'")
+        print("[DEBUG] msg: '" + str(msg) + "'")
         
         # FIXME What if we only had a temporary burp at startup?
         # FIXME Some way, some how, check if we are connected and if not, raise

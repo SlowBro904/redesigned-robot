@@ -10,8 +10,13 @@ from updates import get_sys_updates
 
 debug = debugging.printmsg
 
+# FIXME MemoryError. Rewrite the update code so it is extremely simple. One
+# module if possible. Debug, then translate that code into this, then freeze
+# the bytecode.
+# https://learn.adafruit.com/micropython-basics-loading-modules/frozen-modules
+
 # Clean before starting
-updates = ['/flash/testing.dir', '/flash/testing.file']
+updates = ['/flash/testing.dir', '/flash/testing.file', '/flash/file_list.json']
 for file in updates:
     try:
         remove(file)

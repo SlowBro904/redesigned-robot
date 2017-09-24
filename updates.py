@@ -1,3 +1,5 @@
+# FIXME Getting memory errors here and elsewhere. Ensure we have copious
+# garbage collection and test the WDT.
 import debugging
 import temp_file
 import web_admin
