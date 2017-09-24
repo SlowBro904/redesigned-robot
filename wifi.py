@@ -193,7 +193,9 @@ class WIFI(object):
         '''
         # Temporary dummy network config just to fetch data
         wlan = WLAN(mode=WLAN.STA)
+        #print("[DEBUG] About to run wlan.ifconfig(config=('dhcp'))")
         wlan.ifconfig(config=('dhcp'))
+        #print("[DEBUG] Just ran wlan.ifconfig(config=('dhcp'))")
         results = wlan.scan()
         del(wlan)
 
@@ -262,7 +264,7 @@ class WIFI(object):
 
 mywifi = None
 
-def sta(debug = False):
+def sta():
     '''Sets up a connection as a station only, not an access point as well.
     
     Uses DHCP to get an IP.
@@ -272,7 +274,7 @@ def sta(debug = False):
     return wifi
 
 
-def sta_ap(debug = False):
+def sta_ap():
     '''Sets up a connection that is both station and access point'''
     ip = config.conf['WEB_ADMIN_IP']
     subnet_mask = config.conf['WEB_ADMIN_SUBNET_MASK']
@@ -284,6 +286,7 @@ def sta_ap(debug = False):
     # TODO Make it possible to change AP_PASSWORD.
     
     wifi = WIFI(mode = 'STA_AP')
+    #print("[DEBUG] Just after initializing the wifi object")
     
     # id = 1 is the access point interface
     wifi.ifconfig(id = 1, ip = ip, subnet_mask = subnet_mask, 

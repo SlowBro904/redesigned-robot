@@ -1,5 +1,6 @@
 import debugging
 from err import ErrCls
+from time import sleep
 from mqtt import MQTTCls
 from maintenance import maint
 
@@ -101,15 +102,23 @@ class CloudCls(object):
             # Then we also have nothing to decrypt
             decrypt = False
         
+        # FIXME Tweak to something more appropriate and setup a config entry
+        # FIXME Or better, check that we got return data somehow
+        ## Delay for publish and return data
+        #sleep(5)
+        
         # FIXME be aware that mqtt.get() returns a byte object
+        # FIXME Not working. Returning None for file_list_contents
         result = self.mqtt.get(topic, decrypt = decrypt)
         
-        debug("result: '" + str(result) + "'", level = 0)
+        # FIXME Revert to debug()
+        #print("[DEBUG] result: '" + str(result) + "'")#, level = 0)
         
-        # TODO This may be a bit cleaner if we try/except on the error
-        #   TypeError: can't convert 'NoneType' object to str implicitly
-        if result is not None:
-            return result
+        return result
+        ## TODO This may be a bit cleaner if we try/except on the error
+        ##   TypeError: can't convert 'NoneType' object to str implicitly
+        #if result is not None:
+        #    return result
 
 # end of class CloudCls(object)
 

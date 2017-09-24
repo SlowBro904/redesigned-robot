@@ -4,6 +4,7 @@ from time import sleep
 from config import config
 from uhashlib import sha512
 from system import SystemCls
+from ubinascii import hexlify
 from maintenance import maint
 from ujson import dumps, loads
 from crypto import AES, getrandbits
@@ -145,6 +146,7 @@ class MQTTCls(object):
             # https://github.com/micropython/micropython-lib/blob/master/umqtt.simple/example_sub.py
             # FIXME Might just need a longer retry?
             # TODO Should I idle and/or maint()? Should maint() also idle()?
+            # FIXME Does this wait until the server is finally ready to send?
             self.client.check_msg()
             sleep(1)
         
@@ -168,14 +170,25 @@ class MQTTCls(object):
         '''Callback to collect messages as they come in'''
         # The full topic would be device and serial and all that. Remove all
         # but the end topic name.
-        debug("_sub_cb() topic: '" + str(topic) + "'", level = 0)
-        debug("_sub_cb() msg: '" + str(msg) + "'", level = 0)
+        # FIXME Not being called for get_file_list now, but it was before?
+        # FIXME Comment all print [DEBUG]s
+        print("[DEBUG] _sub_cb() topic: '" + str(topic) + "'")#, level = 0)
+        print("[DEBUG] _sub_cb() msg: '" + str(msg) + "'")#, level = 0)
         topic = topic.decode("utf-8").split('/')[-1]
         msg, remt_sha = loads(msg.decode("utf-8"))
-        recv_msg_sha = sha512(msg).hexdigest()
+        recv_msg_sha = hexlify(sha512(dumps(msg)).digest())
+        remt_sha = bytes(remt_sha, 'utf-8')
         if remt_sha == recv_msg_sha:
+            # FIXME Revert to debug()
+            print("[DEBUG] remt_sha == recv_msg_sha")
             self.data[topic] = msg
+            print("[DEBUG] self.data[topic]: '" + str(self.data[topic]) + "'")
         else:
+            # FIXME ping, curr_client_ver, etc. are failing here yet not
+            # failing in their execution as they should
+            print("[DEBUG] remt_sha != recv_msg_sha")
+            print("[DEBUG] remt_sha: '" + str(remt_sha) + "'")
+            print("[DEBUG] recv_msg_sha: '" + str(recv_msg_sha) + "'")
             # FIXME Else what? Hopefully re-request.
             pass
     

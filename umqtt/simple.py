@@ -107,11 +107,10 @@ class MQTTClient:
         self.sock.write(b"\xc0\0")
 
     def publish(self, topic, msg, retain=False, qos=0):
-        # FIXME Remove
-        print("[DEBUG] simple.py topic: '" + str(topic) + "'")
-        print("[DEBUG] simple.py type(topic): '" + str(type(topic)) + "'")
-        print("[DEBUG] simple.py msg: '" + str(msg) + "'")
-        print("[DEBUG] simple.py type(msg): '" + str(type(msg)) + "'")
+        #print("[DEBUG] simple.py topic: '" + str(topic) + "'")
+        #print("[DEBUG] simple.py type(topic): '" + str(type(topic)) + "'")
+        #print("[DEBUG] simple.py msg: '" + str(msg) + "'")
+        #print("[DEBUG] simple.py type(msg): '" + str(type(msg)) + "'")
         
         pkt = bytearray(b"\x30\0\0\0")
         pkt[0] |= qos << 1 | retain

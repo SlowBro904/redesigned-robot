@@ -3,9 +3,12 @@ from wifi import mywifi, sta
 mywifi = sta()
 mywifi.connect()
 
+import debugging
 from test_suite import good
 from os import listdir, remove
 from updates import get_sys_updates
+
+debug = debugging.printmsg
 
 # Clean before starting
 updates = ['/flash/testing.dir', '/flash/testing.file']
@@ -15,7 +18,9 @@ for file in updates:
     except: # TODO except what?
         pass
 
+debug("get_sys_updates()")
 get_sys_updates()
+debug("install_updates()")
 install_updates()
 files = listdir('/flash')
 

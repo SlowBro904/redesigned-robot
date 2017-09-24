@@ -111,11 +111,11 @@ def curr_client_ver():
     
     If we are current return True, else return False.
     '''
-    # FIXME Wrap wiith except RuntimeError
-    return system.version() == cloud.send('curr_client_ver')
+    # FIXME Wrap with except RuntimeError
+    return system.version == cloud.send('curr_client_ver')
 
 
-def new_dirs(server_dirs)
+def new_dirs(server_dirs):
     '''Gets any directories we don't have which need to be created'''
     new_dirs = list()
     for dir in server_dirs:
@@ -157,13 +157,14 @@ def get_sys_updates():
     
     if curr_client_ver():
         with open(file_list) as f:
-            file_list_contents = f.read()
+            file_list_contents = loads(f.read())
     else:
         # We are out of date
         file_list_contents = cloud.send('get_file_list')
-        
         with open(file_list, 'w') as f:
-            f.write(file_list_contents)
+            f.write(dumps(file_list_contents))
+    
+    print("[DEBUG] file_list_contents: '" + str(file_list_contents) + "'")
     
     server_dirs = file_list_contents[1]
     
