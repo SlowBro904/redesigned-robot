@@ -170,6 +170,8 @@ class MQTTClient:
         pkt[i] = sz
         maint()
         #print(hex(len(pkt)), hexlify(pkt, ":"))
+        # FIXME Comment
+        #print("[DEBUG] simple.py pkt: '" + str(pkt) + "'")
         self.sock.write(pkt, i + 1)
         maint()
         self._send_str(topic)
