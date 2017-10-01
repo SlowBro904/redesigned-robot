@@ -112,6 +112,10 @@ class MQTTCls(object):
         
         if not msg:
             msg = 'null'
+
+        # FIXME Comment
+        print("[DEBUG] publish() msg: '" + str(msg) + "'")
+        print("[DEBUG] publish() dumps(msg): '" + str(dumps(msg)) + "'")
         
         debug("publish() in_topic: '" + str(in_topic) + "'", level = 0)
         debug("publish() type(in_topic): '" + str(type(in_topic)) + "'",
@@ -176,8 +180,9 @@ class MQTTCls(object):
         print("[DEBUG] _sub_cb() msg: '" + str(msg) + "'")#, level = 0)
         topic = topic.decode("utf-8").split('/')[-1]
         msg, remt_sha = loads(msg.decode("utf-8"))
-        recv_msg_sha = hexlify(sha512(dumps(msg)).digest())
-        remt_sha = bytes(remt_sha, 'utf-8')
+        recv_msg_sha = hexlify(sha512(msg).digest())
+        msg = dumps(msg.decode("utf-8"))
+        remt_sha = bytes(remt_sha, "utf-8")
         if remt_sha == recv_msg_sha:
             # FIXME Revert to debug()
             print("[DEBUG] remt_sha == recv_msg_sha")
@@ -187,6 +192,7 @@ class MQTTCls(object):
             # FIXME ping, curr_client_ver, etc. are failing here yet not
             # failing in their execution as they should
             print("[DEBUG] remt_sha != recv_msg_sha")
+            print("[DEBUG] msg: '" + str(msg) + "'")
             print("[DEBUG] remt_sha: '" + str(remt_sha) + "'")
             print("[DEBUG] recv_msg_sha: '" + str(recv_msg_sha) + "'")
             # FIXME Else what? Hopefully re-request.

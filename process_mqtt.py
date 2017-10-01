@@ -52,12 +52,12 @@ def on_message(client, userdata, in_msg):
     # directories, config files, and the like.
     elif topic == 'curr_client_ver':
         with open(code_base + '/version.json') as f:
-            out_msg = load(f)
+            out_msg = load(f).encode('utf-8')
     
     elif topic == 'get_file_list':
         check_file_list(dev_type)
         with open(code_base + '/file_list.json') as f:
-            out_msg = f.readlines()
+            out_msg = load(f)
         debug("out_msg: '" + str(out_msg) + "'")
     
     elif topic == 'get_file':
@@ -81,9 +81,11 @@ def on_message(client, userdata, in_msg):
     # substitute exactly one level from the end
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
 
-    # Turn our message into a JSON string encoded UTF-8 then hash
-    sha = sha512(dumps(out_msg).encode('utf-8')).hexdigest()
-
+    # Turn our message into a JSON string encoded UTF-8
+    out_msg = dumps(out_msg.decode('utf-8'))
+    sha = sha512(out_msg).hexdigest()
+    
+    # JSON again to wrap both message and SHA together
     client.publish(out_topic, dumps([out_msg, sha]))
 
 

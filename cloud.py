@@ -122,8 +122,3 @@ class CloudCls(object):
         ##   TypeError: can't convert 'NoneType' object to str implicitly
         #if result is not None:
         #    return result
-
-# end of class CloudCls(object)
-
-cloud = CloudCls()
-cloud.connect()
