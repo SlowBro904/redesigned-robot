@@ -6,6 +6,9 @@ try:
 except ImportError:
     pass
 
+# FIXME Why am I not using temp_file for installing updates?
+# FIXME Create some kind of one-off script run that I can have the customer
+# reboot, download the script, execute, upload results
 import debugging
 from test_suite import good
 from os import listdir, remove
@@ -14,10 +17,7 @@ from update_sys_simple import (get_sys_updates, install_updates,
 
 debug = debugging.printmsg
 
-# FIXME MemoryError. Rewrite the update code so it is extremely simple. One
-# module if possible. Debug, then translate that code into this, then freeze
-# the bytecode.
-# https://learn.adafruit.com/micropython-basics-loading-modules/frozen-modules
+# FIXME MemoryErrors. Compile to firmware/frozen bytecode.
 
 # Clean before starting
 updates = ['/flash/testing.dir', '/flash/testing.file', '/flash/file_list.json']

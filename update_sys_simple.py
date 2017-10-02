@@ -7,6 +7,8 @@
 
 # FIXME:
 ############################ ALSO CREATE CLOUD_SIMPLE AND TEST ############################
+# Hmm. Why? For saving RAM?
+
 from config import config
 from cloud import CloudCls
 from uhashlib import sha512
@@ -54,10 +56,15 @@ def curr_client_ver():
     
     If we are current return True, else return False.
     '''
+    # FIXME What about updating individual clients? What about one-off client
+    # commands?
     # FIXME Wrap with except RuntimeError
     # FIXME Pulled from system.py for simplification
     with open(config.conf['VERSION_NUMBER_FILE']) as f:
         system_version = loads(f.read())
+    print("[DEBUG] system_version: '" + str(system_version) + "'")
+    print("[DEBUG] cloud.send('curr_client_ver'): '" + 
+            str(cloud.send('curr_client_ver')) + "'")
     
     # FIXME Uncomment
     #return system.version == cloud.send('curr_client_ver')
@@ -113,21 +120,18 @@ def get_sys_updates():
     maint()
     
     if curr_client_ver():
-        try:
-            with open(file_list) as f:
-                file_list_contents = loads(f.read())
-        except OSError:
-            # FIXME Also [Errno 2] ENOENT
-            # We are out of date
-            file_list_contents = cloud.send('get_file_list')
-            with open(file_list, 'w') as f:
-                f.write(dumps(file_list_contents))
-    else:
-        # TODO This is redundant
-        # We are out of date
-        file_list_contents = cloud.send('get_file_list')
-        with open(file_list, 'w') as f:
-            f.write(dumps(file_list_contents))
+        return
+    
+    # FIXME Check shasums of all files on the system at boot. Use this code.
+    #try:
+    #    with open(file_list) as f:
+    #        file_list_contents = loads(f.read())
+    #except OSError:
+    #    # FIXME Also [Errno 2] ENOENT
+    
+    file_list_contents = cloud.send('get_file_list')
+    with open(file_list, 'w') as f:
+        f.write(dumps(file_list_contents))
     
     print("[DEBUG] file_list_contents: '" + str(file_list_contents) + "'")
     print("[DEBUG] type(file_list_contents): '" +

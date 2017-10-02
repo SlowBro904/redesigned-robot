@@ -114,6 +114,8 @@ class MQTTCls(object):
             msg = 'null'
 
         # FIXME Comment
+        print("[DEBUG] publish() in_topic: '" + str(in_topic) + "'")
+        print("[DEBUG] publish() type(in_topic): '" + str(type(in_topic)) + "'")
         print("[DEBUG] publish() msg: '" + str(msg) + "'")
         print("[DEBUG] publish() dumps(msg): '" + str(dumps(msg)) + "'")
         

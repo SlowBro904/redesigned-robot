@@ -18,9 +18,11 @@ client_code_base = '/clients'
 mqtt_client = mqtt.Client(client_id = 'better_automations')
 
 # Client name and version they are at
-authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
+# FIXME Need to also auto subscribe to new versions
+authorized_devices = {'SB': {'240ac400b1b6': '0.0.1'}}
 device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
-topics = {'SB': ['ping', 'curr_client_ver', 'get_file_list', 'get_file']}
+topics = {'SB': ['ping', 'curr_client_ver', 'get_file_list', 'get_file',
+                    'get_data_updates', 'got_data_update']}
 
 def debug(msg, level = 0):
     '''Prints a debug message'''
@@ -80,15 +82,31 @@ def on_message(client, userdata, in_msg):
         
     
     elif topic == 'get_data_updates':
-        test_update = ['testing.json', 'testing', '123']
+        # This is a list of lists; each item in the list is a list
+        # that contains 1. the file to update 2. the parameter 3.
+        # the value.
+        # FIXME Move test data to the DB.
+        test_updates = [['testing.json', 'testing', '123']]
         if msg == 'all':
             # Send all data files. We probably did a factory reset.
             # FIXME Finish
-            out_msg = test_update
+            out_msg = test_updates
         else:
             # Send only any new data updates since our last check.
             # FIXME Finish
-            out_msg = test_update
+            out_msg = test_updates
+   
+
+    elif topic == 'got_data_update':
+        data_file = msg
+        # FIXME Record here that our client did successfully receive
+        # the update.
+        # TODO This only records the data file updated, not actual
+        # data updated. But maybe we want that, because it doubles
+        # the data sent. We basically wouldn't get this unless we
+        # validate the data being sent, so I think it's sufficient.
+        out_msg = 'ack'
+
 
     # TODO This shouldn't be naive and just substitute anywhere but
     # substitute exactly one level from the end
