@@ -178,11 +178,15 @@ class MQTTCls(object):
         # FIXME Comment all print [DEBUG]s
         print("[DEBUG] _sub_cb() topic: '" + str(topic) + "'")#, level = 0)
         print("[DEBUG] _sub_cb() msg: '" + str(msg) + "'")#, level = 0)
-        topic = topic.decode("utf-8").split('/')[-1]
-        msg, remt_sha = loads(msg.decode("utf-8"))
+        topic = topic.decode('utf-8').split('/')[-1]
+        # Remove outer JSON encoding
+        msg, remt_sha = loads(msg)
         recv_msg_sha = hexlify(sha512(msg).digest())
-        msg = dumps(msg.decode("utf-8"))
-        remt_sha = bytes(remt_sha, "utf-8")
+        # Remove the inner JSON encoding
+        msg = loads(msg)
+        # TODO I think this should be more clearly stated like this:
+        # remt_sha = remt_sha.encode('utf-8)
+        remt_sha = bytes(remt_sha, 'utf-8')
         if remt_sha == recv_msg_sha:
             # FIXME Revert to debug()
             print("[DEBUG] remt_sha == recv_msg_sha")

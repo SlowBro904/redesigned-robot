@@ -20,6 +20,8 @@ class SystemCls(object):
         maint()
         
         #try:
+        # FIXME Does the ConfigCls have the ability to add new config items?
+        # And if so how do I intend to add them? Some one-off startup script.
         with open(config.conf['VERSION_NUMBER_FILE']) as f:
             return loads(f.read())
         #except:

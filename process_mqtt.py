@@ -7,9 +7,9 @@ from hashlib import sha512
 from itertools import chain
 from re import sub as re_sub
 import paho.mqtt.client as mqtt
-from json import dumps, load, dump
-from multiprocessing import Process
 #from crypto import AES, getrandbits
+from multiprocessing import Process
+from json import loads, dumps, load, dump
 
 debug_enabled = True
 default_level = 0
@@ -20,7 +20,7 @@ mqtt_client = mqtt.Client(client_id = 'better_automations')
 # Client name and version they are at
 authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
 device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
-topics = {'SB': ['ping', 'curr_client_ver', 'get_file_list']}
+topics = {'SB': ['ping', 'curr_client_ver', 'get_file_list', 'get_file']}
 
 def debug(msg, level = 0):
     '''Prints a debug message'''
@@ -40,7 +40,7 @@ def on_message(client, userdata, in_msg):
     debug("type(in_msg.topic): '" + str(type(in_msg.topic)) + "'", level = 1)
     
     dev_type, serial, ver, __, topic = in_msg.topic.split('/')
-    msg = in_msg.payload
+    msg = loads(in_msg.payload.decode('utf-8'))
     code_base = client_code_base + '/' + dev_type
     
     if topic == 'ping':
@@ -52,19 +52,32 @@ def on_message(client, userdata, in_msg):
     # directories, config files, and the like.
     elif topic == 'curr_client_ver':
         with open(code_base + '/version.json') as f:
-            out_msg = load(f).encode('utf-8')
+            out_msg = load(f)
     
     elif topic == 'get_file_list':
         check_file_list(dev_type)
         with open(code_base + '/file_list.json') as f:
             out_msg = load(f)
-        debug("out_msg: '" + str(out_msg) + "'")
     
     elif topic == 'get_file':
-        file = msg
+        # FIXME The version.json file is different on the client
+        myfile = msg
         # TODO Paranoid. Can they get files from anywhere else?
-        with open(code_base + '/' + file) as f:
-            out_msg = f.readlines()
+        # How about /.. ?
+        # Run this script non-privileged and do file perms audit 
+        # regularly
+        # FIXME Add a try/except to here and anywhere
+        # FileNotFoundError: [Errno 2] No such file or directory
+        # TODO Not sending in 'rb' binary mode, will this cause a
+        # problem later?
+        with open(code_base + '/' + myfile) as f:
+            contents = f.readlines()
+
+        debug("contents: '" + str(contents) + "'")
+
+        sha = get_file_sha512(code_base + '/' + myfile)
+        out_msg = [contents, sha]
+        
     
     elif topic == 'get_data_updates':
         test_update = ['testing.json', 'testing', '123']
@@ -76,17 +89,28 @@ def on_message(client, userdata, in_msg):
             # Send only any new data updates since our last check.
             # FIXME Finish
             out_msg = test_update
-    
+
     # TODO This shouldn't be naive and just substitute anywhere but
     # substitute exactly one level from the end
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
+    
+    debug("out_topic: '" + str(out_topic) + "'")
+    debug("out_msg: '" + str(out_msg) + "'")
 
     # Turn our message into a JSON string encoded UTF-8
-    out_msg = dumps(out_msg.decode('utf-8'))
-    sha = sha512(out_msg).hexdigest()
+    out_msg = dumps(out_msg)
+    sha = sha512(out_msg.encode('utf-8')).hexdigest()
     
     # JSON again to wrap both message and SHA together
     client.publish(out_topic, dumps([out_msg, sha]))
+
+
+def get_file_sha512(myfile):
+    sha = sha512()
+    with open(myfile, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            sha.update(chunk)
+    return sha.hexdigest()
 
 
 def get_sha_sums(mydir):
@@ -96,21 +120,25 @@ def get_sha_sums(mydir):
     '''
     dirs = list()
     files = dict()
-    # TODO Reduce this to less than 80 chars. I have a feeling for file is
+    # TODO Reduce this to less than 80 chars. I have a feeling the for myfile is
     # redundant. Found it here:
     # https://stackoverflow.com/questions/18394147/recursive-sub-folder-search-and-return-files-in-a-list-python
     for myfile in [y for x in os.walk(mydir) for y in glob(os.path.join(x[0], '*'))]:
         if os.path.isdir(myfile):
             # It's actually a directory. Don't attempt SHA-512.
+            # Remove the client_code_base and device dir
+            myfile = re_sub(client_code_base, '', myfile)
+            myfile = '/'.join(myfile.split('/')[2:])
             dirs.append(myfile)
             continue
         
-        sha = sha512()
-        with open(myfile, 'rb') as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                sha.update(chunk)
-            sha = sha.hexdigest()
-            files[myfile] = sha
+        sha = get_file_sha512(myfile)
+
+        # TODO Redundant
+        # Remove the client_code_base and device dir
+        myfile = re_sub(client_code_base, '', myfile)
+        myfile = '/'.join(myfile.split('/')[2:])
+        files[myfile] = sha
     return (dirs, files)
 
 
