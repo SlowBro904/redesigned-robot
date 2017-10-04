@@ -4,6 +4,7 @@ import temp_file
 from ujson import dumps
 from cloud import CloudCls
 from maintenance import maint
+from uos import listdir, remove
 
 #err = ErrCls()
 cloud = CloudCls()
@@ -67,17 +68,37 @@ def get_data_updates(get_all = False):
     
     maint()
     
+    print("[DEBUG] update_data.py get_data_updates() data: '" + str(data) + "'")
+    
     for data_file in data:
         # TODO Do general Pythonic cleanup and refactor everywhere
         #try:
-        print("[DEBUG] update_data.py temp_file.create(data_file): '" +
-                str(temp_file.create(data_file)) + "'")
+        #print("[DEBUG] update_data.py temp_file.create(data_file): '" +
+        #        str(temp_file.create(data_file)) + "'")
         my_temp = temp_file.create(data_file)
+        #print("[DEBUG] update_data.py get_data_updates() my_temp: '" + 
+        #        str(my_temp) + "'")
+        success = False
         with open(my_temp, 'w') as f:
             if f.write(dumps(data[data_file])):
-                # TODO Maybe make this an exception
-                if temp_file.install(my_temp, data_file):
-                    cloud.send('got_data_update', data_file)
+                #print("[DEBUG] update_data.py get_data_updates() " +
+                #        "f.write(dumps(data[data_file])) successful")
+                #print("[DEBUG] update_data.py get_data_updates() " +
+                #        "listdir('/flash/tmp')" + str(listdir('/flash/tmp')) +
+                #        "'")
+                success = True
+        
+        if not success:
+            # FIXME Some error somewhere
+            remove(my_temp)
+        else:
+            # TODO Maybe make this an exception
+            if temp_file.install(my_temp, 
+                '/flash/device_data/' + data_file):
+                cloud.send('got_data_update', data_file)
+                #print("[DEBUG] update_data.py get_data_updates() " +
+                #        "listdir('/flash/device_data')" +
+                #        str(listdir('/flash/device_data')) + "'")
         #except OSError:
         #    warning = ("Failed to get data updates.",
         #                " ('updates.py', 'get_data_updates')")

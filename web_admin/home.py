@@ -3,6 +3,7 @@ def show(parameters):
     from wifi import wifi
     from config import config
     from system import System
+    from cloud import CloudCls
     from maintenance import maint
     
     device_name = config.conf['DEVICE_NAME']
@@ -11,6 +12,7 @@ def show(parameters):
     h1 = title
     body = ""
     
+    cloud = CloudCls
     serial = System().serial
     version = System().version
     

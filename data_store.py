@@ -1,9 +1,9 @@
 import debugging
 from os import remove
-# FIXME Uncomment
-#from cloud import cloud
+from cloud import CloudCls
 from ujson import dumps, loads
 
+cloud = CloudCls()
 debug = debugging.printmsg
 testing = debugging.testing
 
@@ -51,7 +51,7 @@ class DataStore(object):
             if not testing:
                 debug("Sending to the cloud")
                 # FIXME Retry sends, and what if that fails
-                self.cloud.send(self.dataset, self.value)
+                cloud.send(self.dataset, self.value)
                 del(self.value)
                 self._clear_save_file()
         except RuntimeError:

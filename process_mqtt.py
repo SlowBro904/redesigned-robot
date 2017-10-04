@@ -14,6 +14,7 @@ from json import loads, dumps, load, dump
 debug_enabled = True
 default_level = 0
 client_code_base = '/clients'
+device_data = {'SB': {'240ac400b1b6': {'0.0.1': {'testing.json': ['testing', '123']}}}}
 
 mqtt_client = mqtt.Client(client_id = 'better_automations')
 
@@ -86,35 +87,37 @@ def on_message(client, userdata, in_msg):
         # that contains 1. the file to update 2. the parameter 3.
         # the value.
         # FIXME Move test data to the DB.
-        test_updates = [['testing.json', 'testing', '123']]
         if msg == 'all':
             # Send all data files. We probably did a factory reset.
             # FIXME Finish
-            out_msg = test_updates
+            out_msg = device_data[device_type][serial][ver]
         else:
             # Send only any new data updates since our last check.
             # FIXME Finish
-            out_msg = test_updates
-   
-
+            out_msg = list()
+            for data_file in device_data[device_type][serial][ver]:
+                if not device_data_status[device_type][serial][ver][data_file]:
+                    out_msg.append(device_data[device_type][serial][ver][data_file])
+    
+    
     elif topic == 'got_data_update':
         data_file = msg
-        # FIXME Record here that our client did successfully receive
-        # the update.
         # TODO This only records the data file updated, not actual
         # data updated. But maybe we want that, because it doubles
         # the data sent. We basically wouldn't get this unless we
         # validate the data being sent, so I think it's sufficient.
+        # FIXME Catch AttributeError or whatever it would be
+        device_data_status[dev_type][serial][ver][data_file] = True
         out_msg = 'ack'
-
-
+    
+    
     # TODO This shouldn't be naive and just substitute anywhere but
     # substitute exactly one level from the end
     out_topic = re_sub('/in/', '/out/', in_msg.topic)
     
     debug("out_topic: '" + str(out_topic) + "'")
     debug("out_msg: '" + str(out_msg) + "'")
-
+    
     # Turn our message into a JSON string encoded UTF-8
     out_msg = dumps(out_msg)
     sha = sha512(out_msg.encode('utf-8')).hexdigest()

@@ -4,7 +4,7 @@ gc.enable()
 
 # Did we download any new updates? Install them now before anything runs.
 # Test written
-from updates import install_updates, get_sys_updates
+from update_sys import install_updates, get_sys_updates
 install_updates()
 
 # The rest of our modules
@@ -19,11 +19,11 @@ from leds import leds
 # Tested
 from err import ErrCls
 # Tested
-from cloud import Cloud
-# Tested
 from batt import BattCls
 # Tested
 from config import config
+# Tested
+from cloud import CloudCls
 # Tested
 from wifi import sta, sta_ap
 # Tested
@@ -38,6 +38,8 @@ from deepsleep import deepsleep
 from datastore import DataStore
 # Tested
 from boot_cause import boot_cause
+# Test written
+from update_data import get_data_updates
 
 err = Err()
 
@@ -53,7 +55,7 @@ rtc = RTC()
 battery = Battery()
 system = System()
 schedule = ScheduleCls(system.attached_devices)
-cloud = Cloud()
+cloud = CloudCls()
 
 # Keep our watchdog fed or he'll bite
 wdt.start()
