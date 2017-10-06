@@ -73,9 +73,8 @@ class Schedule(object):
         event time. Each tuple contains the event time (in seconds since
         epoch), command, and arguments.
         '''
-        # TODO Seems like I want to use gmtime inside rtc.now() more often
-        now = gmtime(self.rtc.now())
-        now_secs = self.rtc.now()
+        now = self.rtc.now()
+        now_secs = self.rtc.now_secs()
         # The today variable is the weekday
         now_hour, now_min, now_sec, today = now[3], now[4], now[5], now[6]
         # Number of seconds since epoch as of 00:00 this morning.
@@ -143,7 +142,7 @@ class Schedule(object):
         # This addresses a different situation than the 'while True:' in run().
         # FIXME Change all config items back to sane defaults. Right now this
         # is 86400.
-        stop_time = self.rtc.now() + int(config.conf['SCHEDULE_BUFFER'])
+        stop_time = self.rtc.now_secs() + int(config.conf['SCHEDULE_BUFFER'])
         print("[DEBUG] stop_time: '" + str(stop_time) + "'")
         
         # Get only the most recently scheduled items for this device

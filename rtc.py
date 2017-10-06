@@ -1,5 +1,6 @@
 # FIXME Uncomment
-#from err import ErrClsors
+#from err import ErrCls
+from utime import sleep
 from config import config
 from maintenance import maint
 from machine import RTC as system_clock_cls
@@ -36,14 +37,14 @@ class RTC(object):
             else:
                 raise RuntimeError("No NTP server selected")
         
-        try:
-            return self.system_clock.ntp_sync(ntp_server)
-        except:
-            warning = ("Cannot sync NTP. Server: ",
-                        ntp_server,
-                        "('rtc.py', 'start_ntp_daemon')")
-            self.err.warning(warning)
-            return False
+        #try:
+        return self.system_clock.ntp_sync(ntp_server)
+        #except:
+        #    warning = ("Cannot sync NTP. Server: ",
+        #                ntp_server,
+        #                "('rtc.py', 'start_ntp_daemon')")
+        #    self.err.warning(warning)
+        #    return False
     
     
     def ntp_status(self):
@@ -52,6 +53,11 @@ class RTC(object):
     
     
     def now(self):
+        '''Returns the current time as a tuple'''
+        return self.system_clock.now()
+    
+    
+    def now_secs(self):
         '''Returns the current time in seconds since epoch'''
         from time import mktime
         return mktime(self.system_clock.now())
@@ -63,23 +69,19 @@ class RTC(object):
         If not connected to get NTP sync and RTC time has not yet been set the 
         RTC year will be 1970. This is bad news, because our schedule won't 
         run. Throw a hard error.
-        
-        This should only be run if we're not able to connect to the network.
         '''
-        from wifi import wifi
+        if not self.ntp_status():
+            # Wait 10 seconds
+            sleep(10)
         
-        if wifi.isconnected():
-            if not self.ntp_status():
-                # Wait 10 seconds
-                sleep(10)
-            
-            # Try again. If NTP is running we're good.
-            if self.ntp_status():
-                return True
+        # Try again. If NTP is running we're good.
+        if self.ntp_status():
+            return True
         
         this_year = self.rtc.now()[0]
         
         if this_year == 1970:
             error = ("Cannot setup clock so I cannot run the schedule",
                         "('rtc.py', 'check_system_clock')")
-            self.err.error(error)
+            # FIXME Uncomment
+            #self.err.error(error)

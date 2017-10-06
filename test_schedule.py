@@ -12,8 +12,8 @@ debug = debugging.printmsg
 
 system = SystemCls()
 rtc = RTC()
-now = gmtime(rtc.now())
-now_secs = rtc.now()
+now = rtc.now()
+now_secs = rtc.now_secs()
 now_hour, now_min, now_sec, today = now[3], now[4], now[5], now[6]
 # Number of seconds since epoch as of 00:00 this morning.
 today_secs = now_secs - (now_hour*60*60) - (now_min*60) - now_sec

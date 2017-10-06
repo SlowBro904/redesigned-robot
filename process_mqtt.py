@@ -38,8 +38,13 @@ mqtt_client = mqtt.Client(client_id = 'better_automations')
 # FIXME Need to also auto subscribe to new versions
 authorized_devices = {'SB': {'240ac400b1b6': '0.0.1'}}
 device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
+device_log = dict()
+device_log['SB'] = dict()
+
+# FIXME Remove 'testing' for prod
 topics = {'SB': ['ping', 'curr_client_ver', 'get_file_list', 'get_file',
-                    'get_data_updates', 'got_data_update']}
+                    'get_data_updates', 'got_data_update', 'status',
+                    'error_log', 'testing']}
 
 def debug(msg, level = 0):
     '''Prints a debug message'''
@@ -127,6 +132,41 @@ def on_message(client, userdata, in_msg):
         # validate the data being sent, so I think it's sufficient.
         # FIXME Catch AttributeError or whatever it would be
         device_data_status[dev_type][serial][ver][data_file] = True
+        out_msg = 'ack'
+    
+    
+    elif topic == 'error_log':
+        try:
+            device_log[dev_type][serial]
+        except AttributeError:
+            device_log[dev_type][serial] = list()
+        device_log[dev_type][serial].append(msg)
+        # FIXME Here, do something with the errors received
+        debug("error_log: '" + str(device_log[dev_type][serial])
+                + "'")
+        
+        out_msg = 'ack'
+    
+    
+    elif topic == 'status':
+        # Here, device is the on-board device such as door sensor
+        # TODO Think of a less ambiguous name
+        device, status = msg
+        try:
+            device_status[dev_type][serial]
+        except AttributeError:
+            device_status[dev_type][serial] = list()
+
+        try:
+           device_status[dev_type][serial][device] 
+        except AttributeError:
+            device_status[dev_type][serial][device] = bool()
+
+        device_log[dev_type][serial][device] = status
+        # FIXME Here, do something with the staus received
+        debug("status: '" +
+                str(device_log[dev_type][serial][device]) + "'")
+        
         out_msg = 'ack'
     
     

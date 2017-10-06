@@ -99,5 +99,5 @@ DataStore.save_all()
 
 wdt.stop()
 
-secs = schedule.next_event_time - rtc.now()
+secs = schedule.next_event_time - rtc.now_secs()
 deepsleep(secs)

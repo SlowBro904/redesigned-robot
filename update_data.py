@@ -20,7 +20,7 @@ def get_data_updates(get_all = False):
     This can also be specified by writing True in JSON format into
     /flash/get_all_data_files.json which will get deleted once read.
     '''
-    # FIXME If our schedule is incomplete for some reason error/warn
+    # TODO If our schedule is incomplete for some reason error/warn
     maint()
     
     get_all_flag = '/flash/get_all_data_files.json'
