@@ -8,39 +8,42 @@ from test_suite import good
 from os import listdir, remove
 from update_data import get_data_updates
 
-test_data = '/flash/device_data/testing.json'
+test_data = '/flash/device_data/testing1.json'
 try:
     remove(test_data)
 except:
     pass
 
 get_data_updates(get_all = True)
-# FIXME Coming up empty
 files = listdir('/flash/device_data')
 
 check = "get_data_updates() all"
-assert 'testing.json' in files, check
+assert 'testing1.json' in files, check
 good(check)
 
 with open(test_data) as f:
     contents = loads(f.read())
 
 check = "get_data_updates() all contents"
-assert contents['testing'] == '123', check
+assert contents['testing1'] == '123', check
 good(check)
 
-# FIXME How do I test this
+test_data = '/flash/device_data/testing2.json'
+try:
+    remove(test_data)
+except:
+    pass
+
 get_data_updates(get_all = False)
-# FIXME Coming up empty
 files = listdir('/flash/device_data')
 
 check = "get_data_updates() updates"
-assert 'testing.json' in files, check
+assert 'testing2.json' in files, check
 good(check)
 
 with open(test_data) as f:
     contents = loads(f.read())
 
 check = "get_data_updates() updates contents"
-assert contents['testing'] == '123', check
+assert contents['testing2'] == '456', check
 good(check)

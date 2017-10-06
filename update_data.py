@@ -1,9 +1,9 @@
 import temp_file
 # FIXME Uncomment
 #from err import ErrCls
-from ujson import dumps
 from cloud import CloudCls
 from maintenance import maint
+from ujson import dumps, loads
 from uos import listdir, remove
 
 #err = ErrCls()
@@ -47,11 +47,11 @@ def get_data_updates(get_all = False):
         return True
     
     data = dict()
-    for update in updates:
+    for data_file, update in updates.items():
         print("[DEBUG] update_data.py get_data_updates() update: '" +
                 str(update) + "'")
         
-        data_file, parameter, value = update
+        parameter, value = update
         
         maint()
         

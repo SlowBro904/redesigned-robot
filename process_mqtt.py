@@ -11,10 +11,26 @@ import paho.mqtt.client as mqtt
 from multiprocessing import Process
 from json import loads, dumps, load, dump
 
+# FIXME False for prod
 debug_enabled = True
+testing = True
 default_level = 0
 client_code_base = '/clients'
-device_data = {'SB': {'240ac400b1b6': {'0.0.1': {'testing.json': ['testing', '123']}}}}
+device_data = {'SB': 
+                {'240ac400b1b6':
+                    {'0.0.1': 
+                        {'testing1.json': ['testing1', '123']}
+                    }
+                }
+              }
+
+device_data_status = {'SB':
+                        {'240ac400b1b6':
+                            {'0.0.1':
+                                {'testing1.json': False}
+                            }
+                        }
+                     }
 
 mqtt_client = mqtt.Client(client_id = 'better_automations')
 
@@ -90,14 +106,17 @@ def on_message(client, userdata, in_msg):
         if msg == 'all':
             # Send all data files. We probably did a factory reset.
             # FIXME Finish
-            out_msg = device_data[device_type][serial][ver]
+            out_msg = device_data[dev_type][serial][ver]
         else:
             # Send only any new data updates since our last check.
             # FIXME Finish
-            out_msg = list()
-            for data_file in device_data[device_type][serial][ver]:
-                if not device_data_status[device_type][serial][ver][data_file]:
-                    out_msg.append(device_data[device_type][serial][ver][data_file])
+            out_msg = dict()
+            if testing:
+                device_data[dev_type][serial][ver]['testing2.json'] = ['testing2', '456']
+                device_data_status[dev_type][serial][ver]['testing2.json'] = False
+            for data_file in device_data[dev_type][serial][ver]:
+                if not device_data_status[dev_type][serial][ver][data_file]:
+                    out_msg[data_file] = device_data[dev_type][serial][ver][data_file]
     
     
     elif topic == 'got_data_update':
@@ -141,8 +160,8 @@ def get_sha_sums(mydir):
     '''
     dirs = list()
     files = dict()
-    # TODO Reduce this to less than 80 chars. I have a feeling the for myfile is
-    # redundant. Found it here:
+    # TODO Reduce this to less than 80 chars. I have a feeling the for myfile
+    # is redundant. Found it here:
     # https://stackoverflow.com/questions/18394147/recursive-sub-folder-search-and-return-files-in-a-list-python
     for myfile in [y for x in os.walk(mydir) for y in glob(os.path.join(x[0], '*'))]:
         if os.path.isdir(myfile):

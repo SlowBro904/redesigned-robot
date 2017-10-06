@@ -8,6 +8,7 @@ def create(target):
     # FIXME Alter everywhere this is used for the new behavior
     maint()
     # TODO Also if dir
+    # FIXME Clean /flash/tmp on boot
     if not 'tmp' in listdir('/flash'):
         mkdir('/flash/tmp')
     
