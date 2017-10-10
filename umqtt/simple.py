@@ -70,6 +70,10 @@ class MQTTClient:
 
     def connect(self, clean_session=True):
         maint()
+
+        # FIXME Comment
+        print("[DEBUG] simple.py connecting...")
+        
         self.sock = socket.socket()
         maint()
         addr = socket.getaddrinfo(self.server, self.port)[0][-1]
@@ -137,6 +141,12 @@ class MQTTClient:
         if resp[3] != 0:
             maint()
             raise MQTTException(resp[3])
+
+        # FIXME Comment
+        print("[DEBUG] simple.py connected")
+        print("[DEBUG] simple.py isinstance(self.sock, socket.socket): '" +
+                str(isinstance(self.sock, socket.socket)) + "'")
+        
         return resp[2] & 1
 
     def disconnect(self):
@@ -149,10 +159,13 @@ class MQTTClient:
         self.sock.write(b"\xc0\0")
 
     def publish(self, topic, msg, retain=False, qos=0):
-        #print("[DEBUG] simple.py topic: '" + str(topic) + "'")
-        #print("[DEBUG] simple.py type(topic): '" + str(type(topic)) + "'")
-        #print("[DEBUG] simple.py msg: '" + str(msg) + "'")
-        #print("[DEBUG] simple.py type(msg): '" + str(type(msg)) + "'")
+        # FIXME Comment
+        print("[DEBUG] simple.py topic: '" + str(topic) + "'")
+        print("[DEBUG] simple.py type(topic): '" + str(type(topic)) + "'")
+        print("[DEBUG] simple.py msg: '" + str(msg) + "'")
+        print("[DEBUG] simple.py type(msg): '" + str(type(msg)) + "'")
+        print("[DEBUG] simple.py isinstance(self.sock, socket.socket): '" +
+                str(isinstance(self.sock, socket.socket)) + "'")
         
         maint()
         pkt = bytearray(b"\x30\0\0\0")

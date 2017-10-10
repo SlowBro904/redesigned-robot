@@ -36,16 +36,16 @@ def show(parameters):
         sec_type = wifi.get_AP_sec_type(ssid)
         
         body += '''<tr><td>Network name (ssid): </td><td><div align='right'>'''
-        body += ssid + '''</div></td></tr>
-        <input type='hidden' name='ssid' value='''' + ssid + '''' />
-        <input type='hidden' name='sec_type' value='''' + sec_type 
+        body += ssid + "</div></td></tr>"
+        body += "<input type='hidden' name='ssid' value='" + ssid + "' />"
+        body += "<input type='hidden' name='sec_type' value='" + sec_type
         body += "' />"
     else:
-        body += '''<tr><td>Network name (ssid):</td><td><div align='right'>
-        <input type='text' name='ssid' /></div></td></tr>'''
+        body += "<tr><td>Network name (ssid):</td><td><div align='right'>"
+        body += "<input type='text' name='ssid' /></div></td></tr>"
 
         if hidden:
-            body += '''<input type='hidden' name='hidden' value='True' />'''
+            body += "<input type='hidden' name='hidden' value='True' />"
         else:
             body += '''<tr><td>&nbsp;</td>
             <td><label><input type='checkbox' name='hidden' value='True'>Hidden

@@ -1,13 +1,8 @@
 #import debugging
-#import temp_file
 #import web_admin
 #from leds import leds
 #from err import ErrCls
 #from reboot import reboot
-
-# FIXME:
-############################ ALSO CREATE CLOUD_SIMPLE AND TEST ############################
-# Hmm. Why? For saving RAM?
 
 from config import config
 from cloud import CloudCls
@@ -24,16 +19,10 @@ cloud = CloudCls()
 #debug = debugging.printmsg
 #testing = debugging.testing
 
-# TODO If we are not connected umqtt/simple.py gives the following unhelpful
-# error:
-# File "umqtt/simple.py", line 176, in publish
-# AttributeError: 'NoneType' object has no attribute 'write'
-cloud.connect()
-
 file_list = '/flash/file_list.json'
 updated_files_list = '/flash/updated_files.json'
 
-def _clean_failed_sys_updates(new_files):
+def _clean_failed_sys_updates(file_list_contents):
     '''Cleans up failed system updates. All or nothing.'''
     # Even though we are in the _clean_failed_sys_updates() function, this
     # would only be called from the get_sys_updates() function.
@@ -41,11 +30,22 @@ def _clean_failed_sys_updates(new_files):
     #            "('updates.py', 'get_sys_updates'")
     #err.warning(warning)
     
-    # FIXME Also remove new dirs. Don't want to assume it's safe to leave
-    # them around.
-    for new_file in new_files:
+    # FIXME Did I test this? Can't just go erasing things. Test partial update.
+    for new_file in new_files(file_list_contents[2], check_sums = False):
         try:
-            remove(new_file)
+            remove(new_file + '.new')
+        except OSError:
+            # Ignore if not able to
+            pass
+    
+    
+    for new_dir in new_dirs(file_list_contents[1]):
+        if len(listdir(new_dir)) == 0:
+            # Ignore non-empty directories
+            continue
+        
+        try:
+            remove(new_dir)
         except OSError:
             # Ignore if not able to
             pass
@@ -83,7 +83,7 @@ def new_dirs(server_dirs):
     return new_dirs
 
 
-def new_files(server_files):
+def new_files(server_files, check_sums = True):
     '''Checks the file list to see if anything needs to be updated/repaired'''
     new_files = list()
     for file, expected_sha in server_files.items():
@@ -95,10 +95,13 @@ def new_files(server_files):
             # Don't need to check anything else, go to the next file
             continue
         
-        stored_sha = file_sha512(file)
-        
-        if stored_sha != expected_sha:
+        if not check_sums:
             new_files.append(file)
+        else:
+            stored_sha = file_sha512(file)
+            
+            if stored_sha != expected_sha:
+                new_files.append(file)
     
     return new_files
 
@@ -116,22 +119,24 @@ def file_sha512(file):
 
 
 def get_sys_updates():
-    '''Update the scripts on our system'''    
+    '''Update the scripts on our system'''
     maint()
     
-    if curr_client_ver():
-        return
+    fetch_latest_list = False
+    if not curr_client_ver():
+        fetch_latest_list = True
+    else:
+        try:
+            with open(file_list) as f:
+                file_list_contents = loads(f.read())
+        except OSError:
+            # FIXME Also [Errno 2] ENOENT
+            fetch_latest_list = True
     
-    # FIXME Check shasums of all files on the system at boot. Use this code.
-    #try:
-    #    with open(file_list) as f:
-    #        file_list_contents = loads(f.read())
-    #except OSError:
-    #    # FIXME Also [Errno 2] ENOENT
-    
-    file_list_contents = cloud.send('get_file_list')
-    with open(file_list, 'w') as f:
-        f.write(dumps(file_list_contents))
+    if fetch_latest_list:
+        file_list_contents = cloud.send('get_file_list')
+        with open(file_list, 'w') as f:
+            f.write(dumps(file_list_contents))
     
     print("[DEBUG] file_list_contents: '" + str(file_list_contents) + "'")
     print("[DEBUG] type(file_list_contents): '" +
@@ -201,7 +206,7 @@ def get_sys_updates():
                     f.write(row)
         except: # FIXME except what?
             print("[DEBUG] Couldn't write new_file '" + str(new_file) + "'")
-            _clean_failed_sys_updates(new_files(file_list_contents[2]))
+            _clean_failed_sys_updates(file_list_contents)
             
             # Empty the list
             successfully_updated_files = list()
@@ -214,7 +219,7 @@ def get_sys_updates():
         else:
             print("[DEBUG] stored_sha '" + str(stored_sha) + "' "
                     " != expected_sha '" + str(expected_sha) + "'")
-            _clean_failed_sys_updates(new_files(file_list_contents[2]))
+            _clean_failed_sys_updates(file_list_contents)
             
             # Empty the list
             successfully_updated_files = list()
@@ -232,52 +237,72 @@ def get_sys_updates():
             with open(updated_files_list, 'w') as f:
                 f.write(dumps(successfully_updated_files))
         except: # FIXME except what?
-            _clean_failed_sys_updates(new_files)
+            _clean_failed_sys_updates(file_list_contents)
         
-        # Reboot and the system will install any .new files. At boot we'll run
-        # install_updates().
-        # FIXME Ensure I set the boot cause same as this boot. If I booted to
-        # the web admin I want to ensure the web admin comes up again.
-        from reboot import reboot
-        reboot()
+        install_updates()
+        
+        # Instead of rebooting, just proceed to install_updates().
+        ## Reboot and the system will install any .new files. At boot we'll run
+        ## install_updates().
+        ## FIX ME If I do use this: Ensure I set the boot cause same as this
+        ## boot. For example if I booted to the web admin I want to ensure the
+        ## web admin comes up again.
+        #from reboot import reboot
+        #reboot()
 
 
 def install_updates():
     '''Install any recent updates. Typically runs at boot.'''
+    # TODO Why don't I use temp_file to create new files then install those?
+    # Would get weird if I have the same file name in two places. Maybe change
+    # temp_file to create a file as something.XXXXX.tmp, and create an install
+    # map for this function.
     # FIXME Test upgrading this file (updates.py) as well
-    # FIXME This probably isn't necessary. I'll bet we can update files without
-    # first rebooting. Update on the fly then reboot then proceed. Yeah I think
-    # I want to remove this because LED() goes back to black on reboot. Maybe
-    # one day retain that setting at boot but now now. Simpler.
+    # TODO I'm not doing this at boot 'cause I'll bet we can update files w/out
+    # first rebooting. Update on the fly then reboot then proceed.
+    # I removed this from boot because LED() goes back to black on reboot.
+    # Maybe one day retain that setting at boot but not now. Simpler.
     maint()
     do_reboot = False
+    do_upgrade = True
     
     try:
         open(updated_files_list)
     except OSError:
         return
-    
-    # Install any new versions of scripts
+
+    # Ensure all new files exist
     with open(updated_files_list) as f:
         for file in loads(f.read()):
-            # Set the flag to reboot after installing new files
-            # TODO I think there is an anti-pattern for this...
-            do_reboot = True
-            
             maint()
-            
             try:
-                # FIXME I get nervous deleting current in use system files. At
-                # least ensure the .new file really does exist. I don't know a
-                # good clean way to back up the old files and revert. Hmm.
-                # Anyway before I delete any files check that 100% of new files
-                # exist.
-                remove(file)
-            except OSError: # FIXME Get the exact exception type
-                # Ignore if it does not exist
-                pass
-            
-            rename(file + '.new', file)
+                open(file)
+            except OSError:
+                do_upgrade = False
+                break
+    
+    if do_upgrade:
+        # Install any new versions of scripts
+        with open(updated_files_list) as f:
+            for file in loads(f.read()):
+                maint()
+                
+                # Set the flag to reboot after installing new files
+                # TODO I think there is an anti-pattern for this...
+                do_reboot = True
+                
+                try:
+                    # TODO I get nervous deleting current in use system files.
+                    # At least I do ensure the .new file really does exist. I 
+                    # don't know a good clean way to back up the old files and 
+                    # revert. Hmm. Button maybe. Perhaps when doing a factory
+                    # reset, revert to factory versions of scripts.
+                    remove(file)
+                except OSError: # FIXME Get the exact exception type
+                    # Ignore if it does not exist
+                    pass
+                
+                rename(file + '.new', file)
     
     maint()
     

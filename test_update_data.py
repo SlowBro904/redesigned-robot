@@ -4,9 +4,13 @@ mywifi = sta()
 mywifi.connect()
 
 from ujson import loads
+from cloud import CloudCls
 from test_suite import good
 from os import listdir, remove
 from update_data import get_data_updates
+
+cloud = CloudCls()
+cloud.connect()
 
 test_data = '/flash/device_data/testing1.json'
 try:

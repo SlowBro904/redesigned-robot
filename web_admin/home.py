@@ -66,7 +66,8 @@ def show(parameters):
     <br />
     <a href='/error_log'>Error log</a><br />
     <br />
-    ''' + device_name + " software version " + version + " | " +
-    " Serial number " + serial
+    '''
+    body += device_name + " software version " + version + " | "
+    body += " Serial number " + serial
     
     return (title, header, h1, body)

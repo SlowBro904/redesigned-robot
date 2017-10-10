@@ -1,10 +1,11 @@
-# FIXME Failing to import ErrCls for some reason. Comment that out everywhere.
+# FIXME Failing to import ErrCls for some reason
 
 print("Starting test_datastore")
 from wifi import mywifi, sta
 mywifi = sta()
 mywifi.connect()
 
+from cloud import cloud
 from test_suite import good
 from data_store import DataStore
 
@@ -16,11 +17,10 @@ data_store.update(test_value)
 
 # If data_store.update() successfully sends data to the cloud .value will get
 # deleted. But in testing we don't send to the cloud.
-# FIXME After cloud is fixed, send to the cloud as well
-check = "data_store.value exists"
+check = "data_store.value does not exist"
 try:
     data_store.value
-except NameError:
+except (NameError, AttributeError):
     raise AssertionError(check)
 good(check)
 

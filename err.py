@@ -6,22 +6,29 @@ from maintenance import maint
 from deepsleep import deepsleep
 from data_store import DataStore
 
+debug = debugging.printmsg
+testing = debugging.testing
+
+debug("Testing debug()")
+
 class ErrCls(object):
     def __init__(self):
         '''A class for dealing with different error messages'''
         maint()
-        self.debug = debugging.printmsg
-        self.testing = debugging.testing
+        debug("ErrCls __init__() start")
         
         self.log = list()
         self.data_store = DataStore('error_log')
         self.data_store.testing = self.testing
+        debug("ErrCls __init__() end")
     
     
     def msg(self, mytype, msg):
         '''Adds a message of a certain type to the ongoing in-memory log and
         saves it to the data_store
         '''
+        maint()
+        debug("ErrCls msg() start")
         from rtc import RTC
         rtc = RTC()
         
@@ -30,6 +37,7 @@ class ErrCls(object):
         self.debug("In Err.msg(), msg: '" + str(msg) + "'")
         log_entry = (rtc.now(), mytype, {'message': msg})
         self.log.append(log_entry)
+        debug("ErrCls msg() end")
         return self.data_store.update(log_entry)
     
     
@@ -39,6 +47,7 @@ class ErrCls(object):
         '''
         # FIXME Do a code review, ensure I do maint() everywhere
         maint()
+        debug("ErrCls warn() start")
 
         #print("debugging.enabled in warn(): '" + str(debugging.enabled) + "'")
         
@@ -52,10 +61,13 @@ class ErrCls(object):
         #            (self.leds.warn, False, 1500)),
         #            default = True)
         leds.LED('warn', default = True)
+        debug("ErrCls warn() end")
     
     
     def err(self, msg):
         '''Things got real bad. Stop everything.'''
+        maint()
+        debug("ErrCls err() start")
         from time import sleep
         
         self.msg('error', msg)
@@ -77,6 +89,7 @@ class ErrCls(object):
         if not self.testing:
             wdt.stop()
         
+        debug("ErrCls err() end")
         deepsleep()
     
     
@@ -94,6 +107,8 @@ class ErrCls(object):
         'action': A human-readable string describing the action we were taking
             such as "Testing exception logging"
         '''
+        maint()
+        debug("ErrCls exc() start")
         # TODO Also optionally allow the exception to flow through to stderr
         if args:
             content = args
@@ -106,5 +121,6 @@ class ErrCls(object):
         # to this module.
         
         self.msg('exception', content)
+        debug("ErrCls exc() end")
         if not self.testing:
             sys.exit(1)

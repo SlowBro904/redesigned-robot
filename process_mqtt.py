@@ -18,7 +18,7 @@ default_level = 0
 client_code_base = '/clients'
 device_data = {'SB': 
                 {'240ac400b1b6':
-                    {'0.0.1': 
+                    {'0.0.0': 
                         {'testing1.json': ['testing1', '123']}
                     }
                 }
@@ -26,7 +26,7 @@ device_data = {'SB':
 
 device_data_status = {'SB':
                         {'240ac400b1b6':
-                            {'0.0.1':
+                            {'0.0.0':
                                 {'testing1.json': False}
                             }
                         }
@@ -36,7 +36,7 @@ mqtt_client = mqtt.Client(client_id = 'better_automations')
 
 # Client name and version they are at
 # FIXME Need to also auto subscribe to new versions
-authorized_devices = {'SB': {'240ac400b1b6': '0.0.1'}}
+authorized_devices = {'SB': {'240ac400b1b6': '0.0.0'}}
 device_keys = {'SB': {'240ac400b1b6': 'abcd1234'}}
 device_log = dict()
 device_log['SB'] = dict()
@@ -138,7 +138,7 @@ def on_message(client, userdata, in_msg):
     elif topic == 'error_log':
         try:
             device_log[dev_type][serial]
-        except AttributeError:
+        except KeyError:
             device_log[dev_type][serial] = list()
         device_log[dev_type][serial].append(msg)
         # FIXME Here, do something with the errors received
@@ -167,6 +167,10 @@ def on_message(client, userdata, in_msg):
         debug("status: '" +
                 str(device_log[dev_type][serial][device]) + "'")
         
+        out_msg = 'ack'
+
+
+    elif topic == 'testing':
         out_msg = 'ack'
     
     

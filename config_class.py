@@ -8,7 +8,8 @@ debug = debugging.printmsg
 testing = debugging.testing
 
 class Config(object):
-    def __init__(self, config_file, defaults_file):
+    def __init__(self, config_file = '/flash/config.json',
+                    defaults_file = '/flash/defaults.json'):
         '''Provides a dictionary with keys and values coming from the config
         file's options and values.
         

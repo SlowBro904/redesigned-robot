@@ -1,7 +1,11 @@
+print("[DEBUG] cloud.py start")
 import debugging
-from err import ErrCls
+# FIXME Uncomment
+#from err import ErrCls
 from time import sleep
+print("[DEBUG] cloud.py before MQTTCls")
 from mqtt import MQTTCls
+print("[DEBUG] cloud.py after MQTTCls")
 from maintenance import maint
 
 debug = debugging.printmsg
@@ -11,13 +15,17 @@ class CloudCls(object):
     def __init__(self):
         '''Sets up communications with the cloud servers'''
         maint()
-        self.err = ErrCls()
+        print("[DEBUG] cloud.py __init__() start")
+        # FIXME Uncomment
+        #self.err = ErrCls()
         self.mqtt = MQTTCls()
         debug("__init__() complete", level = 1)
+        print("[DEBUG] cloud.py __init__() end")
     
     
     def connect(self):
         '''Connect to our MQTT broker'''
+        maint()
         #try:
         return self.mqtt.connect()
         #except:
@@ -61,13 +69,14 @@ class CloudCls(object):
         '''Ensure we can ping the cloud, login, and use encryption'''
         maint()
         try:
-            status = self._status
+            return self._status
         except AttributeError:
             # FIXME Not using encryption. See note in mqtt.py _decrypt().
             #status = (self.can_login() and self.encryption_working())
-            status = self.can_login()
+            # FIXME Comment
+            print("[DEBUG] cloud.py isconnected() self._status AttributeError")
+            self._status = self.can_login()
         
-        self._status = status
         return self._status
     
     
@@ -110,8 +119,7 @@ class CloudCls(object):
         ## Delay for publish and return data
         #sleep(5)
         
-        # FIXME be aware that mqtt.get() returns a byte object
-        # FIXME Not working. Returning None for file_list_contents
+        # Be aware that mqtt.get() returns a byte object
         result = self.mqtt.get(topic, decrypt = decrypt)
         
         # FIXME Revert to debug()
@@ -122,3 +130,7 @@ class CloudCls(object):
         ##   TypeError: can't convert 'NoneType' object to str implicitly
         #if result is not None:
         #    return result
+# End of CloudCls
+
+cloud = CloudCls()
+cloud.connect()

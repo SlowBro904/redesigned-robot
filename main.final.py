@@ -2,10 +2,11 @@
 import gc
 gc.enable()
 
-# Did we download any new updates? Install them now before anything runs.
-# Test written
-from update_sys import install_updates, get_sys_updates
-install_updates()
+# Don't install updates on boot. Going to install them after get_sys_updates().
+## Did we download any new updates? Install them now before anything runs.
+## Test written
+from update_sys import get_sys_updates#, install_updates
+#install_updates()
 
 # The rest of our modules
 # Tested
@@ -38,8 +39,11 @@ from deepsleep import deepsleep
 from datastore import DataStore
 # Tested
 from boot_cause import boot_cause
-# Test written
+# Tested
 from update_data import get_data_updates
+
+# Keep our watchdog fed or he'll bite
+wdt.start()
 
 err = Err()
 
@@ -56,9 +60,6 @@ battery = Battery()
 system = System()
 schedule = ScheduleCls(system.attached_devices)
 cloud = CloudCls()
-
-# Keep our watchdog fed or he'll bite
-wdt.start()
 
 # If our charge is too low this will error
 battery.check_charge()
@@ -93,7 +94,8 @@ except RuntimeError:
 schedule.run()
 DataStore.save_all()
 
-# FIXME For production disable the web repl, FTP, telnet, serial, etc.
+# FIXME For production disable the web repl, FTP, telnet, serial, etc. Edit the
+# source code, esp32/frozen/_boot.py.
 # TODO Inside webadmin, a read-only serial console. Or log the console and
 # upload it.
 

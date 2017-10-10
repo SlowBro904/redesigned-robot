@@ -4,11 +4,10 @@ import temp_file
 from cloud import CloudCls
 from maintenance import maint
 from ujson import dumps, loads
-from uos import listdir, remove
+from uos import listdir, remove, mkdir
 
 #err = ErrCls()
 cloud = CloudCls()
-cloud.connect()
 
 def get_data_updates(get_all = False):
     '''Get recent data updates such as new door schedules from our 
@@ -22,6 +21,9 @@ def get_data_updates(get_all = False):
     '''
     # TODO If our schedule is incomplete for some reason error/warn
     maint()
+
+    if 'device_data' not in listdir('/flash'):
+        mkdir('device_data')
     
     get_all_flag = '/flash/get_all_data_files.json'
     

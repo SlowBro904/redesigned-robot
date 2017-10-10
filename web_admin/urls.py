@@ -1,4 +1,4 @@
-def get_web_page_content(path, parameters)
+def get_web_page_content(path, parameters):
     '''Gets our web page data.
     
     Configure this module for your URLs.

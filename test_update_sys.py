@@ -10,12 +10,21 @@ except ImportError:
 # FIXME Create some kind of one-off script run that I can have the customer
 # reboot, download the script, execute, upload results
 import debugging
+from cloud import CloudCls
 from test_suite import good
 from os import listdir, remove
 from update_sys_simple import (get_sys_updates, install_updates,
                             _clean_failed_sys_updates)
 
 debug = debugging.printmsg
+
+cloud = CloudCls()
+
+# TODO If we are not connected umqtt/simple.py gives the following unhelpful
+# error:
+# File "umqtt/simple.py", line 176, in publish
+# AttributeError: 'NoneType' object has no attribute 'write'
+cloud.connect()
 
 # FIXME MemoryErrors. Compile to firmware/frozen bytecode.
 

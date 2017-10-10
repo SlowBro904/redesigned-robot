@@ -1,15 +1,22 @@
+print("[DEBUG] mqtt.py begin")
 # TODO Failover
 import debugging
 from time import sleep
+print("[DEBUG] mqtt.py before import config")
 from config import config
+print("[DEBUG] mqtt.py after import config")
 from uhashlib import sha512
+print("[DEBUG] mqtt.py before import SystemCls")
 from system import SystemCls
+print("[DEBUG] mqtt.py after import SystemCls")
 from ubinascii import hexlify
 from maintenance import maint
 from ujson import dumps, loads
 from crypto import AES, getrandbits
 # TODO Add exception AdafruitIOError but under what conditions
+print("[DEBUG] mqtt.py before import MQTTClient")
 from umqtt.robust import MQTTClient
+print("[DEBUG] mqtt.py after import MQTTClient")
 
 debug = debugging.printmsg
 testing = debugging.testing
@@ -18,6 +25,7 @@ class MQTTCls(object):
     def __init__(self):
         '''Setup our MQTT object'''       
         maint()
+        print("[DEBUG] mqtt.py __init__() start")
         
         self.data = dict()
         self.resub = False
@@ -44,6 +52,7 @@ class MQTTCls(object):
         # A normal client
         self.client = MQTTClient(serial, server, port, username, password)
         self.client.settimeout = timeout
+        print("[DEBUG] mqtt.py __init__() end")
     
     
     def connect(self):
@@ -54,7 +63,8 @@ class MQTTCls(object):
         # https://github.com/micropython/micropython-lib/blob/master/umqtt.robust/example_sub_robust.py
         # FIXME On connection failure we get OSError: -1
         if not self.client.connect(clean_session = False):
-            self.resub = True
+            # FIXME Test this. It did say self.resub but I think that's wrong
+            self.client.resub = True
     
     
     def disconnect(self):
@@ -70,6 +80,7 @@ class MQTTCls(object):
     
     
     def _encrypt(self, msg):
+        maint()
         # FIXME What's the diff between AES.SEGMENT_8 and AES.SEGMENT_128
         # FIXME What about message authentication codes, SHA-512
         # FIXME Keys always 16 bytes long
@@ -83,6 +94,7 @@ class MQTTCls(object):
     
     
     def _decrypt(self, msg):
+        maint()
         # FIXME Not using encryption for now. Going to see what AWS requires.
         # Maybe they have a better scheme than I could craft. Libraries, etc.
         pass
@@ -180,19 +192,27 @@ class MQTTCls(object):
         # FIXME Comment all print [DEBUG]s
         print("[DEBUG] _sub_cb() topic: '" + str(topic) + "'")#, level = 0)
         print("[DEBUG] _sub_cb() msg: '" + str(msg) + "'")#, level = 0)
+        
         topic = topic.decode('utf-8').split('/')[-1]
+        
         # Remove outer JSON encoding
         msg, remt_sha = loads(msg)
+        
         recv_msg_sha = hexlify(sha512(msg).digest())
+        
         # Remove the inner JSON encoding
         msg = loads(msg)
+        
         # TODO I think this should be more clearly stated like this:
         # remt_sha = remt_sha.encode('utf-8)
         remt_sha = bytes(remt_sha, 'utf-8')
+        
         if remt_sha == recv_msg_sha:
             # FIXME Revert to debug()
             print("[DEBUG] remt_sha == recv_msg_sha")
+            
             self.data[topic] = msg
+            
             print("[DEBUG] self.data[topic]: '" + str(self.data[topic]) + "'")
         else:
             # FIXME ping, curr_client_ver, etc. are failing here yet not
@@ -201,6 +221,7 @@ class MQTTCls(object):
             print("[DEBUG] msg: '" + str(msg) + "'")
             print("[DEBUG] remt_sha: '" + str(remt_sha) + "'")
             print("[DEBUG] recv_msg_sha: '" + str(recv_msg_sha) + "'")
+            
             # FIXME Else what? Hopefully re-request.
             pass
     

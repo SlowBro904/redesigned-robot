@@ -10,7 +10,7 @@ from config_class import Config
 
 # FIXME Move exception testing for this situation into err
 #try:
-config = Config('/flash/config.json', '/flash/defaults.json')
+config = Config()
 #except:
 #    error = "Could not load the config. ('config.py', 'main')"
 #    #err.error(error)

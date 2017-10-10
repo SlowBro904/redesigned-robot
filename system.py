@@ -1,4 +1,5 @@
-from err import ErrCls
+# FIXME Uncomment
+#from err import ErrCls
 from ujson import loads
 from config import config
 from maintenance import maint
@@ -9,7 +10,8 @@ class SystemCls(object):
         regarding the system such as the attached devices
         '''
         maint()
-        self.err = ErrCls()
+        # FIXME Uncomment
+        #self.err = ErrCls()
     
     
     @property
